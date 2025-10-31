@@ -14,12 +14,12 @@ export class WordListService {
 
 
   fetchData(): Observable<any[]> {
-    // return this.http.get<any[]>(this.jsonUrl);
-    return of([
-      { "departmentId": 1, "departmentName": "HR" },
-      { "departmentId": 2, "departmentName": "Finance" },
-      { "departmentId": 3, "departmentName": "IT" }
-    ]);
+    return this.http.get<any[]>(this.jsonUrl);
+    // return of([
+    //   { "departmentId": 1, "departmentName": "HR" },
+    //   { "departmentId": 2, "departmentName": "Finance" },
+    //   { "departmentId": 3, "departmentName": "IT" }
+    // ]);
   }
 
 
