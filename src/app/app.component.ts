@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { WordlistComponent } from './component/wordlist/wordlist.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [WordlistComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
