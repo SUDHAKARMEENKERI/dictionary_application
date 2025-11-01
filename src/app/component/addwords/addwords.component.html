@@ -1,1 +1,24 @@
-<p>addwords works!</p>
+<!-- user-form.component.html -->
+<div>
+    <h2>Add a New Word</h2>
+
+    <form [formGroup]="addWordForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
+        <div class="mb-3">
+            <label for="name" class="form-label">Word</label>
+            <input id="name" type="text" class="form-control" formControlName="word" />
+            <div *ngIf="addWordForm.get('word')?.invalid && addWordForm.get('word')?.touched" class="text-danger">
+                Word is required.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="meaning" class="form-label">Meaning</label>
+            <textarea id="meaning" class="form-control" formControlName="meaning"></textarea>
+            <div *ngIf="addWordForm.get('meaning')?.invalid && addWordForm.get('meaning')?.touched" class="text-danger">
+                Meaning is required.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="addWordForm.invalid">Submit</button>
+
+    </form>
+</div>

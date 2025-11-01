@@ -23,7 +23,7 @@ export const departmentReducer = createReducer(
     })),
     on(loadDepartmentSuccess, (state, { departments }) => ({
         ...state,
-        departments,   
+        departments,
         loading: false
     })),
     on(loadDepartmentFailure, (state, { error }) => ({

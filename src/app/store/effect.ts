@@ -15,7 +15,7 @@ export class DepartmentEffects {
             ofType(loadDepartment),
             mergeMap(() =>
                 this.departmentService.fetchData().pipe(
-                    map((departments: any) => loadDepartmentSuccess({ departments }))
+                    map((departments) => loadDepartmentSuccess({ departments }))
                 )
             )
         )

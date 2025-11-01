@@ -7,6 +7,8 @@ import { departmentReducer } from './store/reducer';
 import { DepartmentEffects } from './store/effect';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
+import { UserEffects } from './store/words/effect';
+import { wordReducer } from './store/words/reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(HttpClientModule),
 
     // NgRx providers (root)
-    provideStore({ department: departmentReducer }), // replace 'word' and 'dataReducer' with actual feature name and reducer
-    provideEffects([DepartmentEffects]),
+    provideStore({ department: departmentReducer, user: wordReducer }), // replace 'word' and 'dataReducer' with actual feature name and reducer
+    provideEffects([DepartmentEffects, UserEffects]),
   ]
 };
