@@ -5,7 +5,16 @@
   }
 </ul> -->
 <div class="mt-4">
-  <h3>Word List</h3>
+  <div class="row">
+    <div class="col">
+      <h3>Word List</h3>
+    </div>
+    <div class="col" style="text-align: center;"><button (click)="addWord()" class="btn btn-sm btn-primary">
+        Add Word
+      </button>
+    </div>
+  </div>
+
   <table class="table table-bordered table-striped">
     <thead class="thead-dark">
       <tr>
@@ -20,10 +29,10 @@
         <td>{{ item.word }}</td>
         <td>{{ item.meaning }}</td>
         <td> <button (click)="editWord(item)" class="btn btn-sm btn-primary me-2">
-             Edit
+            Edit
           </button></td>
 
-          <td> <button (click)="deleteWord(item)" class="btn btn-sm btn-danger">
+        <td> <button (click)="deleteWord(item)" class="btn btn-sm btn-danger">
             Delete
           </button></td>
 

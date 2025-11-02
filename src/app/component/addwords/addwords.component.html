@@ -1,6 +1,13 @@
 <!-- user-form.component.html -->
 <div>
-    <h2>Add a New Word</h2>
+    <div class="row">
+        <div class="col">
+            <h2>Add a New Word</h2>
+        </div>
+        <div class="col" style="text-align: center;">
+            <button (click)="showWordList()" class="btn btn-primary">Show Word List</button>
+        </div>
+    </div>
 
     <form [formGroup]="addWordForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
         <div class="mb-3">

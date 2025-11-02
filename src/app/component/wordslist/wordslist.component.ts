@@ -4,9 +4,8 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { loadDepartment } from '../../store/action';
 import { selectDepartments, selectDepartmentsLoading, selectDepartmentState } from '../../store/seletor';
 import { selectWords } from '../../store/words/selector';
-import { loadWords } from '../../store/words/action';
+import { deleteWordById, loadWords } from '../../store/words/action';
 import { Router } from '@angular/router';
-
 
 @Component({
   selector: 'app-wordslist',
@@ -29,20 +28,29 @@ export class WordslistComponent implements OnInit{
 
   ngOnInit(): void {
     // this.store.dispatch(loadDepartment());
-    this.store.dispatch(loadWords());
-    this.wordList$.subscribe(data => {
-      this.wordlistData = data;
-    });
-    console.log('Word List Data:', this.wordlistData);
+    this.loadWordsList();
   }
+
   editWord(item: any) {
     this.router.navigate(['/addWords', item.id]);
   }
 
-  deleteWord(id: number) {
-    this.wordlistData = this.wordlistData.filter((item: any) => item.id !== id);
-    localStorage.setItem('wordList', JSON.stringify(this.wordlistData));
+  deleteWord(item: any) {
+    this.store.dispatch(deleteWordById({ id: item.id }));
+    this.loadWordsList();
+  }
 
+  loadWordsList() {
+    setTimeout(() => {
+      this.store.dispatch(loadWords());
+      this.wordList$.subscribe(data => {
+      this.wordlistData = data;
+    });
+    }, 500);  
+  }
+
+  addWord(){
+    this.router.navigate(['/addWords']);
   }
 
 }

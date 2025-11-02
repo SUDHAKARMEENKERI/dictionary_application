@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { UserWord } from './model';
-import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWord, submitWordFailure, submitWordSuccess, getWordById, getWordByIdSuccess, getWordByIdFailure, deleteWordById, deleteWordByIdFailure, deleteWordByIdSuccess } from './action';
+import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWord, submitWordFailure, submitWordSuccess, getWordById, getWordByIdSuccess, getWordByIdFailure, deleteWordById, deleteWordByIdFailure, deleteWordByIdSuccess, updateWordByIdFailure, updateWordById, updateWordByIdSuccess } from './action';
 import { WordListService } from '../../service/word-list.service';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class UserEffects {
       ofType(loadWords),
       mergeMap(() =>
         this.wordsListService.fetchWords().pipe(
-          map((response: UserWord) => loadWordLoadSuccess({ response })),
+          map((response: any) => loadWordLoadSuccess({ response })),
           catchError(err => of(loadWordLoadFailure({ error: err.message })))
         )
       )
@@ -49,12 +49,24 @@ export class UserEffects {
     )
   );
 
+  updateWordById$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateWordById),
+      mergeMap((action: any) =>
+        this.wordsListService.updateWordById(action.word).pipe(
+          map((response: any) => updateWordByIdSuccess({ response })),
+          catchError(err => of(updateWordByIdFailure({ error: err.message })))
+        )
+      )
+    )
+  );
+  
   deleteWordById$ = createEffect(() =>
     this.actions$.pipe(
       ofType(deleteWordById),
       mergeMap((action: any) =>
         this.wordsListService.deleteWordById(action.id).pipe(
-          map((response: UserWord) => deleteWordByIdSuccess({ response })),
+          map((response: any) => deleteWordByIdSuccess({ response })),
           catchError(err => of(deleteWordByIdFailure({ error: err.message })))
         )
       )

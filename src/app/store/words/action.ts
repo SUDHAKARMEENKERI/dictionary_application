@@ -14,6 +14,10 @@ export const getWordById = createAction('[GetWordById] Submit', props<{ id: numb
 export const getWordByIdSuccess = createAction( '[GetWordById] Get Success', props<{ response: UserWord }>());
 export const getWordByIdFailure = createAction( '[GetWordById] Get Failure', props<{ error: string }>());
 
-export const deleteWordById = createAction('[DeleteWordById] Submit', props<{ word: UserWord }>());
+export const updateWordById = createAction('[UpdateWordById] Submit', props<{ word: UserWord }>());
+export const updateWordByIdSuccess = createAction( '[UpdateWordById] Update Success', props<{ response: UserWord }>());
+export const updateWordByIdFailure = createAction( '[UpdateWordById] Update Failure', props<{ error: string }>());
+
+export const deleteWordById = createAction('[DeleteWordById] Submit', props<{ id: number }>());
 export const deleteWordByIdSuccess = createAction( '[DeleteWordById] Delete Success', props<{ response: UserWord }>());
 export const deleteWordByIdFailure = createAction( '[DeleteWordById] Delete Failure', props<{ error: string }>());

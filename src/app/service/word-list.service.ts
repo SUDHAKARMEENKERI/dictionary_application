@@ -14,18 +14,8 @@ export class WordListService {
   private jsonUrl = 'mockdata/wordlist.json'; // Updated path
 
   submitUserAddedWord(user: UserWord): Observable<UserWord> {
-    // Step 1: Get existing data
-    const existingData = localStorage.getItem('userAddedData');
-    const dataArray = existingData ? JSON.parse(existingData) : [];
-    const newWord = { ...user, id: dataArray.length + 1 };
-    // Step 2: Add new entry
-    dataArray.push(newWord);
-
-    // Step 3: Save updated array
-    localStorage.setItem('userAddedData', JSON.stringify(dataArray));
-
-
-    return this.http.post<UserWord>('/api/users', user);
+    const apiUrl = 'http://localhost:8080/api/words';
+    return this.http.post<UserWord>(apiUrl, user);
   }
 
   fetchData(): Observable<any[]> {
@@ -33,23 +23,23 @@ export class WordListService {
   }
 
   fetchWords() {
-    const existingData = localStorage.getItem('userAddedData');
-    const dataArray = existingData ? JSON.parse(existingData) : [];
-    return of(dataArray);
+    const apiUrl = 'http://localhost:8080/api/words';
+    return this.http.get<UserWord>(apiUrl);
   }
 
   fetchWordById(id: number) {
-    const existingData = localStorage.getItem('userAddedData');
-    const dataArray = existingData ? JSON.parse(existingData) : [];
-    const data = dataArray.find((item: UserWord) => item.id === id);
-    return of(data);
+    const apiUrl = 'http://localhost:8080/api/words/'+ id;
+    return this.http.get<UserWord>(apiUrl);
+  }
+
+  updateWordById(word: any) {
+    const apiUrl = 'http://localhost:8080/api/words/'+ word.id;
+    return this.http.put<UserWord>(apiUrl, word);
   }
 
   deleteWordById(id: number) {
-    const existingData = localStorage.getItem('userAddedData');
-    const dataArray = existingData ? JSON.parse(existingData) : [];
-    const data = dataArray.filter((item: UserWord) => item.id !== id);
-    return of(data);
+     const apiUrl = 'http://localhost:8080/api/words/'+ id;
+    return this.http.delete<UserWord>(apiUrl);
   }
 
 

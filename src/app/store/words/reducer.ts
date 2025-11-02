@@ -1,7 +1,7 @@
 // store/word.reducer.ts
 import { createReducer, on } from '@ngrx/store';
 import { UserWord } from './model';
-import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWordFailure, submitWordSuccess, getWordByIdSuccess, getWordByIdFailure } from './action';
+import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWordFailure, submitWordSuccess, getWordByIdSuccess, getWordByIdFailure, updateWordByIdSuccess, updateWordByIdFailure, deleteWordByIdSuccess, deleteWordByIdFailure } from './action';
 
 export interface WordState {
   word: UserWord | null;
@@ -25,10 +25,7 @@ export const wordReducer = createReducer(
     error
   })),
 
-  // on(loadWords, (state) => ({
-  //   ...state,
-  //   error: null
-  // })),
+  
   on(loadWordLoadSuccess, (state, { response }) => ({
     ...state,
     word: response,
@@ -45,6 +42,28 @@ export const wordReducer = createReducer(
     error: null
   })),
   on(getWordByIdFailure, (state, { error }) => ({
+    ...state,
+    error
+  })),
+
+  on(updateWordByIdSuccess, (state, { response }) => ({
+    ...state,
+    word: response,
+    error: null
+  })),
+  
+  on(updateWordByIdFailure, (state, { error }) => ({
+    ...state,
+    error
+  })),
+
+  on(deleteWordByIdSuccess, (state, { response }) => ({
+    ...state,
+    word: response,
+    error: null
+  })),
+  
+  on(deleteWordByIdFailure, (state, { error }) => ({
     ...state,
     error
   })),

@@ -9,15 +9,10 @@ import { Router } from '@angular/router';
   styleUrl: './home-page.component.scss'
 })
 export class HomePageComponent implements OnInit{
-  isClickedbtn: boolean = false;
 
   ngOnInit(): void {
     this.router.navigate(['/addWords']);
   }
 
   constructor(private router: Router) {}
-  showWordList() {
-    this.isClickedbtn = true;
-    this.router.navigate(['/wordlist']);
-  }
 }

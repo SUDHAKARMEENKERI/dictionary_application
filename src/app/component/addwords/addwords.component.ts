@@ -3,8 +3,8 @@ import { UserWord } from '../../store/words/model';
 import { Store } from '@ngrx/store';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { getWordById, submitWord } from '../../store/words/action';
-import { ActivatedRoute } from '@angular/router';
+import { getWordById, submitWord, updateWordById } from '../../store/words/action';
+import { ActivatedRoute, Router } from '@angular/router';
 import { selectWords } from '../../store/words/selector';
 
 
@@ -16,9 +16,9 @@ import { selectWords } from '../../store/words/selector';
 })
 export class AddwordsComponent implements OnInit {
   addWordForm!: FormGroup;
-  isEditFlow: boolean = false;
+  isEditFlow = false;
 
-  constructor(private store: Store, private activeroute: ActivatedRoute) { }
+  constructor(private store: Store, private activeroute: ActivatedRoute, private router: Router) { }
 
   ngOnInit(): void {
     this.addWordForm = new FormGroup({
@@ -31,14 +31,13 @@ export class AddwordsComponent implements OnInit {
       if (params.get('id')) {
         this.isEditFlow = true;
         this.store.dispatch(getWordById({ id: Number(params.get('id')) }));
-
       }
     });
 
     if (this.isEditFlow) {
-      const data = this.store.select(selectWords);
-      data.subscribe(words => {
+      this.store.select(selectWords).subscribe(words => {
         this.addWordForm.patchValue({
+          id: words?.id,
           word: words?.word,
           meaning: words?.meaning
         });
@@ -51,8 +50,16 @@ export class AddwordsComponent implements OnInit {
   onSubmit() {
     if (this.addWordForm.valid) {
       const userData: UserWord = this.addWordForm.value;
-      this.store.dispatch(submitWord({ word: userData }));
+      if (this.isEditFlow) {
+        this.store.dispatch(updateWordById({ word: userData }));
+        this.router.navigate(['/wordlist']);
+      } else {
+        this.store.dispatch(submitWord({ word: userData }));
+      }
     }
   }
 
+  showWordList() {
+    this.router.navigate(['/wordlist']);
+  }
 }
