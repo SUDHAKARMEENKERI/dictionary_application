@@ -31,23 +31,19 @@ export class WordListService {
 
   fetchWordById(id: number) {
     // const apiUrl = 'http://localhost:8080/api/words/'+ id;
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words'+ id;
+    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/'+ id;
     return this.http.get<UserWord>(apiUrl);
   }
 
   updateWordById(word: any) {
     // const apiUrl = 'http://localhost:8080/api/words/'+ word.id;
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words'+ word.id;
+    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/'+ word.id;
     return this.http.put<UserWord>(apiUrl, word);
   }
 
   deleteWordById(id: number) {
     //  const apiUrl = 'http://localhost:8080/api/words/'+ id;
-     const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words'+ id;
+     const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/'+ id;
     return this.http.delete<UserWord>(apiUrl);
   }
-
-
-
-
 }

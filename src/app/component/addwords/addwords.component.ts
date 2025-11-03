@@ -52,14 +52,17 @@ export class AddwordsComponent implements OnInit {
       const userData: UserWord = this.addWordForm.value;
       if (this.isEditFlow) {
         this.store.dispatch(updateWordById({ word: userData }));
-        this.router.navigate(['/wordlist']);
+        this.router.navigate(['/wordlist', { state: 'edit'}]);
       } else {
         this.store.dispatch(submitWord({ word: userData }));
+        this.router.navigate(['/wordlist', { state: 'add'}]);
       }
     }
+    
   }
 
   showWordList() {
     this.router.navigate(['/wordlist']);
   }
+
 }
