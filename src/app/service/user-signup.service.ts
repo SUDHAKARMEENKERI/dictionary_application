@@ -10,19 +10,19 @@ export class UserSignUpService {
 
     getAllUsers(): Observable<any> {
         // const apiUrl = 'http://localhost:8080/api/users';
-        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/users';
+        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/user';
         return this.http.get(apiUrl);
     }
 
     getUserByMobile(mobileNo: string): Observable<any> {
         // const apiUrl = `http://localhost:8080/api/user/${mobileNo}`;
-        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/users/${mobileNo}`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/user/${mobileNo}`;
         return this.http.get(apiUrl);
     }
 
     registerUser(userData: any): Observable<any> {
         // const apiUrl = 'http://localhost:8080/api/user';
-        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/users';
+        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/user';
         return this.http.post(apiUrl, userData);
     }
 
