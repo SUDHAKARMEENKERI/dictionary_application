@@ -4,3 +4,7 @@ export interface UserWord {
   word: string;
   meaning: string;
 }
+
+export interface UserState {
+  mobile: string;
+}

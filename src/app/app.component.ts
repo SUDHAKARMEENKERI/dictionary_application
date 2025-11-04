@@ -1,13 +1,16 @@
 import { Component } from '@angular/core';
 import { HomePageComponent } from './component/home-page/home-page.component';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './component/header/header.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,HomePageComponent],
+  imports: [RouterOutlet,HomePageComponent,HeaderComponent, CommonModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  constructor(public router: Router) {}
   title = 'dictionary_application';
 }

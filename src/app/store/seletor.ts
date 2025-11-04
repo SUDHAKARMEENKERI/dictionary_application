@@ -1,14 +1,9 @@
-import { createFeatureSelector, createSelector } from "@ngrx/store";
-import { departmentState } from "./reducer";
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { UserState } from './model';
 
-export const selectDepartmentState = createFeatureSelector<departmentState>('department');
+export const selectUserState = createFeatureSelector<UserState>('userDetails');
 
-export const selectDepartments = createSelector(
-    selectDepartmentState,
-    (state: departmentState) => state.departments
-);
-
-export const selectDepartmentsLoading = createSelector(
-    selectDepartmentState,
-    (state: departmentState) => state.loading
+export const selectMobile = createSelector(
+  selectUserState,
+  (state: UserState) => state.mobile
 );

@@ -9,7 +9,6 @@ import { UserWord } from '../store/words/model';
 export class WordListService {
 
   constructor(private http: HttpClient) { }
-  words: any = [];
 
   private jsonUrl = 'mockdata/wordlist.json'; // Updated path
 
@@ -26,7 +25,13 @@ export class WordListService {
   fetchWords() {
     // const apiUrl = 'http://localhost:8080/api/words';
     const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words';
-    return this.http.get<UserWord>(apiUrl);
+    return this.http.get<UserWord[]>(apiUrl);
+  }
+
+  fetchWordsByMobile(mobile: string) {
+    // const apiUrl = `http://localhost:8080/api/words/user/${mobile}`;
+    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words?mobile=${mobile}`;
+    return this.http.get<UserWord[]>(apiUrl);
   }
 
   fetchWordById(id: number) {

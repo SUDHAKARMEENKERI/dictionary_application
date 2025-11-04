@@ -5,6 +5,8 @@ import { selectWords } from '../../store/words/selector';
 import { deleteWordById, loadWords } from '../../store/words/action';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BannerComponent } from '../banner/banner.component';
+import { WordListService } from '../../service/word-list.service';
+import { selectMobile } from '../../store/seletor';
 
 @Component({
   selector: 'app-wordslist',
@@ -19,7 +21,9 @@ export class WordslistComponent implements OnInit {
     message: ''
   };
 
-  constructor(private router: Router, private activeRouter: ActivatedRoute) { }
+  constructor(private router: Router, private activeRouter: ActivatedRoute,
+    private wordService: WordListService
+  ) { }
 
 
   private store: Store = inject(Store);
@@ -51,7 +55,7 @@ export class WordslistComponent implements OnInit {
           message: 'Word Edit Successfully'
         }
       }
-    })
+    });
 
   }
 
@@ -75,11 +79,24 @@ export class WordslistComponent implements OnInit {
 
   loadWordsList() {
     setTimeout(() => {
-      this.store.dispatch(loadWords());
-      this.wordList$.subscribe(data => {
-        this.wordlistData = data;
+      // this.store.dispatch(loadWords());
+      // this.wordList$.subscribe(data => {
+      // this.wordlistData = data;
+      // });
+      const data = localStorage.getItem('login');
+    if (data) {
+      const mobile = JSON.parse(data).mobile;
+      this.wordService.fetchWordsByMobile(mobile).subscribe({
+        next: (data) => {
+          this.wordlistData = data;
+        },
+        error: (error) => console.error('Error fetching words by mobile', error)
       });
+
+    }
     }, 500);
+
+    
   }
 
   addWord() {

@@ -1,34 +1,12 @@
-import { createReducer, on } from "@ngrx/store";
-import { Department } from "./model";
-import { loadDepartment, loadDepartmentFailure, loadDepartmentSuccess } from "./action";
+import { createReducer, on } from '@ngrx/store';
+import { UserState } from './words/model';
+import { setMobile } from './action';
 
-export interface departmentState{
-    departments: Department[];
-    loading: boolean;
-    error: any;
-}
-
-export const initialDepartmentState: departmentState = {
-    departments: [],
-    loading: false,
-    error: null
+const initialState: UserState = {
+  mobile: ''
 };
 
-export const departmentReducer = createReducer(
-    initialDepartmentState,
-    on(loadDepartment, state => ({
-        ...state,
-        loading: true,
-        error: null
-    })),
-    on(loadDepartmentSuccess, (state, { departments }) => ({
-        ...state,
-        departments,
-        loading: false
-    })),
-    on(loadDepartmentFailure, (state, { error }) => ({
-        ...state,
-        loading: false,
-        error: error
-    }))
+export const userReducer = createReducer(
+  initialState,
+  on(setMobile, (state, { mobile }) => ({ ...state, mobile }))
 );

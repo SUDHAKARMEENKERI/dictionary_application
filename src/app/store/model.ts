@@ -1,4 +1,3 @@
-export interface Department {
-  departmentId: number;
-  departmentName: string;
+export interface UserState {
+  mobile: string;
 }

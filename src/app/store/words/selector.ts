@@ -1,7 +1,7 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import { WordState } from "./reducer";
 
-export const selectWordState = createFeatureSelector<WordState>('user');
+export const selectWordState = createFeatureSelector<WordState>('word');
 
 export const selectWords = createSelector(
     selectWordState,

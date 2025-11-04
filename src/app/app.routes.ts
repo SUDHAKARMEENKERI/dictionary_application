@@ -1,11 +1,18 @@
 import { Routes } from '@angular/router';
 import { HomePageComponent } from './component/home-page/home-page.component';
+import { AuthGuard } from './auth.guard';
+import { LoginComponent } from './component/login/login.component';
+import { SignupComponent } from './component/signup/signup.component';
+import { ForgotPasswordComponent } from './component/forgot-password/forgot-password.component';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'home', pathMatch: 'full' },
-    { path: 'home', component: HomePageComponent },
-    { path: 'wordlist', loadComponent: () => import('./component/wordslist/wordslist.component').then(m => m.WordslistComponent) },
-    { path: 'addWords', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent) },
-    { path: 'addWords/:id', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent) },
+    { path: 'login', component: LoginComponent },
+    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: 'home', loadComponent: () => import('./component/home-page/home-page.component').then(m => m.HomePageComponent), canActivate: [AuthGuard] },
+    { path: 'wordlist', loadComponent: () => import('./component/wordslist/wordslist.component').then(m => m.WordslistComponent), canActivate: [AuthGuard] },
+    { path: 'addWords', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
+    { path: 'addWords/:id', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
+    { path: 'signup', component: SignupComponent },
+    { path: 'forgotpassword', component: ForgotPasswordComponent },
 
 ];

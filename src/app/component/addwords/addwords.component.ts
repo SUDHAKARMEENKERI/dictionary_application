@@ -49,16 +49,21 @@ export class AddwordsComponent implements OnInit {
 
   onSubmit() {
     if (this.addWordForm.valid) {
-      const userData: UserWord = this.addWordForm.value;
+      const userData: any = this.addWordForm.value;
+      const data = localStorage.getItem('login');
+      if (data) {
+        const mobile = JSON.parse(data).mobile;
+        userData['mobile'] = mobile;
+      }
       if (this.isEditFlow) {
         this.store.dispatch(updateWordById({ word: userData }));
-        this.router.navigate(['/wordlist', { state: 'edit'}]);
+        this.router.navigate(['/wordlist', { state: 'edit' }]);
       } else {
         this.store.dispatch(submitWord({ word: userData }));
-        this.router.navigate(['/wordlist', { state: 'add'}]);
+        this.router.navigate(['/wordlist', { state: 'add' }]);
       }
     }
-    
+
   }
 
   showWordList() {

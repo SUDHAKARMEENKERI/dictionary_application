@@ -1,0 +1,23 @@
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
+    <div class="mb-3">
+        <label>Mobile Number:</label>
+        <input formControlName="mobile" type="text" class="form-control" />
+        <div *ngIf="loginForm.get('mobile')?.invalid && loginForm.get('mobile')?.touched">
+            Enter a valid mobile number.
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Password:</label>
+        <input formControlName="password" type="password" class="form-control" />
+        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            Password must be at least 6 characters.
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid">Log In</button>
+</form>
+<div class="row mb-3 mt-2">
+    <div class="col"><a [routerLink]="'/signup'">Don't have an account? Register</a></div>
+    <div class="col"><a [routerLink]="'/forgotpassword'">Forgot Password?</a></div>
+</div>
