@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { getWordById, submitWord, updateWordById } from '../../store/words/action';
 import { ActivatedRoute, Router } from '@angular/router';
 import { selectWords } from '../../store/words/selector';
+import { UserSignUpService } from '../../service/user-signup.service';
 
 
 @Component({
@@ -17,8 +18,12 @@ import { selectWords } from '../../store/words/selector';
 export class AddwordsComponent implements OnInit {
   addWordForm!: FormGroup;
   isEditFlow = false;
+  userList: any;
+  isOwner = false;
 
-  constructor(private store: Store, private activeroute: ActivatedRoute, private router: Router) { }
+  constructor(private store: Store, private activeroute: ActivatedRoute, private router: Router,
+    private userService: UserSignUpService
+  ) { }
 
   ngOnInit(): void {
     this.addWordForm = new FormGroup({
@@ -44,6 +49,20 @@ export class AddwordsComponent implements OnInit {
       });
 
     }
+
+    this.userService.getAllUsers().subscribe({
+      next: (users) => {
+        console.log('Fetched Users:', users);
+        this.userList = users;
+      },
+      error: (error) => { console.error('Error fetching users:', error); }
+    });
+
+    const loginUser = localStorage.getItem('login');
+    if(loginUser){
+      this.isOwner = JSON.parse(loginUser).mobile === '9611675325' ? true : false; 
+    }
+    
 
   }
 

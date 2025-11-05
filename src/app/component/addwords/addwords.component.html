@@ -29,5 +29,11 @@
         <button type="submit" class="btn btn-primary" [disabled]="addWordForm.invalid">Submit</button>
     </form>
 
+    <div *ngIf="isOwner" class="mt-4">
+        <div *ngFor="let user of userList">
+            <p>{{ user.username }} - {{ user.email }}</p>
+        </div>
+    </div>
+
     
 </div>
