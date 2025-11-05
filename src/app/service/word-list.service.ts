@@ -30,7 +30,7 @@ export class WordListService {
 
   fetchWordsByMobile(mobile: string) {
     // const apiUrl = `http://localhost:8080/api/words/user/${mobile}`;
-    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words?mobile=${mobile}`;
+    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words/user/${mobile}`;
     return this.http.get<UserWord[]>(apiUrl);
   }
 
