@@ -2,28 +2,37 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { selectWords } from '../../store/words/selector';
-import { deleteWordById, loadWords } from '../../store/words/action';
+import { deleteWordById } from '../../store/words/action';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BannerComponent } from '../banner/banner.component';
 import { WordListService } from '../../service/word-list.service';
-import { selectMobile } from '../../store/seletor';
 import { LoaderService } from '../../service/loader.service';
+import { ExportDataToExcel } from '../../util/exportData';
+import { UserSignUpService } from '../../service/user-signup.service';
+import { ModalComponent } from '../modal/modal.component';
 
 @Component({
   selector: 'app-wordslist',
   standalone: true,
-  imports: [CommonModule, BannerComponent],
+  imports: [CommonModule, BannerComponent, ModalComponent],
   templateUrl: './wordslist.component.html',
   styleUrl: './wordslist.component.scss'
 })
 export class WordslistComponent implements OnInit {
-  openModalDetails: any = {
+  openBannerDetails: any = {
     isOpen: false,
     message: ''
   };
 
+  openModalDetails: any = {
+    isOpen: false,
+    message: ''
+  };
+  isShowAllUserWords: boolean = false;
+
   constructor(private router: Router, private activeRouter: ActivatedRoute,
-    private wordService: WordListService, private loaderService: LoaderService
+    private wordService: WordListService, private userService: UserSignUpService,
+    private loaderService: LoaderService
   ) { }
 
 
@@ -38,22 +47,19 @@ export class WordslistComponent implements OnInit {
   ngOnInit(): void {
     // this.store.dispatch(loadDepartment());
     this.loadWordsList();
-    setTimeout(() => {
-      this.openModalDetails = {
-        isOpen: false
-      }
-    }, 3000);
     this.activeRouter.paramMap.subscribe(el => {
       if (el.get('state') === 'add') {
-        this.openModalDetails = {
+        this.openBannerDetails = {
           isOpen: true,
           message: 'Aded New Word Successfully'
         }
       } else if (el.get('state') === 'edit') {
-        this.openModalDetails = {
+        this.openBannerDetails = {
           isOpen: true,
           message: 'Word Edit Successfully'
         }
+      } else if (el.get('state') === 'all') {
+        this.isShowAllUserWords = true;
       }
     });
   }
@@ -65,42 +71,64 @@ export class WordslistComponent implements OnInit {
   deleteWord(item: any) {
     this.store.dispatch(deleteWordById({ id: item.id }));
     this.loadWordsList();
-    this.openModalDetails = {
+    this.openBannerDetails = {
       isOpen: true,
       message: 'Word Deleted Successfully'
     }
-    setTimeout(() => {
-      this.openModalDetails = {
-        isOpen: false
-      }
-    }, 3000);
   }
 
   loadWordsList() {
     setTimeout(() => {
-      // this.store.dispatch(loadWords());
-      // this.wordList$.subscribe(data => {
-      // this.wordlistData = data;
-      // });
-    this.loaderService.show();
-    const data = localStorage.getItem('login');
-    if (data) {
-      const mobile = JSON.parse(data).mobile;
-      this.wordService.fetchWordsByMobile(mobile).subscribe({
-        next: (data) => {
-          this.loaderService.hide();
-          this.wordlistData = data;
-        },
-        error: (error) => {
-          this.loaderService.hide();
-          console.error('Error fetching words by mobile', error);
+      this.loaderService.show();
+      if (this.isShowAllUserWords) {
+        this.wordService.fetchWords().subscribe({
+          next: (data) => {
+            this.loaderService.hide();
+            this.wordlistData = data;
+            console.log('All Words Data:', this.wordlistData);
+          },
+          error: (error) => {
+            this.loaderService.hide();
+            console.error('Error fetching words', error);
+            this.openModalDetails = {
+              isOpen: true,
+              message: 'Opps! Something went wrong while fetching word list.'
+            }
+          }
+        });
+      } else {
+        // this.store.dispatch(loadWords());
+        // this.wordList$.subscribe(data => {
+        // this.wordlistData = data;
+        // });
+        const data = localStorage.getItem('login');
+        if (data) {
+          const mobile = JSON.parse(data).mobile;
+          this.wordService.fetchWordsByMobile(mobile).subscribe({
+            next: (data) => {
+              this.loaderService.hide();
+              this.wordlistData = data;
+            },
+            error: (error) => {
+              this.loaderService.hide();
+              console.error('Error fetching words by mobile', error);
+              this.openModalDetails = {
+                isOpen: true,
+                message: 'Opps! Something went wrong while fetching word list.'
+              }
+            }
+          });
         }
-      });
-    }
+      }
     }, 500);
   }
 
   addWord() {
     this.router.navigate(['/addWords']);
+  }
+
+  exportToExcel(): void {
+    const exporter = new ExportDataToExcel(this.wordService, this.userService);
+    exporter.exportToExcel('wordList', 'WordList');
   }
 }

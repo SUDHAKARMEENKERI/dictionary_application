@@ -2,11 +2,14 @@
 
 <div>
     <div class="row mt-4 mb-4">
-        <div class="col">
+        <div class="col-7">
             <h2>Add a New Word</h2>
         </div>
-        <div class="col" style="text-align: center;">
+        <div class="col-2" style="text-align: right">
             <button (click)="showWordList()" class="btn btn-primary">Show Word List</button>
+        </div>
+        <div class="col-3" style="text-align: right">
+            <button (click)="showAllUserWordList()" class="btn btn-primary">Show All User Word List</button>
         </div>
     </div>
 
@@ -29,14 +32,19 @@
         <button type="submit" class="btn btn-primary" [disabled]="addWordForm.invalid">Submit</button>
     </form>
 
-    <div class="mt-4">
+    <div class="mt-4" *ngIf="isOwner">
         <div class="row">
-            <div class="col">
+            <div class="col-sm-10">
                 <h3>User List</h3>
+            </div>
+            <div class="col-sm-2" style="text-align: right;">
+                <button (click)="exportToExcel()" class="btn btn-sm btn-success mb-2">
+                    Export to Excel
+                </button>
             </div>
         </div>
 
-        <table class="table table-bordered table-striped" *ngIf="isOwner">
+        <table class="table table-bordered table-striped" >
             <thead class="thead-dark">
                 <tr>
                     <th>Name</th>
@@ -54,3 +62,4 @@
         </table>
     </div>
 </div>
+<app-modal [openModalDetails]="openModalDetails" ></app-modal>

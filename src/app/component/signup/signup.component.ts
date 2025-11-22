@@ -40,7 +40,6 @@ export class SignupComponent implements OnInit {
     this.loaderService.show();
     if (this.signupForm.valid) {
       this.userService.registerUser(this.signupForm.value).subscribe(response => {
-        console.log('User registered successfully', response);
         this.router.navigate(['/home']);
         this.loaderService.hide();
       }, error => {

@@ -8,9 +8,11 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrl: './banner.component.scss'
 })
 export class BannerComponent implements OnInit{
-  @Input() openModalDetails: any;
+  @Input() openBannerDetails: any;
 
   ngOnInit(): void {
-      console.log(this.openModalDetails)
+    setTimeout(() => {
+      this.openBannerDetails.isOpen = false;
+    }, 3000);
   }
 }
