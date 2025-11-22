@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { Router } from '@angular/router';
+import { LoaderService } from '../../service/loader.service';
 
 @Component({
   selector: 'app-signup',
@@ -14,7 +15,7 @@ export class SignupComponent implements OnInit {
   signupForm!: FormGroup;
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
-    private router: Router
+    private router: Router, private loaderService: LoaderService
   ) {
    
   }
@@ -36,12 +37,15 @@ export class SignupComponent implements OnInit {
   }
 
   onSubmit() {
+    this.loaderService.show();
     if (this.signupForm.valid) {
       this.userService.registerUser(this.signupForm.value).subscribe(response => {
         console.log('User registered successfully', response);
         this.router.navigate(['/home']);
+        this.loaderService.hide();
       }, error => {
         console.error('Error registering user', error);
+        this.loaderService.hide();
       });
     }
   }

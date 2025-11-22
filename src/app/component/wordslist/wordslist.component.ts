@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BannerComponent } from '../banner/banner.component';
 import { WordListService } from '../../service/word-list.service';
 import { selectMobile } from '../../store/seletor';
+import { LoaderService } from '../../service/loader.service';
 
 @Component({
   selector: 'app-wordslist',
@@ -22,7 +23,7 @@ export class WordslistComponent implements OnInit {
   };
 
   constructor(private router: Router, private activeRouter: ActivatedRoute,
-    private wordService: WordListService
+    private wordService: WordListService, private loaderService: LoaderService
   ) { }
 
 
@@ -35,7 +36,6 @@ export class WordslistComponent implements OnInit {
   wordlistData: any = [];
 
   ngOnInit(): void {
-
     // this.store.dispatch(loadDepartment());
     this.loadWordsList();
     setTimeout(() => {
@@ -56,7 +56,6 @@ export class WordslistComponent implements OnInit {
         }
       }
     });
-
   }
 
   editWord(item: any) {
@@ -83,24 +82,25 @@ export class WordslistComponent implements OnInit {
       // this.wordList$.subscribe(data => {
       // this.wordlistData = data;
       // });
-      const data = localStorage.getItem('login');
+    this.loaderService.show();
+    const data = localStorage.getItem('login');
     if (data) {
       const mobile = JSON.parse(data).mobile;
       this.wordService.fetchWordsByMobile(mobile).subscribe({
         next: (data) => {
+          this.loaderService.hide();
           this.wordlistData = data;
         },
-        error: (error) => console.error('Error fetching words by mobile', error)
+        error: (error) => {
+          this.loaderService.hide();
+          console.error('Error fetching words by mobile', error);
+        }
       });
-
     }
     }, 500);
-
-    
   }
 
   addWord() {
     this.router.navigate(['/addWords']);
   }
-
 }

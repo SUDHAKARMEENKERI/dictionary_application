@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { setMobile } from '../../store/action';
 import { Store } from '@ngrx/store';
+import { LoaderService } from '../../service/loader.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,8 @@ export class LoginComponent {
   loginForm: FormGroup;
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
-     private router: Router, private store: Store<{ mobile: string }>) {
+     private router: Router, private store: Store<{ mobile: string }>,
+     private loaderService: LoaderService) {
     this.loginForm = this.fb.group({
       mobile: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -29,18 +31,19 @@ export class LoginComponent {
   }
 
   onSubmit() {
+    this.loaderService.show();
     if (this.loginForm.valid) {
       this.userService.userLogin(this.loginForm.value).subscribe((response: any) => {
         if(response.isLogIn){
           localStorage.setItem('login', JSON.stringify({isLogIn: response.isLogIn, mobile: response.mobile}));
           this.store.dispatch(setMobile({ mobile: response.mobile }));
-
+          this.loaderService.hide();
           this.router.navigate(['/addWords']);
         }
       }, error => {
+        this.loaderService.hide();
         console.error('Error logging in user', error);
       });
-      console.log('Form Submitted', this.loginForm.value);
     }
   }
 

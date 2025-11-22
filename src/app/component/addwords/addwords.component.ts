@@ -7,6 +7,7 @@ import { getWordById, submitWord, updateWordById } from '../../store/words/actio
 import { ActivatedRoute, Router } from '@angular/router';
 import { selectWords } from '../../store/words/selector';
 import { UserSignUpService } from '../../service/user-signup.service';
+import { LoaderService } from '../../service/loader.service';
 
 
 @Component({
@@ -22,7 +23,7 @@ export class AddwordsComponent implements OnInit {
   isOwner = false;
 
   constructor(private store: Store, private activeroute: ActivatedRoute, private router: Router,
-    private userService: UserSignUpService
+    private userService: UserSignUpService, private loaderService: LoaderService
   ) { }
 
   ngOnInit(): void {
@@ -62,11 +63,10 @@ export class AddwordsComponent implements OnInit {
     if(loginUser){
       this.isOwner = JSON.parse(loginUser).mobile === '9611675325' ? true : false; 
     }
-    
-
   }
 
   onSubmit() {
+    this.loaderService.show();
     if (this.addWordForm.valid) {
       const userData: any = this.addWordForm.value;
       const data = localStorage.getItem('login');
@@ -77,12 +77,12 @@ export class AddwordsComponent implements OnInit {
       if (this.isEditFlow) {
         this.store.dispatch(updateWordById({ word: userData }));
         this.router.navigate(['/wordlist', { state: 'edit' }]);
+        this.loaderService.hide();
       } else {
         this.store.dispatch(submitWord({ word: userData }));
         this.router.navigate(['/wordlist', { state: 'add' }]);
       }
     }
-
   }
 
   showWordList() {

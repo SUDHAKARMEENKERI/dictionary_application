@@ -1,6 +1,7 @@
 <div class="container">
   <div class="row">
     <app-header *ngIf="router.url !== '/login'"></app-header>
+    <app-loader></app-loader>
     <router-outlet></router-outlet>
     <app-home-page></app-home-page>
   </div>
