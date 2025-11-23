@@ -6,6 +6,7 @@ import { UserSignUpService } from '../../service/user-signup.service';
 import { setMobile } from '../../store/action';
 import { Store } from '@ngrx/store';
 import { LoaderService } from '../../service/loader.service';
+import { last } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -35,7 +36,9 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.userService.userLogin(this.loginForm.value).subscribe((response: any) => {
         if(response.isLogIn){
-          localStorage.setItem('login', JSON.stringify({isLogIn: response.isLogIn, mobile: response.mobile}));
+          localStorage.setItem('login', JSON.stringify({isLogIn: response.isLogIn, mobile: response.mobile, firstName: response.firstName,
+            lastName: response.lastName
+          }));
           this.store.dispatch(setMobile({ mobile: response.mobile }));
           this.loaderService.hide();
           this.router.navigate(['/addWords']);

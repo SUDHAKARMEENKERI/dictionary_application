@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
-import { UserWord } from '../store/words/model';
+import { BulkUserWord, UserWord } from '../store/words/model';
 
 @Injectable({
   providedIn: 'root'
@@ -51,4 +51,11 @@ export class WordListService {
      const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/'+ id;
     return this.http.delete<UserWord>(apiUrl);
   }
+
+  bulkSubmitUserWords(user: BulkUserWord): Observable<BulkUserWord> {
+    // const apiUrl = 'http://localhost:8080/api/words/bulkInsert';
+    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/bulkInsert';
+    return this.http.post<BulkUserWord>(apiUrl, user);
+  }
+
 }

@@ -3,8 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { UserWord } from './model';
-import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWord, submitWordFailure, submitWordSuccess, getWordById, getWordByIdSuccess, getWordByIdFailure, deleteWordById, deleteWordByIdFailure, deleteWordByIdSuccess, updateWordByIdFailure, updateWordById, updateWordByIdSuccess } from './action';
+import { BulkUserWord, UserWord } from './model';
+import { loadWordLoadSuccess, loadWordLoadFailure, loadWords, submitWord, submitWordFailure, submitWordSuccess, getWordById, getWordByIdSuccess, getWordByIdFailure, deleteWordById, deleteWordByIdFailure, deleteWordByIdSuccess, updateWordByIdFailure, updateWordById, updateWordByIdSuccess, bulkSubmitWord, bulkSubmitWordSuccess, bulkSubmitWordFailure } from './action';
 import { WordListService } from '../../service/word-list.service';
 
 @Injectable()
@@ -16,10 +16,10 @@ export class UserEffects {
   submitWord$ = createEffect(() =>
     this.actions$.pipe(
       ofType(submitWord),
-      mergeMap(action =>
+      mergeMap((action: any) =>
         this.wordsListService.submitUserAddedWord(action.word).pipe(
           map((response: UserWord) => submitWordSuccess({ response })),
-          catchError(err => of(submitWordFailure({ error: err.message })))
+          catchError(err => of(submitWordFailure({ error:  err.error?.error + ', ' +  err.error?.message  || err.message })))
         )
       )
     )
@@ -31,7 +31,7 @@ export class UserEffects {
       mergeMap(() =>
         this.wordsListService.fetchWords().pipe(
           map((response: any) => loadWordLoadSuccess({ response })),
-          catchError(err => of(loadWordLoadFailure({ error: err.message })))
+          catchError(err => of(loadWordLoadFailure({  error:  err.error?.error + ', ' +  err.error?.message  || err.message })))
         )
       )
     )
@@ -55,7 +55,7 @@ export class UserEffects {
       mergeMap((action: any) =>
         this.wordsListService.updateWordById(action.word).pipe(
           map((response: any) => updateWordByIdSuccess({ response })),
-          catchError(err => of(updateWordByIdFailure({ error: err.message })))
+          catchError(err => of(updateWordByIdFailure({error:  err?.error?.error + ', ' +  err?.error?.message  || err.message  })))
         )
       )
     )
@@ -72,4 +72,16 @@ export class UserEffects {
       )
     )
   )
+
+   bulkSubmitWord$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(bulkSubmitWord),
+      mergeMap((action: {words: BulkUserWord}) =>
+        this.wordsListService.bulkSubmitUserWords(action.words).pipe(
+          map((response: BulkUserWord) => bulkSubmitWordSuccess({ response })),
+          catchError(err => of(bulkSubmitWordFailure({ error:  err.error?.error + ', ' +  err.error?.message  || err.message })))
+        )
+      )
+    )
+  );
 }

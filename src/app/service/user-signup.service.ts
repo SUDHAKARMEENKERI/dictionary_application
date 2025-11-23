@@ -9,7 +9,7 @@ export class UserSignUpService {
     constructor(private http: HttpClient) { }
 
     getAllUsers(): Observable<any> {
-        // const apiUrl = 'http://localhost:8080/api/users';
+        // const apiUrl = 'http://localhost:8080/api/user'; 
         const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/user';
         return this.http.get(apiUrl);
     }

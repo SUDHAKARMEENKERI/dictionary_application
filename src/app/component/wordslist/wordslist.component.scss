@@ -3,3 +3,28 @@
     font-weight: bold;
     background-color: #5c5c5c;
 }
+
+.custom-file-input {
+  color: #ffffff;            /* text color */
+  cursor: pointer;
+}
+
+/* optional: style the "Choose File" button text */
+.custom-file-input::-webkit-file-upload-button {
+  visibility: hidden; /* hides default button */
+}
+
+.custom-file-input::before {
+  content: 'Select File';
+  display: inline-block;
+  background: #198754;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-file-input:hover::before {
+  background: #555;
+}

@@ -8,7 +8,12 @@ export const selectWords = createSelector(
     (state: WordState) => state.word
 );
 
-// export const selectWordsLoading = createSelector(
-//     selectWordState,
-//     (state: WordState) => state.loading
-// );
+export const selectWordsError = createSelector(
+    selectWordState,
+    (state: WordState) => state.error
+);
+
+export const selectWordsLoading = createSelector(
+    selectWordState,
+    (state: WordState) => state.loading
+);

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-banner',
@@ -7,11 +7,11 @@ import { Component, Input, OnInit } from '@angular/core';
   templateUrl: './banner.component.html',
   styleUrl: './banner.component.scss'
 })
-export class BannerComponent implements OnInit{
+export class BannerComponent implements OnChanges{
   @Input() openBannerDetails: any;
 
-  ngOnInit(): void {
-    setTimeout(() => {
+  ngOnChanges(changes: SimpleChanges): void {
+     setTimeout(() => {
       this.openBannerDetails.isOpen = false;
     }, 3000);
   }

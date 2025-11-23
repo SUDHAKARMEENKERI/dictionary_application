@@ -2,14 +2,14 @@
 
 <div>
     <div class="row mt-4 mb-4">
-        <div class="col-7">
+        <div class="col-12 col-sm-4 col-md-4">
             <h2>Add a New Word</h2>
         </div>
-        <div class="col-2" style="text-align: right">
-            <button (click)="showWordList()" class="btn btn-primary">Show Word List</button>
+        <div class="col-6 col-sm-4 col-md-4">
+            <button (click)="showWordList()" class="btn btn-sm btn-primary">Show Word List</button>
         </div>
-        <div class="col-3" style="text-align: right">
-            <button (click)="showAllUserWordList()" class="btn btn-primary">Show All User Word List</button>
+        <div class="col-6 col-sm-4 col-md-4" style="text-align: end;">
+            <button (click)="showAllUserWordList()" class="btn btn-sm btn-primary">Show All Word</button>
         </div>
     </div>
 
@@ -29,6 +29,22 @@
                 Meaning is required.
             </div>
         </div>
+        <div class="mb-3">
+            <radio-group class="mb-3">
+                <label class="form-label me-3">Show word to other users:</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" formControlName="show_for_others" [value]="true"
+                        id="showYes">
+                    <label class="form-check-label" for="showYes">Yes</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" formControlName="show_for_others" [value]="false"
+                        id="showNo">
+                    <label class="form-check-label" for="showNo">No</label>
+                </div>
+            </radio-group>
+        </div>
+
         <button type="submit" class="btn btn-primary" [disabled]="addWordForm.invalid">Submit</button>
     </form>
 
@@ -44,7 +60,7 @@
             </div>
         </div>
 
-        <table class="table table-bordered table-striped" >
+        <table class="table table-bordered table-striped">
             <thead class="thead-dark">
                 <tr>
                     <th>Name</th>
@@ -62,4 +78,4 @@
         </table>
     </div>
 </div>
-<app-modal [openModalDetails]="openModalDetails" ></app-modal>
+<app-modal [openModalDetails]="openModalDetails"></app-modal>

@@ -1,9 +1,10 @@
 <nav class="navbar">
-  <div class="navbar-brand">Dictionary App</div>
-  <div class="navbar-links">
-    <a>{{ userName }}</a>
-    <a [routerLink]="'/home'">Home</a>
-    <a *ngIf="!isLoggedIn" [routerLink]="'/login'">Login</a>
-    <a *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</a>
-  </div>
+     <div class="col-5">Dictionary App</div>
+    <div class="col-5 header_username">
+        <a>{{ userName }}</a>
+    </div>
+    <div class="col-2 header_login">
+      <a *ngIf="!isLoggedIn" [routerLink]="'/login'">Login</a>
+       <a *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</a>
+    </div>
 </nav>

@@ -1,8 +1,7 @@
-// store/user.actions.ts
 import { createAction, props } from '@ngrx/store';
-import { UserWord } from './model';
+import { BulkUserWord, UserWord } from './model';
 
-export const submitWord = createAction('[Word] Submit', props<{ word: UserWord }>());
+export const submitWord = createAction('[Word] Submit', props<{ word: UserWord[] }>());
 export const submitWordSuccess = createAction( '[Word] Submit Success', props<{ response: UserWord }>());
 export const submitWordFailure = createAction( '[Word] Submit Failure', props<{ error: string }>());
 
@@ -21,3 +20,7 @@ export const updateWordByIdFailure = createAction( '[UpdateWordById] Update Fail
 export const deleteWordById = createAction('[DeleteWordById] Submit', props<{ id: number }>());
 export const deleteWordByIdSuccess = createAction( '[DeleteWordById] Delete Success', props<{ response: UserWord }>());
 export const deleteWordByIdFailure = createAction( '[DeleteWordById] Delete Failure', props<{ error: string }>());
+
+export const bulkSubmitWord = createAction('[BulkUserWord] Submit', props<{ words: BulkUserWord }>());
+export const bulkSubmitWordSuccess = createAction( '[BulkUserWord] Submit Success', props<{ response: BulkUserWord }>());
+export const bulkSubmitWordFailure = createAction( '[BulkUserWord] Submit Failure', props<{ error: string }>());

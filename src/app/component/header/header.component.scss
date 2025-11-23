@@ -13,15 +13,20 @@
   z-index: 1000;           /* Keeps it above other content */
 }
 
-.navbar-links a {
-  margin-left: 15px;
-  color: white;
-  text-decoration: none;
-}
-
 .logout{
     cursor: pointer;
 }
-.navbar-brand{
-  color: white;
+
+.header_username{
+  text-align: end;
+}
+
+.header_login{
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .header_username{
+  text-align: center;
+}
 }
