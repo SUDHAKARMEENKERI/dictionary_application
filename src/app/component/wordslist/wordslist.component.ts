@@ -12,11 +12,12 @@ import { UserSignUpService } from '../../service/user-signup.service';
 import { ModalComponent } from '../modal/modal.component';
 import { Actions, ofType } from '@ngrx/effects';
 import * as XLSX from 'xlsx';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-wordslist',
   standalone: true,
-  imports: [CommonModule, BannerComponent, ModalComponent],
+  imports: [CommonModule, BannerComponent, ModalComponent, FormsModule],
   templateUrl: './wordslist.component.html',
   styleUrl: './wordslist.component.scss'
 })
@@ -32,19 +33,19 @@ export class WordslistComponent implements OnInit {
   };
   isShowAllUserWords: boolean = false;
   ownerData: any;
+ 
+  wordlistData: any = [];
+  tableData: any[] = [];
+  tableHeaders: string[] = [];
+  filteredData: any;
+  searchText: string = '';
 
   constructor(private router: Router, private activeRouter: ActivatedRoute,
     private wordService: WordListService, private userService: UserSignUpService,
     private loaderService: LoaderService, private actions$: Actions
   ) { }
 
-
   private store: Store = inject(Store);
-
-  wordList$ = this.store.select(selectWords);
-  wordlistData: any = [];
-  tableData: any[] = [];
-  tableHeaders: string[] = [];
 
   ngOnInit(): void {
     // this.store.dispatch(loadDepartment());
@@ -113,6 +114,7 @@ export class WordslistComponent implements OnInit {
               this.loaderService.hide();
               this.wordlistData = data;
               this.wordlistData.sort((a: any, b: any) => Number(a.mobile) - Number(b.mobile));
+              this.filteredData = this.wordlistData;
             },
             error: (error) => {
               this.loaderService.hide();
@@ -134,6 +136,7 @@ export class WordslistComponent implements OnInit {
         this.loaderService.hide();
         this.wordlistData = data;
         this.wordlistData.sort((a: any, b: any) => Number(a.mobile) - Number(b.mobile));
+        this.filteredData = this.wordlistData;
       },
       error: (error) => {
         this.loaderService.hide();
@@ -219,4 +222,11 @@ export class WordslistComponent implements OnInit {
       this.errorHandleForSubmit(bulkSubmitWordSuccess, bulkSubmitWordFailure,'Multiple Words Added Successfully');
     }, 500);
   }
+
+  onSearch() {
+  this.filteredData = this.wordlistData.filter((item: any) =>
+    item.word.toLowerCase().includes(this.searchText.toLowerCase())
+  );
+}
+
 }
