@@ -13,11 +13,12 @@ import { ModalComponent } from '../modal/modal.component';
 import { Actions, ofType } from '@ngrx/effects';
 import * as XLSX from 'xlsx';
 import { FormsModule } from '@angular/forms';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 @Component({
   selector: 'app-wordslist',
   standalone: true,
-  imports: [CommonModule, BannerComponent, ModalComponent, FormsModule],
+  imports: [CommonModule, BannerComponent, ModalComponent, FormsModule, NgxPaginationModule],
   templateUrl: './wordslist.component.html',
   styleUrl: './wordslist.component.scss'
 })
@@ -33,6 +34,9 @@ export class WordslistComponent implements OnInit {
   };
   isShowAllUserWords: boolean = false;
   ownerData: any;
+  page = 1;
+  pageSize = 20;
+
  
   wordlistData: any = [];
   tableData: any[] = [];
@@ -48,7 +52,6 @@ export class WordslistComponent implements OnInit {
   private store: Store = inject(Store);
 
   ngOnInit(): void {
-    // this.store.dispatch(loadDepartment());
     const login = localStorage.getItem('login');
     this.ownerData = login ? JSON.parse(login) : null;
     this.loadWordsList();
@@ -225,7 +228,7 @@ export class WordslistComponent implements OnInit {
 
   onSearch() {
   this.filteredData = this.wordlistData.filter((item: any) =>
-    item.word.toLowerCase().includes(this.searchText.toLowerCase())
+    item.word.toLowerCase().includes(this.searchText.toLowerCase()) || item.meaning.toLowerCase().includes(this.searchText.toLowerCase())
   );
 }
 
