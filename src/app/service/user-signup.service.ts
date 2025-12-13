@@ -49,4 +49,10 @@ export class UserSignUpService {
         const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/user/userDetails/${mobileNo}`;
         return this.http.get(apiUrl);
     }
+
+    getUserCount(): Observable<any> {
+        // const apiUrl = `http://localhost:8080/api/user/totalUserCount`;
+        const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/user/totalUserCount`;
+        return this.http.get(apiUrl);
+    }
 }

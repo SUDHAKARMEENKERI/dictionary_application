@@ -13,6 +13,8 @@ import { LoaderService } from '../../service/loader.service';
 })
 export class SignupComponent implements OnInit {
   signupForm!: FormGroup;
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router, private loaderService: LoaderService

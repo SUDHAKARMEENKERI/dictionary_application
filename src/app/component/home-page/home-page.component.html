@@ -1,3 +1,77 @@
-<div class="container mt-4">
-    <!-- <button *ngIf="!isClickedbtn" (click)="showWordList()" class="btn btn-primary">Show Word List</button> -->
+<div class="mt-4">
+    <!-- Personalized Greeting -->
+    <div class="d-flex align-items-center mb-4">
+        <img src="assets/user-avatar.png" alt="User Avatar" width="60" height="60" class="rounded-circle me-3" *ngIf="userName">
+        <div>
+            <h2 class="mb-1">Welcome{{ userName ? ', ' + userName : '' }}!</h2>
+            <p class="lead mb-0">Your personal dictionary dashboard.</p>
+        </div>
+    </div>
+
+    <!-- Announcements / News -->
+    <div *ngIf="announcements?.length" class="alert alert-warning mb-4">
+        <strong>Announcements:</strong>
+        <ul class="mb-0">
+            <li *ngFor="let note of announcements">{{ note }}</li>
+        </ul>
+    </div>
+
+    <!-- Quick Stats Section -->
+    <div class="row my-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm border-primary">
+                <div class="card-body">
+                    <i class="bi bi-book display-5 text-primary"></i>
+                    <h5 class="card-title mt-2">Total Words</h5>
+                    <p class="display-6">{{ totalWords || 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm border-success">
+                <div class="card-body">
+                    <i class="bi bi-people display-5 text-success"></i>
+                    <h5 class="card-title mt-2">Users</h5>
+                    <p class="display-6">{{ totalUsers || 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center shadow-sm border-info">
+                <div class="card-body">
+                    <i class="bi bi-person-check display-5 text-info"></i>
+                    <h5 class="card-title mt-2">Your Contributions</h5>
+                    <p class="display-6">{{ userWords || 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Links with Icons -->
+    <div class="row my-4 justify-content-center">
+        <div class="col-6 col-md-3 mb-3" *ngFor="let nav of navLinks">
+            <a [routerLink]="nav.link" class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center shadow-sm">
+                <i [class]="nav.icon + ' mb-2 display-6'"></i>
+                <span>{{ nav.label }}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="my-4">
+        <h4>Recent Activity</h4>
+        <ul class="list-group">
+            <li *ngFor="let activity of recentActivities" class="list-group-item">
+                <i class="bi bi-clock-history me-2 text-secondary"></i>{{ activity }}
+            </li>
+            <li *ngIf="!recentActivities?.length" class="list-group-item text-muted">
+                No recent activity.
+            </li>
+        </ul>
+    </div>
+
+    <!-- Help & Support -->
+    <div class="alert alert-info mt-4">
+        <strong>Need help?</strong> Visit our <a routerLink="/help">Help Center</a> or <a routerLink="/contact">contact support</a>.
+    </div>
 </div>

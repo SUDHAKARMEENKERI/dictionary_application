@@ -36,19 +36,19 @@ export class WordListService {
 
   fetchWordById(id: number) {
     // const apiUrl = 'http://localhost:8080/api/words/'+ id;
-    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/'+ id;
+    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + id;
     return this.http.get<UserWord>(apiUrl);
   }
 
   updateWordById(word: any) {
     // const apiUrl = 'http://localhost:8080/api/words/'+ word.id;
-    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/'+ word.id;
+    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + word.id;
     return this.http.put<UserWord>(apiUrl, word);
   }
 
   deleteWordById(id: number) {
     //  const apiUrl = 'http://localhost:8080/api/words/'+ id;
-     const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/'+ id;
+    const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + id;
     return this.http.delete<UserWord>(apiUrl);
   }
 
@@ -58,4 +58,15 @@ export class WordListService {
     return this.http.post<BulkUserWord>(apiUrl, user);
   }
 
+  getWordCount(): Observable<any> {
+    // const apiUrl = `http://localhost:8080/api/words/totalWordCount`;
+    const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/words/totalWordCount`;
+    return this.http.get(apiUrl);
+  }
+
+  getWordCountByMobile(mobile: string): Observable<any> {
+    // const apiUrl = `http://localhost:8080/api/words/user/count/${mobile}`;
+    const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/words/user/count/${mobile}`;
+    return this.http.get(apiUrl);
+  }
 }

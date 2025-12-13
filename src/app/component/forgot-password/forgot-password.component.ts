@@ -12,6 +12,8 @@ import { Router } from '@angular/router';
 })
 export class ForgotPasswordComponent implements OnInit{
    forgotForm!: FormGroup;
+   showPassword = false;
+   showConfirmPassword = false;
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router

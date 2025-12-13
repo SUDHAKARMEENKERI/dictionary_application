@@ -16,6 +16,7 @@ import { last } from 'rxjs';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  showPassword = false;
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
      private router: Router, private store: Store<{ mobile: string }>,
@@ -41,7 +42,7 @@ export class LoginComponent {
           }));
           this.store.dispatch(setMobile({ mobile: response.mobile }));
           this.loaderService.hide();
-          this.router.navigate(['/addWords']);
+          this.router.navigate(['/home']);
         }
       }, error => {
         this.loaderService.hide();

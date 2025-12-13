@@ -1,51 +1,69 @@
-<form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
-    <div class="mb-3">
-        <label>First Name:</label>
-        <input formControlName="firstName" type="text" class="form-control" />
-        <div *ngIf="signupForm.get('firstName')?.invalid && signupForm.get('firstName')?.touched">
-            First name is required.
+<div class="container mt-4">
+    <h4>New User Registration</h4>
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
+        <div class="mb-3">
+            <label>First Name:</label>
+            <input formControlName="firstName" type="text" class="form-control" />
+            <div *ngIf="signupForm.get('firstName')?.invalid && signupForm.get('firstName')?.touched">
+                First name is required.
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label>Last Name:</label>
-        <input formControlName="lastName" type="text" class="form-control" />
-        <div *ngIf="signupForm.get('lastName')?.invalid && signupForm.get('lastName')?.touched">
-            Last name is required.
+        <div class="mb-3">
+            <label>Last Name:</label>
+            <input formControlName="lastName" type="text" class="form-control" />
+            <div *ngIf="signupForm.get('lastName')?.invalid && signupForm.get('lastName')?.touched">
+                Last name is required.
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label>Mobile Number:</label>
-        <input formControlName="mobile" type="text" class="form-control" />
-        <div *ngIf="signupForm.get('mobile')?.invalid && signupForm.get('mobile')?.touched">
-            Mobile number is required.
+        <div class="mb-3">
+            <label>Mobile Number:</label>
+            <input formControlName="mobile" type="text" class="form-control" />
+            <div *ngIf="signupForm.get('mobile')?.invalid && signupForm.get('mobile')?.touched">
+                Mobile number is required.
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label>Email:</label>
-        <input formControlName="email" type="email" class="form-control" />
-        <div *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
-            Enter a valid email.
+        <div class="mb-3">
+            <label>Email:</label>
+            <input formControlName="email" type="email" class="form-control" />
+            <div *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
+                Enter a valid email.
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label>Password:</label>
-        <input formControlName="password" type="password" class="form-control" />
-        <div *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
-            Password must be at least 6 characters.
+        <div class="mb-3">
+            <label>Password:</label>
+            <div class="input-group">
+                <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" />
+                <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword"
+                    tabindex="-1">
+                    <span *ngIf="!showPassword" class="bi bi-eye"></span>
+                    <span *ngIf="showPassword" class="bi bi-eye-slash"></span>
+                </button>
+            </div>
+            <div *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
+                Password must be at least 6 characters.
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label>Confirm Password:</label>
-        <input formControlName="confirmPassword" class="form-control" type="password" />
-        <div *ngIf="signupForm.errors?.['mismatch'] && signupForm.get('confirmPassword')?.touched">
-            Passwords do not match.
+        <div class="mb-3">
+            <label>Confirm Password:</label>
+            <div class="input-group">
+                <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword"
+                    class="form-control" />
+                <button type="button" class="btn btn-outline-secondary"
+                    (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+                    <span *ngIf="!showConfirmPassword" class="bi bi-eye"></span>
+                    <span *ngIf="showConfirmPassword" class="bi bi-eye-slash"></span>
+                </button>
+            </div>
+            <div *ngIf="signupForm.errors?.['mismatch'] && signupForm.get('confirmPassword')?.touched">
+                Passwords do not match.
+            </div>
         </div>
-    </div>
 
-    <button type="submit" class="btn btn-primary" [disabled]="signupForm.invalid">Sign Up</button>
-</form>
+        <button type="submit" class="btn btn-primary" [disabled]="signupForm.invalid">Sign Up</button>
+    </form>
+</div>

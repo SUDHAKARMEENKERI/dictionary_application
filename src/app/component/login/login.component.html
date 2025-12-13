@@ -1,4 +1,6 @@
-
+<div class="container">
+    <h4>User Login</h4>
+</div>
 <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
     <div class="mb-3">
         <label>Mobile Number:</label>
@@ -10,7 +12,14 @@
 
     <div class="mb-3">
         <label>Password:</label>
-        <input formControlName="password" type="password" class="form-control" />
+        <div class="input-group">
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" />
+            <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword"
+                tabindex="-1">
+                <span *ngIf="!showPassword" class="bi bi-eye"></span>
+                <span *ngIf="showPassword" class="bi bi-eye-slash"></span>
+            </button>
+        </div>
         <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             Password must be at least 6 characters.
         </div>
@@ -22,6 +31,3 @@
     <div class="col"><a [routerLink]="'/signup'">Don't have an account? Register</a></div>
     <div class="col"><a [routerLink]="'/forgotpassword'">Forgot Password?</a></div>
 </div>
-
-
-
