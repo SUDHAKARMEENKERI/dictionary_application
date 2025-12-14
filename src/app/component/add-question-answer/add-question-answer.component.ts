@@ -1,0 +1,78 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { QuestionAnswerService } from '../../service/questionAnswer.Service';
+
+@Component({
+  selector: 'app-add-question-answer',
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './add-question-answer.component.html',
+  styleUrl: './add-question-answer.component.scss'
+})
+export class AddQuestionAnswerComponent implements OnInit {
+  constructor(private formBuilder: FormBuilder, private questionAnswerService: QuestionAnswerService) { }
+  questionAnswerForm!: FormGroup;
+  imageSrc: string | null = null;
+  imageFile: File | null = null;
+
+  dropdownOptions = [
+    { value: 'angular', label: 'Angular' },
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'html', label: 'HTML' },
+    { value: 'css', label: 'CSS' },
+    { value: 'java', label: 'Java' },
+    { value: 'react', label: 'React' },
+    { value: 'english', label: 'English' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  ngOnInit(): void {
+    this.questionAnswerForm = this.formBuilder.group({
+      question: ['', Validators.required],
+      answer: ['', Validators.required],
+      topic: ['', Validators.required]
+    });
+  }
+
+  onSubmit() {
+    if (this.questionAnswerForm.invalid) return;
+   
+    const formData = new FormData();
+    formData.append('question', this.questionAnswerForm.value.question);
+    formData.append('answer', this.questionAnswerForm.value.answer);
+    formData.append('topic', this.questionAnswerForm.value.topic);
+    if (this.imageFile) {
+      formData.append('image', this.imageFile);
+    }
+
+    this.questionAnswerService.createUserQA(formData).subscribe({
+      next: (response) => {
+        this.questionAnswerForm.reset();
+        this.removeImage();
+      },
+      error: (error) => {
+        console.error('Error submitting Question-Answer:', error);
+      }
+    });
+
+  }
+
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.imageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imageSrc = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage() {
+    this.imageSrc = null;
+    this.imageFile = null;
+  }
+
+}

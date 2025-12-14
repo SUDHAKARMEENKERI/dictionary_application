@@ -22,7 +22,7 @@ export class HomePageComponent implements OnInit{
   navLinks = [
     { label: 'Word List', link: '/wordlist', icon: 'bi bi-list-ul' },
     { label: 'Add Word', link: '/addword', icon: 'bi bi-plus-circle' },
-    { label: 'Add Question and Answer', link: '/addQuestionAnswer', icon: 'bi bi-plus-circle' },
+    { label: 'Add Question and Answer', link: '/addquestionanswer', icon: 'bi bi-plus-circle' },
     { label: 'Profile', link: '/profile', icon: 'bi bi-person' },
     { label: 'About', link: '/about', icon: 'bi bi-info-circle' },
     { label: 'Contact', link: '/contact', icon: 'bi bi-envelope' },

@@ -11,6 +11,7 @@ export const routes: Routes = [
     { path: 'wordlist', loadComponent: () => import('./component/wordslist/wordslist.component').then(m => m.WordslistComponent), canActivate: [AuthGuard] },
     { path: 'addWords', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
     { path: 'addWords/:id', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
+    { path: 'addquestionanswer', loadComponent: () => import('./component/add-question-answer/add-question-answer.component').then(m => m.AddQuestionAnswerComponent), canActivate: [AuthGuard] },
     { path: 'signup', component: SignupComponent },
     { path: 'forgotpassword', component: ForgotPasswordComponent },
 

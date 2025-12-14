@@ -1,0 +1,35 @@
+<div class="container my-4">
+    <h4>Add Question and Answer</h4>
+</div>
+<form [formGroup]="questionAnswerForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
+    <div class="mb-3">
+        <label> Question</label>
+        <input formControlName="question" type="text" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Answer</label>
+        <div class="input-group">
+            <textarea type="text" formControlName="answer" class="form-control"></textarea>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="topic">Topic</label>
+        <select formControlName="topic" id="topic" class="form-select">
+            <option value="">Select a topic</option>
+            <option *ngFor="let opt of dropdownOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="image">Upload Image</label>
+        <input type="file" id="image" (change)="onFileChange($event)" accept="image/*" class="form-control" />
+        <div *ngIf="imageSrc" class="mt-2">
+            <img [src]="imageSrc" alt="Preview" class="img-thumbnail" style="max-width: 300px;">
+            <button type="button" class="btn btn-sm btn-danger ms-2" (click)="removeImage()">Remove</button>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" [disabled]="questionAnswerForm.invalid">Submit</button>
+</form>
