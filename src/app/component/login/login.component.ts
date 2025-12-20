@@ -13,7 +13,7 @@ import { last } from 'rxjs';
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
-})
+}) 
 export class LoginComponent {
   loginForm: FormGroup;
   showPassword = false;

@@ -71,6 +71,7 @@ export class AddwordsComponent implements OnInit {
     this.userService.getAllUsers().subscribe({
       next: (users) => {
         this.userList = users;
+        console.log('Fetched users:', this.userList);
       },
       error: (error) => {
         console.error('Error fetching users:', error);
