@@ -1,1 +1,37 @@
-<p>show-question-answer works!</p>
+<div class="container">
+    <div class="question-answer-card" *ngFor="let qa of questionAnswers">
+        <div class="card-header">
+            <div class="card-content">
+                <h3 class="question">
+                    <span class="question-icon">Q:</span>
+                    {{ qa.question }}
+                </h3>
+                <p class="answer">
+                    <span class="answer-icon">A:</span>
+                    {{ qa.answer }}
+                </p>
+            </div>
+            <div class="card-actions">
+                <button class="action-btn edit-btn" title="Edit" (click)="onEdit(qa)">
+                    <span class="icon">✏️</span>
+                </button>
+                <button class="action-btn delete-btn" title="Delete" (click)="onDelete(qa)">
+                    <span class="icon">🗑️</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="image-container" *ngIf="qa.image || qa.imageBase64">
+            <img 
+                *ngIf="qa.image" 
+                [src]="getImageSrc(qa.image)" 
+                alt="Question Image"
+                class="card-image" />
+            <img 
+                *ngIf="qa.imageBase64" 
+                [src]="getImageSrc(qa.imageBase64)" 
+                alt="Question Image"
+                class="card-image" />
+        </div>
+    </div>
+</div>

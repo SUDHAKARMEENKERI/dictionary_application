@@ -20,9 +20,30 @@ export class QuestionAnswerService {
 
     getAllUserQA(): Observable<any> {
         // const apiUrl = 'http://localhost:8080/api/qa/getAllUserQA';
-        // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/getAllUserQA';
+        //  const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/getAllUserQA';
         const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/qa/getAllUserQA';
         return this.http.get<any>(apiUrl);
+    }
+
+    getAllUserQAById(id: string): Observable<any> {
+        // const apiUrl = `http://localhost:8080/api/qa/${id}`;
+        //  const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/${id}';
+        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/qa/${id}';
+        return this.http.get<any>(apiUrl);
+    }
+
+    getQuestionAnswerCountByMobile(mobile: string): Observable<number> {
+        // const apiUrl = `http://localhost:8080/api/qa/user/count/${mobile}`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/count/${mobile}`;
+        return this.http.get<number>(apiUrl);
+    }
+
+    getQuestionAnswerCount(): Observable<number> {
+        // const apiUrl = `http://localhost:8080/api/qa/totalQuestionAnswerCount`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/totalQuestionAnswerCount`;
+        return this.http.get<{ totalQuestionAnswerCount: number }>(apiUrl).pipe(
+            map(response => response.totalQuestionAnswerCount)
+        );
     }
 
 }

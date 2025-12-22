@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -10,7 +12,9 @@ import { QuestionAnswerService } from '../../service/questionAnswer.Service';
   styleUrl: './add-question-answer.component.scss'
 })
 export class AddQuestionAnswerComponent implements OnInit {
-  constructor(private formBuilder: FormBuilder, private questionAnswerService: QuestionAnswerService) { }
+  constructor(private formBuilder: FormBuilder,
+    private questionAnswerService: QuestionAnswerService,
+    private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer) { }
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
   imageFile: File | null = null;
@@ -30,13 +34,36 @@ export class AddQuestionAnswerComponent implements OnInit {
     this.questionAnswerForm = this.formBuilder.group({
       question: ['', Validators.required],
       answer: ['', Validators.required],
-      topic: ['', Validators.required]
+      topic: ['', Validators.required],
+    });
+
+    this.activeRouter.queryParams.subscribe(params => {
+      const id = params['id'];
+
+      if (id) {
+        this.questionAnswerService.getAllUserQAById(id).subscribe({
+          next: (data) => {
+            if (data) {
+              const qaItem = data;
+              this.questionAnswerForm.patchValue({
+                question: qaItem.question,
+                answer: qaItem.answer,
+                topic: qaItem.topic.toLowerCase(),
+              });
+              this.imageSrc = qaItem.imageBase64 ? this.getImageSrc(qaItem.imageBase64) : '';
+            }
+          },
+          error: (error) => {
+            console.error('Error fetching QA by ID:', error);
+          }
+        });
+      }
     });
   }
 
   onSubmit() {
     if (this.questionAnswerForm.invalid) return;
-   
+
     const formData = new FormData();
     formData.append('question', this.questionAnswerForm.value.question);
     formData.append('answer', this.questionAnswerForm.value.answer);
@@ -73,6 +100,12 @@ export class AddQuestionAnswerComponent implements OnInit {
   removeImage() {
     this.imageSrc = null;
     this.imageFile = null;
+  }
+
+  getImageSrc(imageData: string): string {
+    return this.sanitizer.bypassSecurityTrustUrl(
+      'data:image/jpeg;base64,' + imageData
+    ) as string;
   }
 
 }

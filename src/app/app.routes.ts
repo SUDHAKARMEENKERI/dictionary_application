@@ -12,6 +12,7 @@ export const routes: Routes = [
     { path: 'addWords', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
     { path: 'addWords/:id', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
     { path: 'addquestionanswer', loadComponent: () => import('./component/add-question-answer/add-question-answer.component').then(m => m.AddQuestionAnswerComponent), canActivate: [AuthGuard] },
+    { path: 'showquestionanswer', loadComponent: () => import('./component/show-question-answer/show-question-answer.component').then(m => m.ShowQuestionAnswerComponent), canActivate: [AuthGuard] },
     { path: 'signup', component: SignupComponent },
     { path: 'forgotpassword', component: ForgotPasswordComponent },
 
