@@ -1,5 +1,4 @@
 .container {
-  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -34,7 +33,7 @@
 
 .question {
   color: #1976d2;
-  font-size: 1.3em;
+  font-size: 14px;
   margin: 0 0 12px 0;
   font-weight: 600;
   display: flex;
@@ -58,7 +57,7 @@
 
 .answer {
   color: #424242;
-  font-size: 1em;
+  font-size: 14px;
   line-height: 1.6;
   margin: 0;
   display: flex;

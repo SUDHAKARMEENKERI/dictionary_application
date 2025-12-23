@@ -35,7 +35,7 @@ export class HeaderComponent implements OnInit {
     const loginData = localStorage.getItem('login');
     this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '').subscribe({
       next: (user) => {
-        this.userName = user.firstName + ' ' + user.lastName; // Assuming the user object has a 'name' property
+        this.userName = user.firstName; // Assuming the user object has a 'name' property
       },
       error: (error) => {
         console.error('Error fetching user details:', error);

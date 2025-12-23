@@ -36,13 +36,18 @@ export class ShowQuestionAnswerComponent implements OnInit {
   }
 
   onEdit(qa: any): void {
-    // Implement edit functionality here
-    console.log('Edit QA:', qa);
     this.router.navigate(['/addquestionanswer'], { queryParams: { id: qa.id } });
   }
 
   onDelete(qa: any): void {
-    // Implement delete functionality here
-    console.log('Delete QA:', qa);
+    this.questionAnswerService.deleteUserQAById(qa.id).subscribe({
+      next: (response) => {
+        console.log('QA deleted successfully:', response);
+        this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
+      },
+      error: (error) => {
+        console.error('Error deleting QA:', error);
+      }
+    }); 
   }
 }

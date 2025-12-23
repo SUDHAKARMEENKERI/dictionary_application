@@ -18,6 +18,13 @@ export class AddQuestionAnswerComponent implements OnInit {
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
   imageFile: File | null = null;
+  editMode: {
+    isEditMode: boolean;
+    id: string | null;
+  } = {
+    isEditMode: false,
+    id: null
+  };
 
   dropdownOptions = [
     { value: 'angular', label: 'Angular' },
@@ -41,6 +48,10 @@ export class AddQuestionAnswerComponent implements OnInit {
       const id = params['id'];
 
       if (id) {
+        this.editMode = {
+          isEditMode: true,
+          id: id
+        };
         this.questionAnswerService.getAllUserQAById(id).subscribe({
           next: (data) => {
             if (data) {
@@ -68,19 +79,37 @@ export class AddQuestionAnswerComponent implements OnInit {
     formData.append('question', this.questionAnswerForm.value.question);
     formData.append('answer', this.questionAnswerForm.value.answer);
     formData.append('topic', this.questionAnswerForm.value.topic);
+    formData.append('mobile', JSON.parse(localStorage.getItem('login') || '{}').mobile || '');
     if (this.imageFile) {
       formData.append('image', this.imageFile);
+    } else{
+      formData.append('image', '');
+      formData.append('imageBase64', '');
     }
 
-    this.questionAnswerService.createUserQA(formData).subscribe({
-      next: (response) => {
-        this.questionAnswerForm.reset();
-        this.removeImage();
-      },
-      error: (error) => {
-        console.error('Error submitting Question-Answer:', error);
-      }
-    });
+    if (this.editMode.isEditMode && this.editMode.id) {
+      formData.append('id', this.editMode.id);
+      this.questionAnswerService.upateUserQA(this.editMode.id, formData).subscribe({
+        next: (response) => {
+          this.questionAnswerForm.reset();
+          this.removeImage();
+        },
+        error: (error) => {
+          console.error('Error submitting Question-Answer:', error);
+        }
+      });
+    } else {
+      this.questionAnswerService.createUserQA(formData).subscribe({
+        next: (response) => {
+          this.questionAnswerForm.reset();
+          this.removeImage();
+        },
+        error: (error) => {
+          console.error('Error submitting Question-Answer:', error);
+        }
+      });
+    }
+
 
   }
 
@@ -100,6 +129,8 @@ export class AddQuestionAnswerComponent implements OnInit {
   removeImage() {
     this.imageSrc = null;
     this.imageFile = null;
+
+    this
   }
 
   getImageSrc(imageData: string): string {

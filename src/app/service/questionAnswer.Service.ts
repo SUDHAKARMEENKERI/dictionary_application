@@ -18,6 +18,13 @@ export class QuestionAnswerService {
         return this.http.post<any>(apiUrl, userQA);
     }
 
+    upateUserQA(id: string, userQA: any): Observable<any> {
+        // const apiUrl = `http://localhost:8080/api/qa/update/${id}`;
+        // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/update'; 
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/update/${id}`;
+        return this.http.put<any>(apiUrl, userQA);
+    }
+
     getAllUserQA(): Observable<any> {
         // const apiUrl = 'http://localhost:8080/api/qa/getAllUserQA';
         //  const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/getAllUserQA';
@@ -28,13 +35,13 @@ export class QuestionAnswerService {
     getAllUserQAById(id: string): Observable<any> {
         // const apiUrl = `http://localhost:8080/api/qa/${id}`;
         //  const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/qa/${id}';
-        const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/qa/${id}';
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/${id}`;
         return this.http.get<any>(apiUrl);
     }
 
     getQuestionAnswerCountByMobile(mobile: string): Observable<number> {
-        // const apiUrl = `http://localhost:8080/api/qa/user/count/${mobile}`;
-        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/count/${mobile}`;
+        //  const apiUrl = `http://localhost:8080/api/qa/user/count/${mobile}`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/user/count/${mobile}`;
         return this.http.get<number>(apiUrl);
     }
 
@@ -44,6 +51,13 @@ export class QuestionAnswerService {
         return this.http.get<{ totalQuestionAnswerCount: number }>(apiUrl).pipe(
             map(response => response.totalQuestionAnswerCount)
         );
+    }
+
+    deleteUserQAById(id: string): Observable<any> {
+        // const apiUrl = `http://localhost:8080/api/qa/delete/${id}`;
+        // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/qa/delete/${id}`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/delete/${id}`;
+        return this.http.delete<any>(apiUrl);
     }
 
 }
