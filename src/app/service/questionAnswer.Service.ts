@@ -60,4 +60,19 @@ export class QuestionAnswerService {
         return this.http.delete<any>(apiUrl);
     }
 
+    getPagedQuestionAnswers(page: number, size: number): Observable<any> {
+        const apiUrl = `http://localhost:8080/api/qa/list?page=${page}&size=${size}`;
+        // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/qa/list?page=${page}&size=${size}`;
+        // const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/list?page=${page}&size=${size}`;
+        return this.http.get<any>(apiUrl);
+    }
+
+    bulkUploadQA(formData: any): Observable<any> {
+        const apiUrl = `http://localhost:8080/api/qa/bulkUploadQA`;
+        // const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/bulkUploadQA`;
+
+        return this.http.post<any>(apiUrl, formData);
+
+    }
+
 }

@@ -1,6 +1,33 @@
 <div class="container my-4">
-    <h4>Add Question and Answer</h4>
+    <div class="row">
+        <div class="col">
+            <h4>Add Question and Answer</h4>
+        </div>
+        <div class="col">
+           <div class="upload-container">
+  <label class="file-upload">
+    <input
+      type="file"
+      accept=".xlsx"
+      (change)="onFileSelect($event)"
+      hidden
+    />
+    <span class="upload-icon">📄</span>
+    <span class="upload-text">Choose Excel File</span>
+  </label>
+
+  <button
+    class="upload-btn"
+    (click)="upload()"
+    [disabled]="!excelFile">
+    ⬆ Upload
+  </button>
 </div>
+
+        </div>
+    </div>
+</div>
+
 <form [formGroup]="questionAnswerForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
     <div class="mb-3">
         <label> Question</label>
@@ -33,3 +60,4 @@
 
     <button type="submit" class="btn btn-primary" [disabled]="questionAnswerForm.invalid">Submit</button>
 </form>
+<app-modal [openModalDetails]="openModalDetails"></app-modal>

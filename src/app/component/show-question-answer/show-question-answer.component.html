@@ -22,16 +22,26 @@
         </div>
 
         <div class="image-container" *ngIf="qa.image || qa.imageBase64">
-            <img 
-                *ngIf="qa.image" 
-                [src]="getImageSrc(qa.image)" 
-                alt="Question Image"
-                class="card-image" />
-            <img 
-                *ngIf="qa.imageBase64" 
-                [src]="getImageSrc(qa.imageBase64)" 
-                alt="Question Image"
-                class="card-image" />
+            <img *ngIf="qa.image" [src]="getImageSrc(qa.image)" alt="Question Image" class="card-image" />
+            <img *ngIf="qa.imageBase64" [src]="getImageSrc(qa.imageBase64)" alt="Question Image" class="card-image" />
         </div>
     </div>
+
+    <div class="pagination-container" *ngIf="totalPages > 1">
+
+        <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+            ⬅ Prev
+        </button>
+
+        <button *ngFor="let page of [].constructor(totalPages); let i = index" (click)="goToPage(i)"
+            [class.active]="i === currentPage">
+            {{ i + 1 }}
+        </button>
+
+        <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+            Next ➡
+        </button>
+
+    </div>
+
 </div>
