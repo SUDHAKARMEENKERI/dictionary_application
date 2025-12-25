@@ -1,64 +1,141 @@
 <app-banner [openBannerDetails]="openBannerDetails"></app-banner>
-<div class="mt-4">
-  <div class="row">
-    <div class="col-6 col-sm-4 mb-2">
-      <h3>Word List</h3>
-    </div>
-    <div class="col-6 col-sm-2 mb-2"><button (click)="addWord()" class="btn btn-sm btn-primary">
-        Add Word
-      </button>
-    </div>
-    <div class="col-6 col-sm-2 mb-2">
-      <button (click)="getAllUserWordList()" class="btn btn-sm btn-primary">Show All Word</button>
-    </div>
-    <div class="col-6 col-sm-2 mb-2">
-      <button (click)="exportToExcel()" class="btn btn-sm btn-success mb-2">
-        Export to Excel
-      </button>
-    </div>
-    <div class="col-6 col-md-2 mb-2">
-      <input id="fileInput" type="file" (change)="onFileChange($event)" class="custom-file-input" />
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-12">
-      <input [(ngModel)]="searchText" type="text" class="form-control mb-4" (ngModelChange)="page = 1"
-        (input)="onSearch()" placeholder="Search word..." />
+
+<div class="container-fluid words-container mt-4">
+  <!-- Header Section -->
+  <div class="header-section mb-5">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="page-title mb-1">
+          <i class="bi bi-book-fill me-2"></i>Word List
+        </h2>
+        <p class="text-muted">Manage and organize your vocabulary</p>
+      </div>
     </div>
   </div>
 
-  <table class="table table-bordered table-striped">
-    <thead class="thead-dark">
-      <tr>
-        <th>Word</th>
-        <th>Meaning</th>
-        <th>Edit</th>
-        <th>Delete</th>
-      </tr>
-    </thead>
-    <tbody>
-      <ng-container
-        *ngFor="let item of filteredData | paginate: { itemsPerPage: pageSize, currentPage: page }; let i = index">
-        <tr *ngIf="i < filteredData.length - 1 && item?.mobile !== filteredData[i-1]?.mobile && isShowAllUserWords">
-          <td colspan="4" class="userStyle">{{item?.firstName }} {{item?.lastName}} </td>
-        </tr>
-        <tr *ngIf="!item?.show_for_others || !isShowAllUserWords">
-          <td>{{ item.word }}</td>
-          <td>{{ item.meaning }}</td>
-          <td>
-            <button [disabled]="ownerData.mobile !== item.mobile && ownerData.mobile !== '9611675325'"
-              (click)="editWord(item)" class="btn btn-sm btn-primary me-2">Edit</button>
-          </td>
-          <td>
-            <button [disabled]="ownerData.mobile !== item.mobile && ownerData.mobile !== '9611675325'"
-              (click)="deleteWord(item)" class="btn btn-sm btn-danger">Delete</button>
-          </td>
-        </tr>
-      </ng-container>
-    </tbody>
-  </table>
-  <!-- Pagination controls -->
-  <pagination-controls (pageChange)="page = $event"></pagination-controls>
+  <!-- Action Buttons Section -->
+  <div class="action-buttons-section mb-4">
+    <div class="row g-2">
+      <div class="col-12 col-sm-6 col-md-3">
+        <button (click)="addWord()" class="btn btn-primary w-100">
+          <i class="bi bi-plus-circle me-2"></i>Add Word
+        </button>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <button (click)="getAllUserWordList()" class="btn btn-info w-100 text-white">
+          <i class="bi bi-eye me-2"></i>Show All Words
+        </button>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <button (click)="exportToExcel()" class="btn btn-success w-100">
+          <i class="bi bi-download me-2"></i>Export to Excel
+        </button>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label for="fileInput" class="btn btn-warning w-100 mb-0">
+          <i class="bi bi-upload me-2"></i>Import Excel
+          <input id="fileInput" type="file" (change)="onFileChange($event)" class="d-none" />
+        </label>
+      </div>
+    </div>
+  </div>
 
+  <!-- Search Section -->
+  <div class="search-section mb-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="input-group search-input-group">
+          <span class="input-group-text search-icon">
+            <i class="bi bi-search"></i>
+          </span>
+          <input [(ngModel)]="searchText" type="text" class="form-control" (ngModelChange)="page = 1"
+            (input)="onSearch()" placeholder="Search words by name or meaning..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div class="results-info mb-3">
+    <small class="text-muted">
+      Showing <strong>{{ filteredData.length }}</strong> word(s)
+    </small>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section">
+    <div class="table-responsive">
+      <table class="table table-hover words-table">
+        <thead class="table-header">
+          <tr>
+            <th scope="col"><i class="bi bi-book"></i> Word</th>
+            <th scope="col"><i class="bi bi-chat-dots"></i> Meaning</th>
+            <th scope="col" class="text-center"><i class="bi bi-pencil"></i> Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- User Section Headers -->
+          <tr *ngIf="filteredData.length > 0" class="user-section-header">
+            <td colspan="3" *ngIf="isShowAllUserWords">
+              <i class="bi bi-people-fill me-2"></i>
+              <strong>All Users' Words</strong>
+            </td>
+            <td colspan="3" *ngIf="!isShowAllUserWords">
+              <i class="bi bi-person-fill me-2"></i>
+              <strong>Your Words</strong>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <ng-container
+            *ngFor="let item of filteredData | paginate: { itemsPerPage: pageSize, currentPage: page }; let i = index">
+            <!-- User Name Header (for multiple users) -->
+            <tr *ngIf="i > 0 && item?.mobile !== filteredData[i-1]?.mobile && isShowAllUserWords" class="user-header">
+              <td colspan="3">
+                <i class="bi bi-person-circle me-2"></i>{{ item?.firstName }} {{ item?.lastName }}
+              </td>
+            </tr>
+
+            <!-- Word Row -->
+            <tr *ngIf="!item?.show_for_others || !isShowAllUserWords" class="word-row">
+              <td class="word-cell">
+                <strong>{{ item.word }}</strong>
+              </td>
+              <td class="meaning-cell">
+                {{ item.meaning }}
+              </td>
+              <td class="action-cell">
+                <div class="action-buttons">
+                  <button [disabled]="ownerData.mobile !== item.mobile && ownerData.mobile !== '9611675325'"
+                    (click)="editWord(item)" class="btn btn-sm btn-outline-primary" title="Edit Word">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button [disabled]="ownerData.mobile !== item.mobile && ownerData.mobile !== '9611675325'"
+                    (click)="deleteWord(item)" class="btn btn-sm btn-outline-danger" title="Delete Word">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+
+          <!-- Empty State -->
+          <tr *ngIf="filteredData.length === 0" class="empty-state">
+            <td colspan="3" class="text-center py-5">
+              <i class="bi bi-inbox display-6 text-muted"></i>
+              <p class="text-muted mt-3">No words found. Start by adding your first word!</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section mt-4">
+    <pagination-controls (pageChange)="page = $event"></pagination-controls>
+  </div>
+
+  <!-- Modal -->
   <app-modal [openModalDetails]="openModalDetails"></app-modal>
 </div>
