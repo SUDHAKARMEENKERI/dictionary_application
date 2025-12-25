@@ -15,9 +15,9 @@ export class ProfileComponent implements OnInit {
   editProfileForm!: FormGroup;
 
   userProfile = {
-    firstName: 'Rajesh',
-    lastName: 'Kumar',
-    email: 'rajesh.kumar@example.com',
+    firstName: 'Sudhakar',
+    lastName: 'Meenkeri',
+    email: 'sudhakarmeenkeri@gmail.com',
     phone: '+91 96116 57325',
     joinedDate: 'January 15, 2024',
     lastActive: 'Today at 2:30 PM',
