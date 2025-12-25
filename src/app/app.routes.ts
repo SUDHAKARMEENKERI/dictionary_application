@@ -5,10 +5,11 @@ import { SignupComponent } from './component/signup/signup.component';
 import { ForgotPasswordComponent } from './component/forgot-password/forgot-password.component';
 import { AboutUsComponent } from './component/about-us/about-us.component';
 import { ContactUsComponent } from './component/contact-us/contact-us.component';
+import { QaHomeComponent } from './component/qa-home/qa-home.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
-    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: '', redirectTo: '/homeqa', pathMatch: 'full' },
     { path: 'home', loadComponent: () => import('./component/home-page/home-page.component').then(m => m.HomePageComponent), canActivate: [AuthGuard] },
     { path: 'wordlist', loadComponent: () => import('./component/wordslist/wordslist.component').then(m => m.WordslistComponent), canActivate: [AuthGuard] },
     { path: 'addWords', loadComponent: () => import('./component/addwords/addwords.component').then(m => m.AddwordsComponent), canActivate: [AuthGuard] },
@@ -18,6 +19,7 @@ export const routes: Routes = [
     { path: 'profile', loadComponent: () => import('./component/profile/profile.component').then(m => m.ProfileComponent), canActivate: [AuthGuard] },
     { path: 'about', component: AboutUsComponent },
     { path: 'contact', component: ContactUsComponent },
+    { path: 'homeqa', component: QaHomeComponent },
     { path: 'signup', component: SignupComponent },
     { path: 'forgotpassword', component: ForgotPasswordComponent },
 

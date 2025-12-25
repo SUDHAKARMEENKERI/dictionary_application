@@ -29,3 +29,88 @@
 .action-message {
     color: green;
 }
+
+.words-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+}
+
+// Header Section
+.header-section {
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a237e;
+  display: flex;
+  align-items: center;
+
+  i {
+    font-size: 32px;
+  }
+}
+
+.text-muted {
+  color: #757575;
+  font-size: 14px;
+}
+
+.action-buttons-section {
+  .btn {
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: none;
+
+    i {
+      margin-right: 6px;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #5568d3 0%, #6a3f93 100%);
+    }
+  }
+
+  .btn-info { 
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+    }
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #45a049 0%, #2e7d32 100%);
+    }
+  
+  }
+}

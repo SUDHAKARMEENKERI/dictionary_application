@@ -1,4 +1,4 @@
-<nav class="navbar">
+<!-- <nav class="navbar">
     <div class="col-4">CareerPrepBook</div>
     <div class="col-5 header_username">
         <a>{{ userName }}</a>
@@ -8,4 +8,40 @@
         <a *ngIf="!isLoggedIn" [routerLink]="'/login'">Login</a>
         <a *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</a>
     </div>
+</nav> -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
+
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold" href="#">
+        CareerPreBook
+    </a>
+
+    <!-- Mobile Menu Button -->
+    <button class="navbar-toggler d-lg-none" type="button" (click)="toggleMenu()">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Desktop Menu -->
+    <div class="collapse navbar-collapse d-none d-lg-flex justify-content-end">
+        <div class="col-5 header_username">
+            <a class="navbar-brand fw-bold">{{ userName }}</a>
+        </div>
+        <div class="col-3 header_login">
+            <a style="padding-right: 1rem;" [routerLink]="'/home'">Home</a>
+            <a *ngIf="!isLoggedIn" [routerLink]="'/login'">Login</a>
+            <a *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</a>
+        </div>
+    </div>
 </nav>
+
+<!-- Mobile Dropdown Menu -->
+<div class="mobile-menu" *ngIf="showMenu">
+    <div class="menu-card">
+        <div class="user-name">
+            👤 {{ userName }}
+        </div>
+        <button class="btn btn-danger w-100 mt-3" (click)="logout()">
+            Logout
+        </button>
+    </div>
+</div>

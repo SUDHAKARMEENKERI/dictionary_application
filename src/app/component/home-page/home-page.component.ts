@@ -59,6 +59,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     private questionAnswerService: QuestionAnswerService
   ) { }
 
+ 
+
   ngOnInit(): void {
     const loginData = localStorage.getItem('login');
     this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({

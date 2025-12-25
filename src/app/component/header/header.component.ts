@@ -18,7 +18,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private userService: UserSignUpService
   ) { }
 
-  userName: string = '';
+  showMenu = false;
+  userName = 'Sudhakar';
+
+  toggleMenu() {
+    this.showMenu = !this.showMenu;
+  }
+
+  // logout() {
+  //   // clear session / token
+  //   localStorage.clear();
+  //   this.showMenu = false;
+  //   // redirect to login
+  // }
+
+  // userName: string = '';
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
@@ -39,13 +53,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-      next: (user) => {
-        this.userName = user.firstName; // Assuming the user object has a 'name' property
-      },
-      error: (error) => {
-        console.error('Error fetching user details:', error);
-      }
-    });
+        next: (user) => {
+          this.userName = user.firstName; // Assuming the user object has a 'name' property
+        },
+        error: (error) => {
+          console.error('Error fetching user details:', error);
+        }
+      });
   }
 
   ngOnDestroy(): void {

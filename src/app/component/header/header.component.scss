@@ -30,3 +30,24 @@
   text-align: center;
 }
 }
+
+.mobile-menu {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.menu-card {
+  background: #ffffff;
+  width: 220px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.user-name {
+  font-weight: 600;
+  text-align: center;
+  color: #1f3c88;
+}
