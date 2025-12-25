@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-forgot-password',
@@ -10,10 +12,11 @@ import { Router } from '@angular/router';
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss']
 })
-export class ForgotPasswordComponent implements OnInit{
+export class ForgotPasswordComponent implements OnInit, OnDestroy{
    forgotForm!: FormGroup;
    showPassword = false;
    showConfirmPassword = false;
+   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router
@@ -35,11 +38,16 @@ export class ForgotPasswordComponent implements OnInit{
 
   onSubmit() {
     if (this.forgotForm.valid) {
-      this.userService.updateUser(this.forgotForm.value).subscribe(response => {
+      this.userService.updateUser(this.forgotForm.value).pipe(takeUntil(this.destroy$)).subscribe(response => {
         this.router.navigate(['/login']);
       }, error => {
         console.error('Error updating password', error);
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

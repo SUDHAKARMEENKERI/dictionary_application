@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
 import { selectWords } from '../../store/words/selector';
@@ -14,6 +14,8 @@ import { Actions, ofType } from '@ngrx/effects';
 import * as XLSX from 'xlsx';
 import { FormsModule } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-wordslist',
@@ -22,7 +24,7 @@ import { NgxPaginationModule } from 'ngx-pagination';
   templateUrl: './wordslist.component.html',
   styleUrl: './wordslist.component.scss'
 })
-export class WordslistComponent implements OnInit {
+export class WordslistComponent implements OnInit, OnDestroy {
   openBannerDetails: any = {
     isOpen: false,
     message: ''
@@ -43,6 +45,7 @@ export class WordslistComponent implements OnInit {
   tableHeaders: string[] = [];
   filteredData: any;
   searchText: string = '';
+  private destroy$ = new Subject<void>();
 
   constructor(private router: Router, private activeRouter: ActivatedRoute,
     private wordService: WordListService, private userService: UserSignUpService,
@@ -55,7 +58,7 @@ export class WordslistComponent implements OnInit {
     const login = localStorage.getItem('login');
     this.ownerData = login ? JSON.parse(login) : null;
     this.loadWordsList();
-    this.activeRouter.paramMap.subscribe(el => {
+    this.activeRouter.paramMap.pipe(takeUntil(this.destroy$)).subscribe(el => {
       if (el.get('state') === 'add') {
         this.openBannerDetails = {
           isOpen: true,
@@ -112,7 +115,7 @@ export class WordslistComponent implements OnInit {
         const data = localStorage.getItem('login');
         if (data) {
           const mobile = JSON.parse(data).mobile;
-          this.wordService.fetchWordsByMobile(mobile).subscribe({
+          this.wordService.fetchWordsByMobile(mobile).pipe(takeUntil(this.destroy$)).subscribe({
             next: (data) => {
               this.loaderService.hide();
               this.wordlistData = data;
@@ -134,7 +137,7 @@ export class WordslistComponent implements OnInit {
   }
 
   private showAllUserWordList() {
-    this.wordService.fetchWords().subscribe({
+    this.wordService.fetchWords().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => {
         this.loaderService.hide();
         this.wordlistData = data;
@@ -231,5 +234,10 @@ export class WordslistComponent implements OnInit {
     item.word.toLowerCase().includes(this.searchText.toLowerCase()) || item.meaning.toLowerCase().includes(this.searchText.toLowerCase())
   );
 }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 }

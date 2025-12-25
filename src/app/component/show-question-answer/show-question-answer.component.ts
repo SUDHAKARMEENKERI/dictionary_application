@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-show-question-answer',
@@ -11,12 +13,13 @@ import { Router } from '@angular/router';
   styleUrl: './show-question-answer.component.scss'
 })
 
-export class ShowQuestionAnswerComponent implements OnInit {
+export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   questionAnswers: any[] = [];
 
   currentPage = 0;
   pageSize = 10;
   totalPages = 0;
+  private destroy$ = new Subject<void>();
 
   constructor(private questionAnswerService: QuestionAnswerService,
     private sanitizer: DomSanitizer,
@@ -36,7 +39,7 @@ export class ShowQuestionAnswerComponent implements OnInit {
   }
 
   loadPage(page: number) {
-    this.questionAnswerService.getPagedQuestionAnswers(page, this.pageSize).subscribe(res => {
+    this.questionAnswerService.getPagedQuestionAnswers(page, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe(res => {
       this.questionAnswers = res.content;
       this.totalPages = res.totalPages;
       this.currentPage = res.number;
@@ -60,7 +63,7 @@ export class ShowQuestionAnswerComponent implements OnInit {
     }
 
     onDelete(qa: any): void {
-      this.questionAnswerService.deleteUserQAById(qa.id).subscribe({
+      this.questionAnswerService.deleteUserQAById(qa.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           console.log('QA deleted successfully:', response);
           this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
@@ -70,4 +73,7 @@ export class ShowQuestionAnswerComponent implements OnInit {
         }
       });
     }
-  }
+    ngOnDestroy(): void {
+      this.destroy$.next();
+      this.destroy$.complete();
+    }  }

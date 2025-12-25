@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy } from '@angular/core';
 import { UserWord } from '../../store/words/model';
 import { Store } from '@ngrx/store';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -12,6 +12,8 @@ import { WordListService } from '../../service/word-list.service';
 import { ExportDataToExcel } from '../../util/exportData';
 import { ModalComponent } from '../modal/modal.component';
 import { Actions, ofType } from '@ngrx/effects';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -22,7 +24,7 @@ import { Actions, ofType } from '@ngrx/effects';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   standalone: true,
 })
-export class AddwordsComponent implements OnInit {
+export class AddwordsComponent implements OnInit, OnDestroy {
   addWordForm!: FormGroup;
   isEditFlow = false;
   userList: any;
@@ -34,6 +36,7 @@ export class AddwordsComponent implements OnInit {
   }
 
   error$: any;
+  private destroy$ = new Subject<void>();
   constructor(private store: Store, private activeroute: ActivatedRoute, private router: Router,
     private userService: UserSignUpService, private loaderService: LoaderService,
     private wordService: WordListService, private actions$: Actions
@@ -48,7 +51,7 @@ export class AddwordsComponent implements OnInit {
       show_for_others: new FormControl(false, [Validators.required])
     });
 
-    this.activeroute.paramMap.subscribe(params => {
+    this.activeroute.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params.get('id')) {
         this.isEditFlow = true;
         this.store.dispatch(getWordById({ id: Number(params.get('id')) }));
@@ -56,7 +59,7 @@ export class AddwordsComponent implements OnInit {
     });
 
     if (this.isEditFlow) {
-      this.store.select(selectWords).subscribe(words => {
+      this.store.select(selectWords).pipe(takeUntil(this.destroy$)).subscribe(words => {
         this.addWordForm.patchValue({
           id: words?.id,
           word: words?.word,
@@ -68,7 +71,7 @@ export class AddwordsComponent implements OnInit {
 
     }
 
-    this.userService.getAllUsers().subscribe({
+    this.userService.getAllUsers().pipe(takeUntil(this.destroy$)).subscribe({
       next: (users) => {
         this.userList = users;
       },
@@ -109,7 +112,8 @@ export class AddwordsComponent implements OnInit {
 
   private errorHandleForSubmit(success: any, failure: any, wordAction: string) {
     this.actions$.pipe(
-      ofType(success, failure)
+      ofType(success, failure),
+      takeUntil(this.destroy$)
     ).subscribe(action => {
       this.loaderService.hide();
       if (action.type === failure.type) {
@@ -131,5 +135,10 @@ export class AddwordsComponent implements OnInit {
 
   showAllUserWordList() {
     this.router.navigate(['/wordlist', { state: 'all' }]);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

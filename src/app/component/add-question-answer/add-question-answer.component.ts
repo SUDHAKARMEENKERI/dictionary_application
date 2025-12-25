@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -12,13 +14,14 @@ import { ModalComponent } from '../modal/modal.component';
   templateUrl: './add-question-answer.component.html',
   styleUrl: './add-question-answer.component.scss'
 })
-export class AddQuestionAnswerComponent implements OnInit {
+export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   constructor(private formBuilder: FormBuilder,
     private questionAnswerService: QuestionAnswerService,
     private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer) { }
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
   imageFile: File | null = null;
+  private destroy$ = new Subject<void>();
   editMode: {
     isEditMode: boolean;
     id: string | null;
@@ -51,7 +54,7 @@ export class AddQuestionAnswerComponent implements OnInit {
       topic: ['', Validators.required],
     });
 
-    this.activeRouter.queryParams.subscribe(params => {
+    this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params['id'];
 
       if (id) {
@@ -59,7 +62,7 @@ export class AddQuestionAnswerComponent implements OnInit {
           isEditMode: true,
           id: id
         };
-        this.questionAnswerService.getAllUserQAById(id).subscribe({
+        this.questionAnswerService.getAllUserQAById(id).pipe(takeUntil(this.destroy$)).subscribe({
           next: (data) => {
             if (data) {
               const qaItem = data;
@@ -95,7 +98,7 @@ export class AddQuestionAnswerComponent implements OnInit {
 
     if (this.editMode.isEditMode && this.editMode.id) {
       formData.append('id', this.editMode.id);
-      this.questionAnswerService.upateUserQA(this.editMode.id, formData).subscribe({
+      this.questionAnswerService.upateUserQA(this.editMode.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           this.questionAnswerForm.reset();
           this.removeImage();
@@ -107,7 +110,7 @@ export class AddQuestionAnswerComponent implements OnInit {
         }
       });
     } else {
-      this.questionAnswerService.createUserQA(formData).subscribe({
+      this.questionAnswerService.createUserQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           this.questionAnswerForm.reset();
           this.removeImage();
@@ -164,7 +167,7 @@ export class AddQuestionAnswerComponent implements OnInit {
     const formData = new FormData();
     formData.append('excel', this.excelFile);
 
-   this.questionAnswerService.bulkUploadQA(formData).subscribe({
+   this.questionAnswerService.bulkUploadQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.modalMessage("Bulk upload successful.");
       },
@@ -173,6 +176,11 @@ export class AddQuestionAnswerComponent implements OnInit {
         this.modalMessage("Opps!, Something went wrong during bulk upload.");
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

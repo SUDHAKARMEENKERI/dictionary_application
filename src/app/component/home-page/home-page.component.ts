@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { WordListService } from '../../service/word-list.service';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface DashboardData {
   userName: string;
@@ -21,7 +23,7 @@ export interface DashboardData {
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })
-export class HomePageComponent implements OnInit {
+export class HomePageComponent implements OnInit, OnDestroy {
   dashBoardData: DashboardData = {
     userName: '',
     totalWords: 0,
@@ -31,6 +33,7 @@ export class HomePageComponent implements OnInit {
     totalQuestionAnswerCount: 0,
     qaUserContribution: 0
   };
+  private destroy$ = new Subject<void>();
 
   announcements = [
     'New feature: Export your word list to PDF!',
@@ -43,7 +46,7 @@ export class HomePageComponent implements OnInit {
     { label: 'Profile', link: '/profile', icon: 'bi bi-person' },
     { label: 'About', link: '/about', icon: 'bi bi-info-circle' },
     { label: 'Contact', link: '/contact', icon: 'bi bi-envelope' },
-    { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }
+    // { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }
   ];
   recentActivities = [
     'Added new word: "serendipity".',
@@ -58,7 +61,7 @@ export class HomePageComponent implements OnInit {
 
   ngOnInit(): void {
     const loginData = localStorage.getItem('login');
-    this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '').subscribe({
+    this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
         this.dashBoardData.userName = user.firstName + ' ' + user.lastName; // Assuming the user object has a 'name' property
       },
@@ -66,7 +69,7 @@ export class HomePageComponent implements OnInit {
         console.error('Error fetching user details:', error);
       }
     });
-    this.userService.getUserCount().subscribe({
+    this.userService.getUserCount().pipe(takeUntil(this.destroy$)).subscribe({
       next: (countData) => {
         this.dashBoardData.totalUsers = countData.totalUserCount;
       },
@@ -75,7 +78,7 @@ export class HomePageComponent implements OnInit {
       }
     });
 
-    this.wordService.getWordCount().subscribe({
+    this.wordService.getWordCount().pipe(takeUntil(this.destroy$)).subscribe({
       next: (countData) => {
         this.dashBoardData.totalWords = countData.totalWordCount;
       },
@@ -84,7 +87,7 @@ export class HomePageComponent implements OnInit {
       }
     });
 
-    this.wordService.getWordCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').subscribe({
+    this.wordService.getWordCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
       next: (countData) => {
         this.dashBoardData.wordUserContribution = countData;
       },
@@ -93,7 +96,7 @@ export class HomePageComponent implements OnInit {
       }
     });
 
-    this.questionAnswerService.getQuestionAnswerCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').subscribe({
+    this.questionAnswerService.getQuestionAnswerCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
       next: (countData) => {
         this.dashBoardData.qaUserContribution = countData;
       },
@@ -102,7 +105,7 @@ export class HomePageComponent implements OnInit {
       }
     });
 
-    this.questionAnswerService.getQuestionAnswerCount().subscribe({
+    this.questionAnswerService.getQuestionAnswerCount().pipe(takeUntil(this.destroy$)).subscribe({
       next: (countData: any) => {
         this.dashBoardData.totalQuestionAnswerCount = countData;
       },
@@ -110,6 +113,11 @@ export class HomePageComponent implements OnInit {
         console.error('Error fetching question answer count:', error);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { setMobile } from '../../store/action';
 import { Store } from '@ngrx/store';
 import { LoaderService } from '../../service/loader.service';
-import { last } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -14,9 +15,10 @@ import { last } from 'rxjs';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 }) 
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   loginForm: FormGroup;
   showPassword = false;
+  private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
      private router: Router, private store: Store<{ mobile: string }>,
@@ -35,7 +37,9 @@ export class LoginComponent {
   onSubmit() {
     this.loaderService.show();
     if (this.loginForm.valid) {
-      this.userService.userLogin(this.loginForm.value).subscribe((response: any) => {
+      this.userService.userLogin(this.loginForm.value)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((response: any) => {
         if(response.isLogIn){
           localStorage.setItem('login', JSON.stringify({isLogIn: response.isLogIn, mobile: response.mobile, firstName: response.firstName,
             lastName: response.lastName
@@ -49,6 +53,11 @@ export class LoginComponent {
         console.error('Error logging in user', error);
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

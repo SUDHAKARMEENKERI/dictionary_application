@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { Router } from '@angular/router';
 import { LoaderService } from '../../service/loader.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-signup',
@@ -11,10 +13,11 @@ import { LoaderService } from '../../service/loader.service';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
-export class SignupComponent implements OnInit {
+export class SignupComponent implements OnInit, OnDestroy {
   signupForm!: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
+  private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router, private loaderService: LoaderService
@@ -41,7 +44,9 @@ export class SignupComponent implements OnInit {
   onSubmit() {
     this.loaderService.show();
     if (this.signupForm.valid) {
-      this.userService.registerUser(this.signupForm.value).subscribe(response => {
+      this.userService.registerUser(this.signupForm.value)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(response => {
         this.router.navigate(['/home']);
         this.loaderService.hide();
       }, error => {
@@ -49,6 +54,11 @@ export class SignupComponent implements OnInit {
         this.loaderService.hide();
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

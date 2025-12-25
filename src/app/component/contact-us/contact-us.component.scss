@@ -1,0 +1,39 @@
+.contact-root {
+	.card { border: none; border-radius: .75rem; }
+
+	.info-panel {
+		background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+		color: #fff;
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.contact-list li { margin: .6rem 0; }
+	.contact-list .icon { font-size: 1.05rem; color: rgba(255,255,255,0.95); }
+
+	.social a { width: 38px; height: 38px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; }
+
+	.btn-gradient {
+		background: linear-gradient(90deg,#0069ff,#7a5cff);
+		border: none;
+	}
+
+	.input-group-text { background: transparent; border-right: 0; }
+	.form-control { border-left: 0; }
+
+	.message-alert {
+		background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+		border: 1px solid #b1dfbb;
+		border-radius: .5rem;
+		padding: 1rem 1.5rem;
+		color: #155724;
+		h3 { color: #155724; font-size: 1.1rem; font-weight: 500; }
+		i { color: #28a745; font-size: 1.3rem; }
+	}
+
+	@media (max-width:767.98px) {
+		.info-panel { padding: 1.5rem !important; }
+	}
+}

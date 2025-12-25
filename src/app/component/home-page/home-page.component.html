@@ -1,108 +1,261 @@
-<div class="mt-4">
-    <!-- Personalized Greeting -->
-    <div class="d-flex align-items-center mb-4">
-        <img src="/assets/images/careerprebook.png" alt="User Avatar" width="60" height="60" class="rounded-circle me-3" *ngIf="dashBoardData.userName">
+<div class="home-container">
+  <!-- Hero/Welcome Section -->
+  <section class="hero-section py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="hero-title text-white mb-3">
+            <i class="bi bi-hand-thumbs-up me-2"></i>Welcome{{ dashBoardData.userName ? ', ' + dashBoardData.userName : '' }}!
+          </h1>
+          <p class="hero-subtitle text-white-50 lead">
+            Your personalized learning dashboard to master vocabulary and ace interviews
+          </p>
+        </div>
+        <div class="col-md-4 text-center">
+          <i class="bi bi-book display-1 text-white-50"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Announcements Section -->
+  <div class="container mt-4 mb-4" *ngIf="announcements?.length">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-megaphone me-3 fs-5"></i>
         <div>
-            <h2 class="mb-1">Welcome{{ dashBoardData.userName ? ', ' + dashBoardData.userName : '' }}!</h2>
-            <p class="lead mb-0">Your personal dictionary dashboard.</p>
+          <strong class="me-2">Latest Updates:</strong>
+          <span *ngFor="let note of announcements; let last = last">
+            {{ note }}<span *ngIf="!last">&nbsp;•&nbsp;</span>
+          </span>
         </div>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+  </div>
 
-    <!-- Announcements / News -->
-    <div *ngIf="announcements?.length" class="alert alert-warning mb-4">
-        <strong>Announcements:</strong>
-        <ul class="mb-0">
-            <li *ngFor="let note of announcements">{{ note }}</li>
-        </ul>
-    </div>
+  <div class="container">
+    <!-- Quick Stats Cards -->
+    <section class="stats-section mb-5">
+      <h2 class="section-heading mb-4">
+        <i class="bi bi-graph-up me-2"></i>Your Learning Progress
+      </h2>
+      <div class="row">
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="stat-card card-words">
+            <div class="stat-icon">
+              <i class="bi bi-book-fill"></i>
+            </div>
+            <h6 class="stat-label">Your Words</h6>
+            <p class="stat-value">{{ dashBoardData.wordUserContribution || 0 }}</p>
+            <small class="stat-info">of {{ dashBoardData.totalWords || 0 }} total</small>
+          </div>
+        </div>
 
-    <!-- Quick Stats Section -->
-    <div class="row my-4">
-        <h2>Word Statistics</h2>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-primary">
-                <div class="card-body">
-                    <i class="bi bi-book display-5 text-primary"></i>
-                    <h5 class="card-title mt-2">Total Words</h5>
-                    <p class="display-6">{{ dashBoardData.totalWords || 0 }}</p>
-                </div>
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="stat-card card-questions">
+            <div class="stat-icon">
+              <i class="bi bi-chat-dots-fill"></i>
             </div>
+            <h6 class="stat-label">Your Q&A</h6>
+            <p class="stat-value">{{ dashBoardData.qaUserContribution || 0 }}</p>
+            <small class="stat-info">of {{ dashBoardData.totalQuestionAnswerCount || 0 }} total</small>
+          </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-success">
-                <div class="card-body">
-                    <i class="bi bi-people display-5 text-success"></i>
-                    <h5 class="card-title mt-2">Users</h5>
-                    <p class="display-6">{{ dashBoardData.totalUsers || 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-info">
-                <div class="card-body">
-                    <i class="bi bi-person-check display-5 text-info"></i>
-                    <h5 class="card-title mt-2">Your Contributions</h5>
-                    <p class="display-6">{{ dashBoardData.wordUserContribution || 0 }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row my-4">
-        <h2>Question Answer Statistics</h2>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-primary">
-                <div class="card-body">
-                    <i class="bi bi-book display-5 text-primary"></i>
-                    <h5 class="card-title mt-2">Total Question Answer</h5>
-                    <p class="display-6">{{ dashBoardData.totalQuestionAnswerCount || 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-success">
-                <div class="card-body">
-                    <i class="bi bi-people display-5 text-success"></i>
-                    <h5 class="card-title mt-2">Users</h5>
-                    <p class="display-6">{{ dashBoardData.totalUsers || 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow-sm border-info">
-                <div class="card-body">
-                    <i class="bi bi-person-check display-5 text-info"></i>
-                    <h5 class="card-title mt-2">Your Contributions</h5>
-                    <p class="display-6">{{ dashBoardData.qaUserContribution || 0 }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Navigation Links with Icons -->
-    <div class="row my-4 justify-content-center">
-        <div class="col-6 col-md-3 mb-3" *ngFor="let nav of navLinks">
-            <a [routerLink]="nav.link" class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center shadow-sm">
-                <i [class]="nav.icon + ' mb-2 display-6'"></i>
-                <span>{{ nav.label }}</span>
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="stat-card card-users">
+            <div class="stat-icon">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <h6 class="stat-label">Community</h6>
+            <p class="stat-value">{{ dashBoardData.totalUsers || 0 }}</p>
+            <small class="stat-info">active members</small>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="stat-card card-platform">
+            <div class="stat-icon">
+              <i class="bi bi-globe-fill"></i>
+            </div>
+            <h6 class="stat-label">Platform</h6>
+            <p class="stat-value">{{ dashBoardData.totalWords + dashBoardData.totalQuestionAnswerCount }}</p>
+            <small class="stat-info">total resources</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Word & QA Statistics Boxes -->
+    <section class="overview-section mb-5">
+      <div class="row">
+        <!-- Words Overview -->
+        <div class="col-lg-6 mb-4">
+          <div class="overview-card">
+            <div class="overview-header">
+              <h3><i class="bi bi-book me-2"></i>Word Dictionary</h3>
+              <i class="bi bi-arrow-right"></i>
+            </div>
+            <div class="overview-stats">
+              <div class="stat-item">
+                <span class="label">Total Words</span>
+                <span class="value text-primary">{{ dashBoardData.totalWords || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="label">Your Contribution</span>
+                <span class="value text-success">{{ dashBoardData.wordUserContribution || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="label">Contributors</span>
+                <span class="value text-info">{{ dashBoardData.totalUsers || 0 }}</span>
+              </div>
+            </div>
+            <a [routerLink]="'/wordlist'" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-arrow-right me-2"></i>View Word List
             </a>
+          </div>
         </div>
-    </div>
 
-    <!-- Recent Activity Section -->
-    <div class="my-4">
-        <h4>Recent Activity</h4>
-        <ul class="list-group">
-            <li *ngFor="let activity of recentActivities" class="list-group-item">
-                <i class="bi bi-clock-history me-2 text-secondary"></i>{{ activity }}
-            </li>
-            <li *ngIf="!recentActivities?.length" class="list-group-item text-muted">
-                No recent activity.
-            </li>
-        </ul>
-    </div>
+        <!-- Q&A Overview -->
+        <div class="col-lg-6 mb-4">
+          <div class="overview-card">
+            <div class="overview-header">
+              <h3><i class="bi bi-chat-dots me-2"></i>Interview Q&A</h3>
+              <i class="bi bi-arrow-right"></i>
+            </div>
+            <div class="overview-stats">
+              <div class="stat-item">
+                <span class="label">Total Q&A Pairs</span>
+                <span class="value text-primary">{{ dashBoardData.totalQuestionAnswerCount || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="label">Your Contribution</span>
+                <span class="value text-success">{{ dashBoardData.qaUserContribution || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="label">Contributors</span>
+                <span class="value text-info">{{ dashBoardData.totalUsers || 0 }}</span>
+              </div>
+            </div>
+            <a [routerLink]="'/showquestionanswer'" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-arrow-right me-2"></i>View Q&A
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Action Links -->
+    <section class="actions-section mb-5">
+      <h2 class="section-heading mb-4">
+        <i class="bi bi-lightning-fill me-2"></i>Quick Actions
+      </h2>
+      <div class="row">
+        <div class="col-6 col-md-4 col-lg-3 mb-3" *ngFor="let nav of navLinks">
+          <a [routerLink]="nav.link" class="action-btn">
+            <div class="action-icon">
+              <i [class]="nav.icon"></i>
+            </div>
+            <span class="action-label">{{ nav.label }}</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Activity -->
+    <section class="activity-section mb-5">
+      <div class="row">
+        <div class="col-lg-8">
+          <h2 class="section-heading mb-4">
+            <i class="bi bi-clock-history me-2"></i>Recent Activity
+          </h2>
+          <div class="activity-card">
+            <div class="activity-list">
+              <div class="activity-item" *ngFor="let activity of recentActivities">
+                <div class="activity-marker"></div>
+                <div class="activity-content">
+                  <p class="activity-text">{{ activity }}</p>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="!recentActivities?.length" class="text-center py-4 text-muted">
+              <i class="bi bi-inbox display-5 mb-3"></i>
+              <p>No recent activity yet. Start contributing!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="col-lg-4">
+          <h2 class="section-heading mb-4">
+            <i class="bi bi-lightbulb me-2"></i>Quick Tips
+          </h2>
+          <div class="tips-card">
+            <div class="tip-item">
+              <div class="tip-number">1</div>
+              <div class="tip-content">
+                <h6>Add Words Daily</h6>
+                <p>Build your vocabulary one word at a time</p>
+              </div>
+            </div>
+            <div class="tip-item">
+              <div class="tip-number">2</div>
+              <div class="tip-content">
+                <h6>Share Q&A</h6>
+                <p>Help others with interview questions</p>
+              </div>
+            </div>
+            <div class="tip-item">
+              <div class="tip-number">3</div>
+              <div class="tip-content">
+                <h6>Review Regularly</h6>
+                <p>Test yourself with our flashcards</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white;">
+      <div class="text-center">
+        <h2 class="mb-3"><i class="bi bi-star-fill me-2"></i>Ready to Excel?</h2>
+        <p class="lead mb-4">Start building your vocabulary and ace your interviews today</p>
+        <div class="button-group">
+          <a [routerLink]="'/addWords'" class="btn btn-light btn-lg me-2 mb-2">
+            <i class="bi bi-plus-circle me-2"></i>Add a Word
+          </a>
+          <a [routerLink]="'/addquestionanswer'" class="btn btn-outline-light btn-lg mb-2">
+            <i class="bi bi-pencil-square me-2"></i>Add Q&A
+          </a>
+        </div>
+      </div>
+    </section>
 
     <!-- Help & Support -->
-    <div class="alert alert-info mt-4">
-        <strong>Need help?</strong> Visit our <a routerLink="/help">Help Center</a> or <a routerLink="/contact">contact support</a>.
-    </div>
+    <section class="help-section mb-5">
+      <div class="help-card">
+        <div class="help-icon">
+          <i class="bi bi-question-circle"></i>
+        </div>
+        <div class="help-content">
+          <h5>Need Help?</h5>
+          <p>Have questions? Check our help center or contact our support team</p>
+          <div class="help-links">
+            <a href="#" class="help-link">
+              <i class="bi bi-book me-2"></i>Help Center
+            </a>
+            <a [routerLink]="'/contact'" class="help-link">
+              <i class="bi bi-envelope me-2"></i>Contact Us
+            </a>
+            <a href="#" class="help-link">
+              <i class="bi bi-chat-dots me-2"></i>FAQs
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </div>

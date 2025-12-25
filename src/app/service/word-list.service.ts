@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { BulkUserWord, UserWord } from '../store/words/model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,12 +12,11 @@ export class WordListService {
   constructor(private http: HttpClient) { }
 
   private jsonUrl = 'mockdata/wordlist.json'; // Updated path
+  private apiUrl = environment.apiUrl;
 
   submitUserAddedWord(user: UserWord): Observable<UserWord> {
-    // const apiUrl = 'http://localhost:8080/api/words';
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words';
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words';
-    return this.http.post<UserWord>(apiUrl, user);
+    const url = `${this.apiUrl}/words`;
+    return this.http.post<UserWord>(url, user);
   }
 
   fetchData(): Observable<any[]> {
@@ -24,58 +24,42 @@ export class WordListService {
   }
 
   fetchWords() {
-    // const apiUrl = 'http://localhost:8080/api/words';
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words';
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words';
-    return this.http.get<UserWord[]>(apiUrl);
+    const url = `${this.apiUrl}/words`;
+    return this.http.get<UserWord[]>(url);
   }
 
   fetchWordsByMobile(mobile: string) {
-    // const apiUrl = `http://localhost:8080/api/words/user/${mobile}`;
-    // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/words/user/${mobile}`;
-    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words/user/${mobile}`;
-    return this.http.get<UserWord[]>(apiUrl);
+    const url = `${this.apiUrl}/words/user/${mobile}`;
+    return this.http.get<UserWord[]>(url);
   }
 
   fetchWordById(id: number) {
-    // const apiUrl = 'http://localhost:8080/api/words/'+ id;
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + id;
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/' + id;
-    return this.http.get<UserWord>(apiUrl);
+    const url = `${this.apiUrl}/words/${id}`;
+    return this.http.get<UserWord>(url);
   }
 
   updateWordById(word: any) {
-    // const apiUrl = 'http://localhost:8080/api/words/'+ word.id;
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + word.id;
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/' + word.id;
-    return this.http.put<UserWord>(apiUrl, word);
+    const url = `${this.apiUrl}/words/${word.id}`;
+    return this.http.put<UserWord>(url, word);
   }
 
   deleteWordById(id: number) {
-    //  const apiUrl = 'http://localhost:8080/api/words/'+ id;
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/' + id;
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/' + id;
-    return this.http.delete<UserWord>(apiUrl);
+    const url = `${this.apiUrl}/words/${id}`;
+    return this.http.delete<UserWord>(url);
   }
 
   bulkSubmitUserWords(user: BulkUserWord): Observable<BulkUserWord> {
-    // const apiUrl = 'http://localhost:8080/api/words/bulkInsert';
-    // const apiUrl = 'https://dictionary-app-backend-9wm9.onrender.com/api/words/bulkInsert';
-    const apiUrl = 'https://dictionaryappbackend-production.up.railway.app/api/words/bulkInsert';
-    return this.http.post<BulkUserWord>(apiUrl, user);
+    const url = `${this.apiUrl}/words/bulkInsert`;
+    return this.http.post<BulkUserWord>(url, user);
   }
 
   getWordCount(): Observable<any> {
-    // const apiUrl = `http://localhost:8080/api/words/totalWordCount`;
-    // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/words/totalWordCount`;
-    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words/totalWordCount`;
-    return this.http.get(apiUrl);
+    const url = `${this.apiUrl}/words/totalWordCount`;
+    return this.http.get(url);
   }
 
   getWordCountByMobile(mobile: string): Observable<any> {
-    // const apiUrl = `http://localhost:8080/api/words/user/count/${mobile}`;
-    // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/words/user/count/${mobile}`;
-    const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/words/user/count/${mobile}`;
-    return this.http.get(apiUrl);
+    const url = `${this.apiUrl}/words/user/count/${mobile}`;
+    return this.http.get(url);
   }
 }
