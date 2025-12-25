@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
-import { BulkUserWord, UserWord } from '../store/words/model';
 
 @Injectable({
     providedIn: 'root'
@@ -68,8 +67,8 @@ export class QuestionAnswerService {
     }
 
     bulkUploadQA(formData: any): Observable<any> {
-        const apiUrl = `http://localhost:8080/api/qa/bulkUploadQA`;
-        // const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/bulkUploadQA`;
+        // const apiUrl = `http://localhost:8080/api/qa/bulkUploadQA`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/bulkUploadQA`;
 
         return this.http.post<any>(apiUrl, formData);
 
