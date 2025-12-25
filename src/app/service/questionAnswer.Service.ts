@@ -60,9 +60,9 @@ export class QuestionAnswerService {
     }
 
     getPagedQuestionAnswers(page: number, size: number): Observable<any> {
-        const apiUrl = `http://localhost:8080/api/qa/list?page=${page}&size=${size}`;
+        // const apiUrl = `http://localhost:8080/api/qa/list?page=${page}&size=${size}`;
         // const apiUrl = `https://dictionary-app-backend-9wm9.onrender.com/api/qa/list?page=${page}&size=${size}`;
-        // const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/list?page=${page}&size=${size}`;
+        const apiUrl = `https://dictionaryappbackend-production.up.railway.app/api/qa/list?page=${page}&size=${size}`;
         return this.http.get<any>(apiUrl);
     }
 
