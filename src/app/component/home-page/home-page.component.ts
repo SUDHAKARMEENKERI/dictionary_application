@@ -46,6 +46,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     { label: 'Profile', link: '/profile', icon: 'bi bi-person' },
     { label: 'About', link: '/about', icon: 'bi bi-info-circle' },
     { label: 'Contact', link: '/contact', icon: 'bi bi-envelope' },
+    { label: 'Home QA', link: '/homeqa', icon: 'bi bi-list-ul' },
     // { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }
   ];
   recentActivities = [

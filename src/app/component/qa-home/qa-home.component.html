@@ -13,13 +13,13 @@
         <div class="container mt-5">
             <div *ngFor="let tech of technologies">
                 <h2 class="category-title">
-                    {{ tech.category }}
+                    {{ tech.name }}
                 </h2>
                 <div class="tech-grid">
                     <div class="tech-card" *ngFor="let item of tech.items">
                         <img [src]="item.icon" alt="{{ item.name }}">
                         <h5>{{ item.name }}</h5>
-                        <p>{{ item.count }} Questions</p>
+                        <p>{{ item.questionCount }} Questions</p>
                     </div>
                 </div>
             </div>
