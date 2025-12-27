@@ -76,8 +76,9 @@
   background: #ffffff;
   padding: 30px;
   border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-  margin-top: -60px; /* overlap hero */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  margin-top: -60px;
+  /* overlap hero */
 }
 
 .intro-card h2 {
@@ -148,13 +149,21 @@
   color: #fff;
   font-weight: 700;
   border-radius: 50%;
+
   width: 30px;
   height: 30px;
+  min-width: 30px;     /* 🔥 prevent squeeze */
+  min-height: 30px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   margin-right: 12px;
+
+  flex-shrink: 0;      /* 🔥 MOST IMPORTANT */
 }
+
 
 .qa-question {
   font-size: 18px;
@@ -173,13 +182,27 @@
   color: #fff;
   font-weight: 700;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
+
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
   margin-right: 10px;
+  flex-shrink: 0;
 }
+
+@media (min-width: 768px) {
+  .a-badge {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+}
+
 
 .qa-answer p {
   color: #334155;
