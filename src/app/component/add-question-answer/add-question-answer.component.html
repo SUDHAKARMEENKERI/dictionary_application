@@ -4,25 +4,17 @@
             <h4>Add Question and Answer</h4>
         </div>
         <div class="col">
-           <div class="upload-container">
-  <label class="file-upload">
-    <input
-      type="file"
-      accept=".xlsx"
-      (change)="onFileSelect($event)"
-      hidden
-    />
-    <span class="upload-icon">📄</span>
-    <span class="upload-text">Choose Excel File</span>
-  </label>
+            <div class="upload-container">
+                <label class="file-upload">
+                    <input type="file" accept=".xlsx" (change)="onFileSelect($event)" hidden />
+                    <span class="upload-icon">📄</span>
+                    <span class="upload-text">Choose Excel File</span>
+                </label>
 
-  <button
-    class="upload-btn"
-    (click)="upload()"
-    [disabled]="!excelFile">
-    ⬆ Upload
-  </button>
-</div>
+                <button class="upload-btn" (click)="upload()" [disabled]="!excelFile">
+                    ⬆ Upload
+                </button>
+            </div>
 
         </div>
     </div>
@@ -42,10 +34,18 @@
     </div>
 
     <div class="mb-3">
-        <label for="topic">Topic</label>
+        <label for="topic">Select Category</label>
+        <select formControlName="category" id="topic" [(ngModel)]="selectedCategoryId" class="form-select" (change)="onCategoryChange()">
+            <option value="">Select a topic</option>
+            <option *ngFor="let opt of categoryTopic" [value]="opt.id">{{ opt.name }}</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="topic">Select Topic</label>
         <select formControlName="topic" id="topic" class="form-select">
             <option value="">Select a topic</option>
-            <option *ngFor="let opt of dropdownOptions" [value]="opt.value">{{ opt.label }}</option>
+            <option *ngFor="let opt of topicItem" [value]="opt.name">{{ opt.name }}</option>
         </select>
     </div>
 

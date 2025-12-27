@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { QuestionAnswer } from '../models/Technology';
 
 @Injectable({
     providedIn: 'root'
@@ -56,6 +57,11 @@ export class QuestionAnswerService {
     bulkUploadQA(formData: any): Observable<any> {
         const url = `${this.apiUrl}/qa/bulkUploadQA`;
         return this.http.post<any>(url, formData);
+    }
+
+    getQAByTopic(topic: string){
+        const url = `${this.apiUrl}/qa?topic=${topic}`;
+        return this.http.get<QuestionAnswer>(url);
     }
 
 }

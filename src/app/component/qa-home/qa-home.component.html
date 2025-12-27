@@ -16,7 +16,7 @@
                     {{ tech.name }}
                 </h2>
                 <div class="tech-grid">
-                    <div class="tech-card" *ngFor="let item of tech.items">
+                    <div class="tech-card" *ngFor="let item of tech.items" (click)="onLoadQA(item)">
                         <img [src]="item.icon" alt="{{ item.name }}">
                         <h5>{{ item.name }}</h5>
                         <p>{{ item.questionCount }} Questions</p>

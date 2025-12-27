@@ -27,15 +27,6 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPage(0);
-    // this.questionAnswerService.getAllUserQA().subscribe({
-    //   next: (data) => {
-    //     this.questionAnswers = data;
-    //   },
-    //   error: (error) => {
-    //     console.error('Error fetching question and answer data:', error);
-    //   }
-    // });
-
   }
 
   loadPage(page: number) {
@@ -52,28 +43,29 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     }
   }
 
-    getImageSrc(imageData: string): string {
-      return this.sanitizer.bypassSecurityTrustUrl(
-        'data:image/jpeg;base64,' + imageData
-      ) as string;
-    }
+  getImageSrc(imageData: string): string {
+    return this.sanitizer.bypassSecurityTrustUrl(
+      'data:image/jpeg;base64,' + imageData
+    ) as string;
+  }
 
-    onEdit(qa: any): void {
-      this.router.navigate(['/addquestionanswer'], { queryParams: { id: qa.id } });
-    }
+  onEdit(qa: any): void {
+    this.router.navigate(['/addquestionanswer'], { queryParams: { id: qa.id } });
+  }
 
-    onDelete(qa: any): void {
-      this.questionAnswerService.deleteUserQAById(qa.id).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (response) => {
-          console.log('QA deleted successfully:', response);
-          this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
-        },
-        error: (error) => {
-          console.error('Error deleting QA:', error);
-        }
-      });
-    }
-    ngOnDestroy(): void {
-      this.destroy$.next();
-      this.destroy$.complete();
-    }  }
+  onDelete(qa: any): void {
+    this.questionAnswerService.deleteUserQAById(qa.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        console.log('QA deleted successfully:', response);
+        this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
+      },
+      error: (error) => {
+        console.error('Error deleting QA:', error);
+      }
+    });
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+}

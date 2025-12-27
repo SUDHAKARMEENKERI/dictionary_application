@@ -1,0 +1,58 @@
+<div class="container">
+    <div class="hero ">
+        <div class="hero-content">
+            <span class="badge">🔥 Trending</span>
+            <h1>{{topic}} Tutorial</h1>
+            <p>
+                Master {{topic}} step by step with real-world examples,
+                interview questions, and online quizzes.
+            </p>
+
+            <div class="hero-actions">
+                <a (click)="onLoadPracticeQuestion()" class="btn primary">
+                    Practice Questions
+                </a>
+                <a (click)="onLoadQuiz()" class="btn secondary">
+                    Take Quiz
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <section>
+        <article class="intro-card">
+            <h2>What is {{topic}}?</h2>
+            <p>
+                {{topic}} is a lightweight, interpreted programming language
+                used to build interactive and dynamic web applications.
+                It runs directly in the browser and is one of the core
+                technologies of the modern web.
+            </p>
+        </article>
+
+        <h2 class="section-title">Practice Questions</h2>
+    </section>
+
+    <div class="qa-wrapper">
+        <h1 class="page-title">{{topic}} Interview Questions</h1>
+        <p class="page-subtitle">
+            Frequently asked {{topic}} interview questions with clear answers.
+        </p>
+
+        <div class="qa-list">
+            @for (qa of questionAnswers; track qa.question) {
+            <div class="qa-card">
+                <div class="qa-header">
+                    <span class="q-badge">Q</span>
+                    <h3 class="qa-question">{{ qa.question }}</h3>
+                </div>
+
+                <div class="qa-answer">
+                    <span class="a-badge">A</span>
+                    <p>{{ qa.answer }}</p>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>

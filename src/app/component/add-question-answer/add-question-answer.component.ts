@@ -7,6 +7,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TechnologyService } from '../../service/technology.service';
+import { DropdownResponse } from '../../models/Technology';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -17,7 +19,9 @@ import { takeUntil } from 'rxjs/operators';
 export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   constructor(private formBuilder: FormBuilder,
     private questionAnswerService: QuestionAnswerService,
-    private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer) { }
+    private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer,
+    private techService: TechnologyService) { }
+
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
   imageFile: File | null = null;
@@ -30,27 +34,22 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       id: null
     };
 
-  dropdownOptions = [
-    { value: 'angular', label: 'Angular' },
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'html', label: 'HTML' },
-    { value: 'css', label: 'CSS' },
-    { value: 'java', label: 'Java' },
-    { value: 'react', label: 'React' },
-    { value: 'english', label: 'English' },
-    { value: 'other', label: 'Other' }
-  ];
+  topicItem: DropdownResponse[] = [];
+
+  categoryTopic: DropdownResponse[] = [];
 
   openModalDetails = {
     isOpen: false,
     message: ''
   }
   excelFile!: File;
+  selectedCategoryId!: number;
 
   ngOnInit(): void {
     this.questionAnswerForm = this.formBuilder.group({
       question: ['', Validators.required],
       answer: ['', Validators.required],
+      category: ['', Validators.required],
       topic: ['', Validators.required],
     });
 
@@ -78,6 +77,14 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
             console.error('Error fetching QA by ID:', error);
           }
         });
+      }
+    });
+
+    this.techService.getAllTechCategories().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => {
+        this.categoryTopic = data;
+      }, error: (error) => {
+        console.error("API failed while fetching tech categories,", error)
       }
     });
   }
@@ -167,7 +174,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('excel', this.excelFile);
 
-   this.questionAnswerService.bulkUploadQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
+    this.questionAnswerService.bulkUploadQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.modalMessage("Bulk upload successful.");
       },
@@ -176,6 +183,18 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         this.modalMessage("Opps!, Something went wrong during bulk upload.");
       }
     });
+  }
+
+  onCategoryChange() {
+    if (!this.selectedCategoryId) return;
+    this.techService.getAllTechItems(this.selectedCategoryId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => {
+        this.topicItem = data;
+      }, error: (error) => {
+        console.error("API failed while fetching tech Items", error)
+      }
+    });
+
   }
 
   ngOnDestroy(): void {

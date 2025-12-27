@@ -6,6 +6,9 @@ import { ForgotPasswordComponent } from './component/forgot-password/forgot-pass
 import { AboutUsComponent } from './component/about-us/about-us.component';
 import { ContactUsComponent } from './component/contact-us/contact-us.component';
 import { QaHomeComponent } from './component/qa-home/qa-home.component';
+import { QaPageComponent } from './component/qa-page/qa-page.component';
+import { QuizComponent } from './component/quiz/quiz.component';
+import { TutorialComponent } from './component/tutorial/tutorial.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -18,6 +21,9 @@ export const routes: Routes = [
     { path: 'showquestionanswer', loadComponent: () => import('./component/show-question-answer/show-question-answer.component').then(m => m.ShowQuestionAnswerComponent), canActivate: [AuthGuard] },
     { path: 'profile', loadComponent: () => import('./component/profile/profile.component').then(m => m.ProfileComponent), canActivate: [AuthGuard] },
     { path: 'about', component: AboutUsComponent },
+    { path: 'qa-tutorial', component: QaPageComponent },
+    { path: 'qa-quiz', component: QuizComponent },
+    { path: 'qa-practice', component: TutorialComponent },
     { path: 'contact', component: ContactUsComponent },
     { path: 'homeqa', component: QaHomeComponent },
     { path: 'signup', component: SignupComponent },

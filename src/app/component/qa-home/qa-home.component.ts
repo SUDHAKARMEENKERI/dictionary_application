@@ -4,6 +4,8 @@ import { OnInit } from '@angular/core';
 import { TechnologyService } from '../../service/technology.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Technology } from '../../models/Technology';
+import { QuestionAnswerService } from '../../service/questionAnswer.Service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-qa-home',
@@ -14,7 +16,10 @@ import { Technology } from '../../models/Technology';
 export class QaHomeComponent implements OnInit {
   destroyed$ = new Subject<void>();
   technologies: Technology[] = [];
-  constructor(private technologyService: TechnologyService) { }
+  constructor(private technologyService: TechnologyService,
+    private qaService: QuestionAnswerService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     // Initialization logic can be added here
@@ -38,4 +43,16 @@ export class QaHomeComponent implements OnInit {
       shortAnswer: 'DI is a design pattern used to implement IoC...'
     }
   ];
+
+  onLoadQA(qa: any) {
+    this.qaService.getQAByTopic(qa.name).pipe(takeUntil(this.destroyed$)).subscribe({
+      next: (data) => {
+        this.router.navigate(['/qa-tutorial'], { queryParams: { topic: qa.name } });
+      },
+      error: (error) => {
+        console.log('error', error);
+      }
+    });
+
+  }
 }
