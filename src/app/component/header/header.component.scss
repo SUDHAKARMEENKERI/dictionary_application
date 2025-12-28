@@ -1,34 +1,38 @@
 .navbar {
-  position: fixed;         /* Sticks to the top */
+  position: fixed;
+  /* Sticks to the top */
   top: 0;
   left: 0;
-  width: 100vw;            /* Full screen width */
-  height: 60px;            /* Adjust height as needed */
+  width: 100vw;
+  /* Full screen width */
+  height: 60px;
+  /* Adjust height as needed */
   background-color: #333;
   color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  z-index: 1000;           /* Keeps it above other content */
+  z-index: 1000;
+  /* Keeps it above other content */
 }
 
-.logout{
-    cursor: pointer;
+.logout {
+  cursor: pointer;
 }
 
-.header_username{
+.header_username {
   text-align: end;
 }
 
-.header_login{
+.header_login {
   text-align: center;
 }
 
 @media (max-width: 600px) {
-  .header_username{
-  text-align: center;
-}
+  .header_username {
+    text-align: center;
+  }
 }
 
 .mobile-menu {
@@ -48,6 +52,10 @@
 
 .user-name {
   font-weight: 600;
-  text-align: center;
+  // text-align: center;
   color: #1f3c88;
+}
+
+.page-link {
+  margin-top: 10px;
 }

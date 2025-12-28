@@ -51,19 +51,19 @@ export class AboutUsComponent {
 
   teamMembers = [
     {
-      name: 'Rajesh Kumar',
+      name: 'Suhakar Meenkeri',
       role: 'Founder & CEO',
-      bio: 'Tech enthusiast with 10+ years in education technology. Passionate about democratizing learning.',
+      bio: 'Tech enthusiast with 7+ years in education technology. Passionate about democratizing learning.',
       icon: 'bi bi-person-circle'
     },
     {
-      name: 'Priya Sharma',
+      name: 'Annapoorna Meenkeri',
       role: 'Head of Content',
       bio: 'Expert educator with background in linguistics and curriculum design. Ensures quality content.',
       icon: 'bi bi-person-circle'
     },
     {
-      name: 'Amit Patel',
+      name: 'Sandhya Rani Bhangare',
       role: 'Tech Lead',
       bio: 'Full-stack developer focused on creating robust, scalable solutions for educational platforms.',
       icon: 'bi bi-person-circle'

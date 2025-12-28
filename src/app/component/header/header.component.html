@@ -24,7 +24,7 @@
     <!-- Desktop Menu -->
     <div class="collapse navbar-collapse d-none d-lg-flex justify-content-end">
         <div class="col-5 header_username">
-            <a class="navbar-brand fw-bold">{{ userName }}</a>
+            <a class="navbar-brand fw-bold">{{ firstName }} {{lastName}}</a>
         </div>
         <div class="col-3 header_login">
             <a style="padding-right: 1rem;" [routerLink]="'/home'">Home</a>
@@ -38,7 +38,10 @@
 <div class="mobile-menu" *ngIf="showMenu">
     <div class="menu-card">
         <div class="user-name">
-            👤 {{ userName }}
+            👤 {{ firstName }}
+            <div class="page-link">
+                <a [routerLink]="'/home'">Home</a>
+            </div>
         </div>
         <button class="btn btn-danger w-100 mt-3" (click)="logout()">
             Logout

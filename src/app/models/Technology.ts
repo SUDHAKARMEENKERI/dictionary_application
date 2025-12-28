@@ -19,3 +19,8 @@ export interface QuestionAnswer {
   question: string;
   answer: string;
 }
+
+export interface QuestionTypeDropdownOption {
+  label: string;
+  value: string;
+}

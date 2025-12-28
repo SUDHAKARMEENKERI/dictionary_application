@@ -31,14 +31,14 @@ export class ContactUsComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
-            console.log('Contact form submitted successfully', response);
+            this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';
           },
           error: (error) => {
+            this.messageShow = 'Error submitting contact form.';
             console.error('Error submitting contact form', error);
           }
         });
-      // Here you can handle the form submission, e.g., send the data to a server
-      this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';
+
       setTimeout(() => {
         this.messageShow = '';
       }, 5000);

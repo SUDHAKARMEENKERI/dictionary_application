@@ -8,7 +8,7 @@ import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TechnologyService } from '../../service/technology.service';
-import { DropdownResponse } from '../../models/Technology';
+import { DropdownResponse, QuestionTypeDropdownOption } from '../../models/Technology';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -44,6 +44,12 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   }
   excelFile!: File;
   selectedCategoryId!: number;
+  questionType: QuestionTypeDropdownOption[] = [
+    { label: 'Theory', value: 'THEORY' },
+    { label: 'Practical', value: 'PRACTICAL' },
+    { label: 'MCQ', value: 'MCQ' },
+    { label: 'OutPutBasesMCQ', value: 'OUT PUT BASED MCQ' }
+  ];
 
   ngOnInit(): void {
     this.questionAnswerForm = this.formBuilder.group({
@@ -51,6 +57,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       answer: ['', Validators.required],
       category: ['', Validators.required],
       topic: ['', Validators.required],
+      questionType: ['', Validators.required]
     });
 
     this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -95,6 +102,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     formData.append('question', this.questionAnswerForm.value.question);
     formData.append('answer', this.questionAnswerForm.value.answer);
     formData.append('topic', this.questionAnswerForm.value.topic);
+    formData.append('questionType', this.questionAnswerForm.value.questionType);
     formData.append('mobile', JSON.parse(localStorage.getItem('login') || '{}').mobile || '');
     if (this.imageFile) {
       formData.append('image', this.imageFile);
@@ -109,7 +117,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.questionAnswerForm.reset();
           this.removeImage();
-          this.modalMessage("Word added successfully.");
+          this.modalMessage("Question Answer added Successfully.");
         },
         error: (error) => {
           console.error('Error submitting Question-Answer:', error);

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { AuthService } from '../../service/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -15,24 +15,17 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthService, private router: Router,
-    private userService: UserSignUpService
+    private userService: UserSignUpService, private elementRef: ElementRef
   ) { }
 
   showMenu = false;
-  userName = 'Sudhakar';
+  firstName = '';
+  lastName = '';
 
   toggleMenu() {
     this.showMenu = !this.showMenu;
   }
 
-  // logout() {
-  //   // clear session / token
-  //   localStorage.clear();
-  //   this.showMenu = false;
-  //   // redirect to login
-  // }
-
-  // userName: string = '';
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
@@ -54,12 +47,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user) => {
-          this.userName = user.firstName; // Assuming the user object has a 'name' property
+          this.firstName = user.firstName; // Assuming the user object has a 'name' property
+          this.lastName = user.lastName;
         },
         error: (error) => {
           console.error('Error fetching user details:', error);
         }
       });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      this.showMenu = false;
+    }
   }
 
   ngOnDestroy(): void {
