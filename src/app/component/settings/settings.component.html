@@ -1,0 +1,58 @@
+<div class="cpb-settings py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+      <div>
+        <h1 class="h3 mb-1">Account Settings</h1>
+        <div class="text-muted small" *ngIf="displayName">Signed in as {{ displayName }}</div>
+      </div>
+      <a class="btn btn-outline-primary btn-sm" routerLink="/help-center">Help Center</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Profile</h2>
+            <p class="text-muted mb-3">Update your personal details and view account info.</p>
+            <a class="btn btn-primary" routerLink="/profile">Open Profile</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Security</h2>
+            <p class="text-muted mb-3">Reset your password if you can’t access your account.</p>
+            <a class="btn btn-outline-primary" routerLink="/forgot-password">Reset Password</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Legal</h2>
+            <p class="text-muted mb-3">Read our policies.</p>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-secondary" routerLink="/privacy-policy">Privacy Policy</a>
+              <a class="btn btn-outline-secondary" routerLink="/terms">Terms</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card shadow-sm border-danger-subtle">
+          <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+              <h2 class="h5 mb-1">Sign out</h2>
+              <div class="text-muted">Log out from this device.</div>
+            </div>
+            <button type="button" class="btn btn-danger" (click)="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

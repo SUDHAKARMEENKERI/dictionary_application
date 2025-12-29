@@ -50,7 +50,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   onEdit(qa: any): void {
-    this.router.navigate(['/addquestionanswer'], { queryParams: { id: qa.id } });
+    this.router.navigate(['/interview-qa/editor'], { queryParams: { id: qa.id } });
   }
 
   onDelete(qa: any): void {

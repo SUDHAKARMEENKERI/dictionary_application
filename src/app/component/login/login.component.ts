@@ -46,7 +46,7 @@ export class LoginComponent implements OnDestroy {
           }));
           this.store.dispatch(setMobile({ mobile: response.mobile }));
           this.loaderService.hide();
-          this.router.navigate(['/home']);
+          this.router.navigate(['/dashboard']);
         }
       }, error => {
         this.loaderService.hide();

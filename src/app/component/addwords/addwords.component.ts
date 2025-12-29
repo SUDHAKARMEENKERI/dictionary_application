@@ -119,13 +119,13 @@ export class AddwordsComponent implements OnInit, OnDestroy {
       if (action.type === failure.type) {
         this.openModalDetails = { isOpen: true, message: action.error };
       } else {
-        this.router.navigate(['/wordlist', { state: wordAction }]);
+        this.router.navigate(['/words', { state: wordAction }]);
       }
     });
   }
 
   showWordList() {
-    this.router.navigate(['/wordlist']);
+    this.router.navigate(['/words']);
   }
 
   exportToExcel(): void {
@@ -134,7 +134,7 @@ export class AddwordsComponent implements OnInit, OnDestroy {
   }
 
   showAllUserWordList() {
-    this.router.navigate(['/wordlist', { state: 'all' }]);
+    this.router.navigate(['/words', { state: 'all' }]);
   }
 
   ngOnDestroy(): void {

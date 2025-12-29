@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withHashLocation } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { HttpClientModule, provideHttpClient } from '@angular/common/http';
@@ -12,7 +12,7 @@ import { userReducer } from './store/reducer';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withHashLocation()),
+    provideRouter(routes),
     provideHttpClient(),
     importProvidersFrom(HttpClientModule),
 

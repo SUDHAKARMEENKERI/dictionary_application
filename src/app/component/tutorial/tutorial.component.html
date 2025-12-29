@@ -1,22 +1,98 @@
-<section class="hero">
-  <h1>JavaScript Tutorial</h1>
-  <p>Learn JavaScript step by step with examples, interview questions, and quizzes.</p>
-</section>
+<div class="output-container">
 
-<section class="content">
-  <article class="card">
-    <h2>What is JavaScript?</h2>
-    <p>
-      JavaScript is a lightweight, interpreted programming language
-      used to create dynamic and interactive web applications.
-    </p>
+  <!-- Header -->
+  <div class="output-header">
+    <h1>CareerPrepBook — Output Practice</h1>
+    <p>Analyze the code and predict the output</p>
 
-    <pre><code>
-let message = "Hello JavaScript";
-console.log(message);
-    </code></pre>
-  </article>
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="pill" *ngIf="isLoadingQuestions">
+          <span class="spinner" aria-hidden="true"></span>
+          Loading question bank…
+        </div>
+      </div>
 
-  <h2 class="section-title">Practice Questions</h2>
- 
-</section>
+      <div class="topbar-stats">
+        <div class="stat">
+          <div class="stat-label">Total</div>
+          <div class="stat-value">{{ totalQuestions }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Attempted</div>
+          <div class="stat-value">{{ attemptedCount }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Correct</div>
+          <div class="stat-value good">{{ correctCount }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Wrong</div>
+          <div class="stat-value bad">{{ wrongCount }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Unattempted</div>
+          <div class="stat-value">{{ unattemptedCount }}</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="ghost-btn" (click)="resetAll()">Reset All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question List -->
+  <div class="output-list">
+
+    @for (q of questions; track q.code; let i = $index) {
+      <div class="output-card">
+
+        <!-- Question -->
+        <div class="question-row">
+          <span class="badge q">Q{{ i + 1 }}</span>
+          <h3>{{ q.question }}</h3>
+        </div>
+
+        <!-- Code -->
+        <pre class="code-block"><code>{{ q.code }}</code></pre>
+
+        <!-- User Input -->
+        <div class="input-row">
+          <label>Your Output</label>
+          <input
+            type="text"
+            placeholder="Enter expected output"
+            [(ngModel)]="q.userOutput"
+            [class.input-correct]="q.checked && q.isCorrect === true"
+            [class.input-wrong]="q.checked && q.isCorrect === false"
+             />
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-row">
+          <button type="button" class="primary-btn" (click)="checkAnswer(q)">Check</button>
+          <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
+            {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
+          </button>
+          <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
+
+          <span class="result-pill ok" *ngIf="q.checked && q.isCorrect === true">Correct</span>
+          <span class="result-pill no" *ngIf="q.checked && q.isCorrect === false">Wrong</span>
+          <span class="result-pill" *ngIf="q.checked && q.isCorrect === null">Not checked</span>
+        </div>
+
+        <!-- Answer -->
+        <div class="answer" *ngIf="q.showAnswer">
+          <span class="badge a">A</span>
+          <p>
+            Correct Output:
+            <strong>{{ q.answer }}</strong>
+          </p>
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>

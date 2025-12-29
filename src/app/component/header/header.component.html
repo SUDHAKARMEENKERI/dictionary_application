@@ -12,8 +12,8 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
 
     <!-- Brand -->
-    <a class="navbar-brand fw-bold" href="#">
-        CareerPreBook
+    <a class="navbar-brand fw-bold" [routerLink]="'/dashboard'">
+        CareerPrepBook
     </a>
 
     <!-- Mobile Menu Button -->
@@ -27,20 +27,34 @@
             <a class="navbar-brand fw-bold">{{ firstName }} {{lastName}}</a>
         </div>
         <div class="col-3 header_login">
-            <a style="padding-right: 1rem;" [routerLink]="'/home'">Home</a>
+            <a *ngFor="let link of navLinks; trackBy: trackByPath" style="padding-right: 1rem;"
+                [routerLink]="link.path">
+                {{ link.label }}
+            </a>
             <a *ngIf="!isLoggedIn" [routerLink]="'/login'">Login</a>
             <a *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</a>
         </div>
     </div>
 </nav>
 
+<!-- Secondary Navigation (all main pages) -->
+<div class="subnav" aria-label="Primary navigation">
+    <div class="subnav-inner">
+        <a class="subnav-link" *ngFor="let link of secondaryLinks; trackBy: trackByPath" [routerLink]="link.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.path === '/dashboard' || link.path === '/interview-prep' }">
+            {{ link.label }}
+        </a>
+    </div>
+</div>
+
 <!-- Mobile Dropdown Menu -->
 <div class="mobile-menu" *ngIf="showMenu">
     <div class="menu-card">
         <div class="user-name">
             👤 {{ firstName }}
-            <div class="page-link">
-                <a [routerLink]="'/home'">Home</a>
+            <div class="page-link" *ngFor="let link of navLinks; trackBy: trackByPath">
+                <a [routerLink]="link.path" (click)="closeMenu()">{{ link.label }}</a>
             </div>
         </div>
         <button class="btn btn-danger w-100 mt-3" (click)="logout()">

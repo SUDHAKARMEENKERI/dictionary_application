@@ -64,4 +64,15 @@ export class QuestionAnswerService {
         return this.http.get<QuestionAnswer>(url);
     }
 
+    createMcqQA(reqBody: any){
+        const url = `${this.apiUrl}/mcqQuestions/mcq`;
+        return this.http.post<any>(url, reqBody);
+    }
+
+    getAllMcqQA(){
+        const url = `${this.apiUrl}/mcqQuestions/getMcq`;
+        return this.http.get<any>(url)
+    }
+
+
 }

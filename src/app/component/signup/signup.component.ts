@@ -47,7 +47,7 @@ export class SignupComponent implements OnInit, OnDestroy {
       this.userService.registerUser(this.signupForm.value)
         .pipe(takeUntil(this.destroy$))
         .subscribe(response => {
-        this.router.navigate(['/home']);
+        this.router.navigate(['/dashboard']);
         this.loaderService.hide();
       }, error => {
         console.error('Error registering user', error);

@@ -105,7 +105,11 @@
           }
         },
         "deploy": {
-          "builder": "angular-cli-ghpages:deploy"
+          "builder": "angular-cli-ghpages:deploy",
+          "options": {
+            "baseHref": "/dictionary_application/",
+            "dir": "dist/dictionary_application/browser"
+          }
         }
       }
     }

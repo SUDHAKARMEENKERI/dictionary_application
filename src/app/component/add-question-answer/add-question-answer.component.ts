@@ -44,20 +44,27 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   }
   excelFile!: File;
   selectedCategoryId!: number;
+  selectedQuestionType!: string;
+  isNonTheoryQuestion: boolean = false;
+
   questionType: QuestionTypeDropdownOption[] = [
     { label: 'Theory', value: 'THEORY' },
-    { label: 'Practical', value: 'PRACTICAL' },
-    { label: 'MCQ', value: 'MCQ' },
-    { label: 'OutPutBasesMCQ', value: 'OUT PUT BASED MCQ' }
+    // { label: 'Practical', value: 'PRACTICAL' },
+    { label: 'mcq', value: 'MCQ' },
+    { label: 'OutPutBasesMCQ', value: 'OUTPUT BASED MCQ' }
   ];
 
   ngOnInit(): void {
     this.questionAnswerForm = this.formBuilder.group({
       question: ['', Validators.required],
-      answer: ['', Validators.required],
+      answer: [''],
       category: ['', Validators.required],
       topic: ['', Validators.required],
-      questionType: ['', Validators.required]
+      questionType: ['', Validators.required],
+      optionA: [''],
+      optionB: [''],
+      optionC: [''],
+      optionD: [''],
     });
 
     this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -98,45 +105,72 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (this.questionAnswerForm.invalid) return;
-    const formData = new FormData();
-    formData.append('question', this.questionAnswerForm.value.question);
-    formData.append('answer', this.questionAnswerForm.value.answer);
-    formData.append('topic', this.questionAnswerForm.value.topic);
-    formData.append('questionType', this.questionAnswerForm.value.questionType);
-    formData.append('mobile', JSON.parse(localStorage.getItem('login') || '{}').mobile || '');
-    if (this.imageFile) {
-      formData.append('image', this.imageFile);
-    } else {
-      formData.append('image', '');
-      formData.append('imageBase64', '');
-    }
+    if (this.isNonTheoryQuestion) {
+      const option = [
+        this.questionAnswerForm.value.optionA,
+        this.questionAnswerForm.value.optionB,
+        this.questionAnswerForm.value.optionC,
+        this.questionAnswerForm.value.optionD
+      ];
+      
+      const reqBoy = {
+        option: option,
+        answer: this.questionAnswerForm.value.answer,
+        questionType: this.questionAnswerForm.value.questionType,
+        category: this.questionAnswerForm.value.category,
+        topic: this.questionAnswerForm.value.topic,
+        mobile: JSON.parse(localStorage.getItem('login') || '{}').mobile || ''
+      };
 
-    if (this.editMode.isEditMode && this.editMode.id) {
-      formData.append('id', this.editMode.id);
-      this.questionAnswerService.upateUserQA(this.editMode.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (response) => {
-          this.questionAnswerForm.reset();
-          this.removeImage();
-          this.modalMessage("Question Answer added Successfully.");
-        },
-        error: (error) => {
-          console.error('Error submitting Question-Answer:', error);
-          this.modalMessage("Opps!, Something went wrong");
-        }
-      });
+      this.questionAnswerService.createMcqQA(reqBoy).
+        pipe(takeUntil(this.destroy$)).subscribe({
+          next: (res) => {
+            this.questionAnswerForm.reset();
+          }, error: (error) => {
+            console.log(error);
+          }
+        });
     } else {
-      this.questionAnswerService.createUserQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (response) => {
-          this.questionAnswerForm.reset();
-          this.removeImage();
-          this.modalMessage("Word added successfully.");
-        },
-        error: (error) => {
-          console.error('Error submitting Question-Answer:', error);
-          this.modalMessage("Opps!, Something went wrong.");
+      const formData = new FormData();
+      formData.append('question', this.questionAnswerForm.value.question);
+      formData.append('answer', this.questionAnswerForm.value.answer);
+      formData.append('topic', this.questionAnswerForm.value.topic);
+      formData.append('questionType', this.questionAnswerForm.value.questionType);
+      formData.append('mobile', JSON.parse(localStorage.getItem('login') || '{}').mobile || '');
+      if (this.imageFile) {
+        formData.append('image', this.imageFile);
+      } else {
+        formData.append('image', '');
+        formData.append('imageBase64', '');
+      }
 
-        }
-      });
+      if (this.editMode.isEditMode && this.editMode.id) {
+        formData.append('id', this.editMode.id);
+        this.questionAnswerService.upateUserQA(this.editMode.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
+          next: (response) => {
+            this.questionAnswerForm.reset();
+            this.removeImage();
+            this.modalMessage("Question Answer added Successfully.");
+          },
+          error: (error) => {
+            console.error('Error submitting Question-Answer:', error);
+            this.modalMessage("Opps!, Something went wrong");
+          }
+        });
+      } else {
+        this.questionAnswerService.createUserQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
+          next: (response) => {
+            this.questionAnswerForm.reset();
+            this.removeImage();
+            this.modalMessage("Word added successfully.");
+          },
+          error: (error) => {
+            console.error('Error submitting Question-Answer:', error);
+            this.modalMessage("Opps!, Something went wrong.");
+
+          }
+        });
+      }
     }
 
   }
@@ -202,6 +236,15 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         console.error("API failed while fetching tech Items", error)
       }
     });
+
+  }
+
+  onLoadQuestionTypeChange() {
+    if (this.selectedQuestionType.toLowerCase() !== 'theory') {
+      this.isNonTheoryQuestion = true;
+    } else {
+      this.isNonTheoryQuestion = false;
+    }
 
   }
 

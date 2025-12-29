@@ -1,0 +1,136 @@
+.pq-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  padding: 30px 15px;
+}
+
+.pq-header {
+  max-width: 980px;
+  margin: 0 auto 22px auto;
+  text-align: center;
+}
+
+.pq-header h1 {
+  font-size: 34px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+.pq-header p {
+  margin: 10px 0 0 0;
+  color: #64748b;
+}
+
+.pq-list {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.pq-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.pq-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pq-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pq-qno {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #6366f1;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pq-title h3 {
+  margin: 4px 0 0 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.pq-diff {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  font-weight: 900;
+  font-size: 12px;
+  color: #334155;
+  background: #ffffff;
+}
+
+.pq-diff.easy {
+  border-color: rgba(22, 163, 74, 0.35);
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.pq-diff.medium {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.pq-diff.hard {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.pq-prompt {
+  margin: 12px 0 0 0;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.pq-topics {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topic {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #475569;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .pq-header h1 {
+    font-size: 28px;
+  }
+
+  .pq-card {
+    padding: 14px;
+  }
+}

@@ -3,5 +3,10 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api'
+  apiUrl: 'http://localhost:8080/api',
+
+  // Google AdSense
+  // Set `adsenseEnabled: true` and `adsenseClient: 'ca-pub-...'` to enable ads.
+  adsenseEnabled: false,
+  adsenseClient: ''
 };

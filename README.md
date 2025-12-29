@@ -59,3 +59,56 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
 ## ng deploy --base-href="dictionary_application" 
+
+## SEO-friendly URLs (Important for deployment)
+
+This app uses path-based routing (e.g. `/quiz`) which is more SEO-friendly than hash URLs.
+
+When deploying to a static host or a server that serves the Angular `index.html`, you must configure a rewrite/fallback so that refreshing a deep link works:
+
+- **Nginx**: `try_files $uri $uri/ /index.html;`
+- **Netlify**: add a `public/_redirects` with `/* /index.html 200`
+- **Vercel**: add a rewrite to `index.html`
+
+Without this, direct navigation to URLs like `/quiz` may return 404 from the server.
+
+## GitHub Pages deployment (SPA routing)
+
+GitHub Pages does not support server-side rewrites. This project includes a GitHub Pages SPA fallback:
+
+- [public/404.html](public/404.html): redirects deep links to `/?/...`
+- [src/index.html](src/index.html): restores the original route before Angular boots
+
+Make sure your deploy base href matches your repo name. Default is configured as:
+
+- `baseHref`: `/dictionary_application/` in [angular.json](angular.json)
+
+If your repository name is different, update `baseHref` accordingly.
+
+Also update the sitemap base URL placeholder in [public/sitemap.xml](public/sitemap.xml):
+
+- Replace `YOUR_GITHUB_USERNAME` and (if needed) `dictionary_application`.
+
+## Ads (Google AdSense)
+
+This project includes an AdSense integration that is **disabled by default**.
+
+1) Open [src/environments/environment.prod.ts](src/environments/environment.prod.ts)
+2) Set:
+
+- `adsenseEnabled: true`
+- `adsenseClient: 'ca-pub-XXXXXXXXXXXXXXX'`
+
+### Auto Ads
+
+If you enable **Auto Ads** in your AdSense dashboard, simply enabling the script is enough.
+
+### Manual ad slots (optional)
+
+Use the standalone component [src/app/shared/adsense-ad/adsense-ad.component.ts](src/app/shared/adsense-ad/adsense-ad.component.ts)
+and add it to any page where you want an ad unit. Example inputs:
+
+- `adSlot`: your AdSense slot id
+- `adClient`: optional (usually omit; the script client is used)
+
+Note: Angular is an SPA, so ads are refreshed on route navigation automatically.

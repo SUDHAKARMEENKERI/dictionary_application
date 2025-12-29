@@ -47,7 +47,7 @@ export class QaHomeComponent implements OnInit {
   onLoadQA(qa: any) {
     this.qaService.getQAByTopic(qa.name).pipe(takeUntil(this.destroyed$)).subscribe({
       next: (data) => {
-        this.router.navigate(['/qa-tutorial'], { queryParams: { topic: qa.name } });
+        this.router.navigate(['/tutorial'], { queryParams: { topic: qa.name } });
       },
       error: (error) => {
         console.log('error', error);

@@ -2,9 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>CareerPreBook</title>
+  <title>CareerPrepBook</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CareerPrepBook helps you practice vocabulary, interview Q&A, quizzes, and programming questions." />
+  <meta name="robots" content="index, follow" />
+
+  <script>
+    // Migration support: if someone opens an old hash URL like /#/homeqa,
+    // convert it to a path URL (/homeqa) so the router redirects correctly.
+    (function (l) {
+      if (l.hash && l.hash.indexOf('#/') === 0) {
+        var newPath = l.hash.slice(1); // '/homeqa'
+        window.history.replaceState(null, '', l.pathname.replace(/\/$/, '') + newPath + l.search);
+      }
+    })(window.location);
+
+    // GitHub Pages SPA support: converts /?/<path> back to /<path>
+    // See public/404.html
+    (function (l) {
+      if (l.search && l.search[1] === '/') {
+        var decoded = l.search
+          .slice(1)
+          .split('&')
+          .map(function (s) { return s.replace(/~and~/g, '&'); })
+          .join('?');
+        window.history.replaceState(null, '', l.pathname.replace(/\/$/, '') + decoded + l.hash);
+      }
+    })(window.location);
+  </script>
+
+  <meta property="og:site_name" content="CareerPrepBook" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="CareerPrepBook" />
+  <meta property="og:description" content="CareerPrepBook helps you practice vocabulary, interview Q&A, quizzes, and programming questions." />
+  <meta property="og:image" content="/assets/images/careerprepbook-og.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CareerPrepBook" />
+  <meta name="twitter:description" content="CareerPrepBook helps you practice vocabulary, interview Q&A, quizzes, and programming questions." />
+  <meta name="twitter:image" content="/assets/images/careerprepbook-og.png" />
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>

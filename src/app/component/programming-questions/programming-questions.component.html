@@ -1,0 +1,34 @@
+<div class="pq-container">
+  <header class="pq-header">
+    <h1>CareerPrepBook — Programming Interview Questions</h1>
+    <p>Curated list of common coding interview questions (easy → hard). Use these to practice problem solving, data structures, and algorithms.</p>
+  </header>
+
+  <section class="pq-list">
+    @for (q of questions; track trackByTitle; let i = $index) {
+      <article class="pq-card">
+        <div class="pq-top">
+          <div class="pq-title">
+            <span class="pq-qno">Q{{ i + 1 }}</span>
+            <h3>{{ q.title }}</h3>
+          </div>
+
+          <span class="pq-diff"
+            [class.easy]="q.difficulty === 'Easy'"
+            [class.medium]="q.difficulty === 'Medium'"
+            [class.hard]="q.difficulty === 'Hard'">
+            {{ q.difficulty }}
+          </span>
+        </div>
+
+        <p class="pq-prompt">{{ q.prompt }}</p>
+
+        <div class="pq-topics">
+          @for (t of q.topics; track t) {
+            <span class="topic">{{ t }}</span>
+          }
+        </div>
+      </article>
+    }
+  </section>
+</div>

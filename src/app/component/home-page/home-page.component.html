@@ -112,7 +112,7 @@
                 <span class="value text-info">{{ dashBoardData.totalUsers || 0 }}</span>
               </div>
             </div>
-            <a [routerLink]="'/wordlist'" class="btn btn-primary btn-sm mt-3">
+            <a [routerLink]="'/words'" class="btn btn-primary btn-sm mt-3">
               <i class="bi bi-arrow-right me-2"></i>View Word List
             </a>
           </div>
@@ -139,7 +139,7 @@
                 <span class="value text-info">{{ dashBoardData.totalUsers || 0 }}</span>
               </div>
             </div>
-            <a [routerLink]="'/showquestionanswer'" class="btn btn-primary btn-sm mt-3">
+            <a [routerLink]="'/interview-qa'" class="btn btn-primary btn-sm mt-3">
               <i class="bi bi-arrow-right me-2"></i>View Q&A
             </a>
           </div>
@@ -226,11 +226,11 @@
         <h2 class="mb-3"><i class="bi bi-star-fill me-2"></i>Ready to Excel?</h2>
         <p class="lead mb-4">Start building your vocabulary and ace your interviews today</p>
         <div class="button-group">
-          <a [routerLink]="'/addWords'" class="btn btn-light btn-lg me-2 mb-2">
+          <a [routerLink]="'/words/new'" class="btn btn-light btn-lg me-2 mb-2">
             <i class="bi bi-plus-circle me-2"></i>Add a Word
           </a>
-          <a [routerLink]="'/addquestionanswer'" class="btn btn-outline-light btn-lg mb-2">
-            <i class="bi bi-pencil-square me-2"></i>Add Q&A
+          <a [routerLink]="'/interview-qa/editor'" class="btn btn-outline-light btn-lg mb-2">
+            <i class="bi bi-pencil-square me-2"></i>Add Interview Q&A
           </a>
         </div>
       </div>

@@ -39,14 +39,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
     'New feature: Export your word list to PDF!',
   ];
   navLinks = [
-    { label: 'Word List', link: '/wordlist', icon: 'bi bi-list-ul' },
-    { label: 'Add Word', link: '/addWords', icon: 'bi bi-plus-circle' },
-    { label: 'Add Question and Answer', link: '/addquestionanswer', icon: 'bi bi-plus-circle' },
-    { label: 'Show Question and Answer', link: '/showquestionanswer', icon: 'bi bi-plus-circle' },
+    { label: 'Word List', link: '/words', icon: 'bi bi-list-ul' },
+    { label: 'Add Word', link: '/words/new', icon: 'bi bi-plus-circle' },
+    { label: 'Add Interview Q&A', link: '/interview-qa/editor', icon: 'bi bi-plus-circle' },
+    { label: 'Interview Q&A', link: '/interview-qa', icon: 'bi bi-plus-circle' },
+    { label: 'Programming Questions', link: '/programming-questions', icon: 'bi bi-code-slash' },
     { label: 'Profile', link: '/profile', icon: 'bi bi-person' },
     { label: 'About', link: '/about', icon: 'bi bi-info-circle' },
     { label: 'Contact', link: '/contact', icon: 'bi bi-envelope' },
-    { label: 'Home QA', link: '/homeqa', icon: 'bi bi-list-ul' },
+    { label: 'Interview Prep', link: '/interview-prep', icon: 'bi bi-list-ul' },
     // { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }
   ];
   recentActivities = [

@@ -22,8 +22,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
   firstName = '';
   lastName = '';
 
+  navLinks: Array<{ label: string; path: string }> = [
+    { label: 'Home', path: '/dashboard' },
+    // { label: 'Programming', path: '/programming-questions' },
+  ];
+
+  secondaryLinks: Array<{ label: string; path: string }> = [
+    { label: 'Home', path: '/dashboard' },
+    { label: 'Interview Prep', path: '/interview-prep' },
+    { label: 'Word List', path: '/words' },
+    { label: 'Add Word', path: '/words/new' },
+    { label: 'Interview Q&A', path: '/interview-qa' },
+    { label: 'Add Interview Q&A', path: '/interview-qa/editor' },
+    { label: 'Quiz', path: '/quiz' },
+    { label: 'Output Practice', path: '/output-practice' },
+    { label: 'My Progress', path: '/progress' },
+    { label: 'Programming', path: '/programming-questions' },
+    // { label: 'Profile', path: '/profile' },
+    //{ label: 'Settings', path: '/settings' },
+    { label: 'Help Center', path: '/help-center' },
+    // { label: 'About', path: '/about' },
+    //{ label: 'Contact', path: '/contact' },
+  ];
+
+  trackByPath = (_: number, link: { path: string }) => link.path;
+
   toggleMenu() {
     this.showMenu = !this.showMenu;
+  }
+
+  closeMenu() {
+    this.showMenu = false;
   }
 
   private destroy$ = new Subject<void>();

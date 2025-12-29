@@ -27,16 +27,10 @@
     </div>
 
     <div class="mb-3">
-        <label>Answer</label>
-        <div class="input-group">
-            <textarea type="text" formControlName="answer" class="form-control"></textarea>
-        </div>
-    </div>
-
-    <div class="mb-3">
         <label for="category">Select Category</label>
-        <select formControlName="category" id="category" [(ngModel)]="selectedCategoryId" class="form-select" (change)="onCategoryChange()">
-            <option value="">Select a topic</option>
+        <select formControlName="category" id="category" [(ngModel)]="selectedCategoryId" class="form-select"
+            (change)="onCategoryChange()">
+            <option value="">Select a Category</option>
             <option *ngFor="let opt of categoryTopic" [value]="opt.id">{{ opt.name }}</option>
         </select>
     </div>
@@ -51,10 +45,41 @@
 
     <div class="mb-3">
         <label for="questionType">Select Question Type </label>
-        <select formControlName="questionType" id="questionType" class="form-select">
-            <option value="">Select a topic</option>
+        <select formControlName="questionType" id="questionType" [(ngModel)]="selectedQuestionType" class="form-select"
+            (change)="onLoadQuestionTypeChange()">
+            <option value="">Select a Question Type</option>
             <option *ngFor="let opt of questionType" [value]="opt.label">{{ opt.value }}</option>
         </select>
+    </div>
+
+    <div *ngIf="isNonTheoryQuestion">
+        <div class="mb-3">
+            <label for="questionType">Option A </label>
+            <input formControlName="optionA" type="text" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="questionType">Option B </label>
+            <input formControlName="optionB" type="text" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="questionType">Option C </label>
+            <input formControlName="optionC" type="text" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="questionType">Option D </label>
+            <input formControlName="optionD" type="text" class="form-control" />
+        </div>
+         <div class="mb-3">
+            <label for="questionType">Correct Answer </label>
+            <input formControlName="correctAnswer" type="text" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mb-3" *ngIf="!isNonTheoryQuestion">
+        <label>Answer</label>
+        <div class="input-group">
+            <textarea type="text" formControlName="answer" class="form-control"></textarea>
+        </div>
     </div>
 
     <div class="mb-3">

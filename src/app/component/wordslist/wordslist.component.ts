@@ -76,7 +76,7 @@ export class WordslistComponent implements OnInit, OnDestroy {
   }
 
   editWord(item: any) {
-    this.router.navigate(['/addWords', item.id]);
+    this.router.navigate(['/words', item.id, 'edit']);
   }
 
   deleteWord(item: any) {
@@ -156,7 +156,7 @@ export class WordslistComponent implements OnInit, OnDestroy {
   }
 
   addWord() {
-    this.router.navigate(['/addWords']);
+    this.router.navigate(['/words/new']);
   }
 
   exportToExcel(): void {

@@ -1,0 +1,182 @@
+
+
+<div class="quiz-container">
+    <!-- Header -->
+    <div class="quiz-header">
+        <h1>CareerPrepBook — JavaScript Quiz</h1>
+        <p>Choose your plan and test your skills with curated JavaScript questions. Track your progress and see how you rank!</p>
+        <div class="career-prep-info">
+            <h3>{{ careerPrepBookInfo.title }}</h3>
+            <p>{{ careerPrepBookInfo.description }}</p>
+        </div>
+    </div>
+
+    <!-- Quiz Plan Selection -->
+    <div class="plan-selection" *ngIf="!quizStarted">
+        <div class="plan-loading" *ngIf="isLoadingQuestions">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading question bank…</span>
+        </div>
+        <div class="plan-cards">
+            <button type="button" class="plan-card" *ngFor="let plan of quizPlans" (click)="startQuiz(plan)" [class.selected]="selectedPlan === plan">
+                <div class="plan-icon">
+                    <span *ngIf="plan.count === 5">🎯</span>
+                    <span *ngIf="plan.count === 10">🔥</span>
+                    <span *ngIf="plan.count === 15">🏆</span>
+                </div>
+                <div class="plan-title">{{ plan.title }}</div>
+                <div class="plan-desc">{{ plan.description }}</div>
+                <div class="plan-questions"><b>{{ plan.count }}</b> Questions</div>
+            </button>
+        </div>
+        <div class="plan-note">
+            <span>Each plan is designed to challenge different skill levels. Pick one and start your journey!</span>
+        </div>
+    </div>
+
+    <!-- Quiz Card -->
+    <div class="quiz-card" *ngIf="quizStarted && !showResult">
+        <div class="quiz-layout">
+            <!-- Left: Plans + Tracker -->
+            <aside class="quiz-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Quiz</div>
+                    <div class="sidebar-actions">
+                        <button type="button" class="ghost-btn" (click)="backToPlans()">← Plans</button>
+                        <button type="button" class="ghost-btn" (click)="reload()">Quit</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="plan-pill" *ngIf="selectedPlan">{{ selectedPlan.title }} • {{ selectedPlan.count }}Q</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-label">Attended</div>
+                            <div class="stat-value">{{ attendedCount }}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Not attended</div>
+                            <div class="stat-value">{{ notAttendedCount }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section" *ngIf="questionsToShow.length > 0">
+                    <div class="nav-title">Questions</div>
+                    <div class="qnav">
+                        <button
+                            type="button"
+                            class="qnav-item"
+                            *ngFor="let q of questionsToShow; let i = index"
+                            (click)="goToQuestion(i)"
+                            [class.active]="i === currentIndex"
+                            [class.attended]="answeredOptions[i] !== null"
+                            [class.not-attended]="answeredOptions[i] === null">
+                            {{ i + 1 }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section no-questions" *ngIf="questionsToShow.length === 0">
+                    <p *ngIf="isLoadingQuestions">Loading questions…</p>
+                    <p *ngIf="!isLoadingQuestions">No questions available for this plan yet.</p>
+                    <p class="no-questions-sub">Go back and choose another plan.</p>
+                </div>
+            </aside>
+
+            <!-- Right: Question + Answers -->
+            <section class="quiz-main" *ngIf="questionsToShow.length > 0">
+                <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="((currentIndex+1)/questionsToShow.length)*100"></div>
+                </div>
+                <div class="progress-text">
+                    <span>Question <b>{{ currentIndex + 1 }}</b> of <b>{{ questionsToShow.length }}</b></span>
+                </div>
+
+                <div class="question-card">
+                    <h2 class="question">{{ questionsToShow[currentIndex].question }}</h2>
+
+                    <div class="options" *ngIf="questionsToShow[currentIndex].options.length">
+                        @for (opt of questionsToShow[currentIndex].options; track opt; let i = $index) {
+                        <button type="button" class="option-btn" [class.active]="selectedOption === i" (click)="selectOption(i)">
+                            <span class="opt-badge">{{ optionLabel(i) }}</span>
+                            <span class="opt-text">{{ opt }}</span>
+                        </button>
+                        }
+                    </div>
+
+                    <div class="no-questions" *ngIf="!questionsToShow[currentIndex].options.length">
+                        <p>This question has no options.</p>
+                    </div>
+                </div>
+
+                <button class="next-btn" [disabled]="selectedOption === null" (click)="nextQuestion()">
+                    {{ currentIndex === questionsToShow.length - 1 ? 'Finish & See Result' : 'Next Question' }}
+                </button>
+            </section>
+        </div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" *ngIf="showResult">
+        <h2>🎉 Congratulations!</h2>
+        <p>You completed the quiz.</p>
+
+        <div class="result-top">
+            <div class="result-chart" aria-label="Result chart">
+                <div class="donut" [ngStyle]="resultChartStyle" role="img" aria-label="Correct, wrong and unattempted breakdown"></div>
+                <div class="donut-center">
+                    <div class="donut-value">{{ score }}</div>
+                    <div class="donut-label">/ {{ totalQuestions }}</div>
+                </div>
+            </div>
+
+            <div class="result-summary">
+                <div class="summary-card correct">
+                    <div class="summary-label">Correct</div>
+                    <div class="summary-value">{{ correctCount }}</div>
+                </div>
+                <div class="summary-card wrong">
+                    <div class="summary-label">Wrong</div>
+                    <div class="summary-value">{{ wrongCount }}</div>
+                </div>
+                <div class="summary-card unattempted">
+                    <div class="summary-label">Unattempted</div>
+                    <div class="summary-value">{{ unattemptedCount }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score">Your Score: <b>{{ score }}</b> / <b>{{ questionsToShow.length }}</b></div>
+        <div class="result-message">
+            <span *ngIf="score/questionsToShow.length >= 0.8">🌟 Excellent! You're a quiz master.</span>
+            <span *ngIf="score/questionsToShow.length >= 0.5 && score/questionsToShow.length < 0.8">👍 Good job! Keep practicing.</span>
+            <span *ngIf="score/questionsToShow.length < 0.5">💡 Don't worry, try again and improve!</span>
+        </div>
+        <div class="chat-result">
+            <div class="chat-bubble" *ngFor="let msg of chatResult">{{ msg }}</div>
+        </div>
+
+        <div class="review" *ngIf="questionsToShow.length > 0">
+            <h3 class="review-title">Question & Answer Review</h3>
+            <div class="review-item" *ngFor="let q of questionsToShow; let i = index">
+                <div class="review-q">
+                    <b>Q{{ i + 1 }}.</b> {{ q.question }}
+                    <span
+                        class="review-status"
+                        [class.correct]="answerStatus(i) === 'Correct'"
+                        [class.wrong]="answerStatus(i) === 'Wrong'"
+                        [class.unanswered]="answerStatus(i) === 'Unanswered'">
+                        {{ answerStatus(i) }}
+                    </span>
+                </div>
+                <div class="review-a"><b>Your answer:</b> {{ userAnswerText(i) }}</div>
+                <div class="review-c"><b>Correct answer:</b> {{ correctAnswerText(i) }}</div>
+            </div>
+        </div>
+        <button class="retry-btn" (click)="reload()">Retry Quiz</button>
+    </div>
+</div>

@@ -1,0 +1,88 @@
+<div class="cpb-progress py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+      <div>
+        <h1 class="h3 mb-1">My Progress</h1>
+        <div class="text-muted small">Your recent quiz performance</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary btn-sm" routerLink="/quiz">Take a Quiz</a>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearHistory()" [disabled]="!attempts.length">
+          Clear History
+        </button>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm stat-card">
+          <div class="card-body p-4">
+            <div class="text-muted">Attempts</div>
+            <div class="value">{{ totalAttempts }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm stat-card">
+          <div class="card-body p-4">
+            <div class="text-muted">Best Score</div>
+            <div class="value">{{ bestPercent }}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card shadow-sm stat-card">
+          <div class="card-body p-4">
+            <div class="text-muted">Average</div>
+            <div class="value">{{ averagePercent }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm" *ngIf="attempts.length; else empty">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead>
+              <tr>
+                <th class="ps-4">Date</th>
+                <th>Plan</th>
+                <th>Topic</th>
+                <th class="text-end">Correct</th>
+                <th class="text-end">Wrong</th>
+                <th class="text-end">Unattempted</th>
+                <th class="text-end pe-4">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of attempts; trackBy: trackById">
+                <td class="ps-4">
+                  <div class="fw-semibold">{{ a.createdAt | date: 'medium' }}</div>
+                </td>
+                <td>{{ a.planTitle || '-' }}</td>
+                <td>{{ a.topic || '-' }}</td>
+                <td class="text-end">{{ a.correct }}</td>
+                <td class="text-end">{{ a.wrong }}</td>
+                <td class="text-end">{{ a.unattempted }}</td>
+                <td class="text-end pe-4">
+                  <span class="badge bg-primary-subtle text-primary-emphasis">{{ a.percent }}%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #empty>
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-md-5 text-center">
+          <h2 class="h5 mb-2">No attempts yet</h2>
+          <p class="text-muted mb-4">Take a quiz to start tracking your progress.</p>
+          <a class="btn btn-primary" routerLink="/quiz">Start Quiz</a>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>

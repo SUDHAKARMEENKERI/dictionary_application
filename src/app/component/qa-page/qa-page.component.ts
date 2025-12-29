@@ -47,11 +47,11 @@ export class QaPageComponent implements OnInit {
   }
 
   onLoadQuiz() {
-    this.router.navigate(['/qa-quiz'], { queryParams: { topic: this.topic } });
+    this.router.navigate(['/quiz'], { queryParams: { topic: this.topic } });
   }
 
   onLoadPracticeQuestion() {
-    this.router.navigate(['/qa-practice'], { queryParams: { topic: this.topic } });
+    this.router.navigate(['/output-practice'], { queryParams: { topic: this.topic } });
   }
 
 }
