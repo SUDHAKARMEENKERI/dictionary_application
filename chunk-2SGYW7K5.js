@@ -1,1 +1,0 @@
-import{Z as e}from"./chunk-KXTIHJKM.js";var a=class t{isLoggedIn(){let o=localStorage.getItem("login");return!!o&&JSON.parse(o).isLogIn}login(o){localStorage.setItem("login",o)}logout(){localStorage.removeItem("login")}static \u0275fac=function(n){return new(n||t)};static \u0275prov=e({token:t,factory:t.\u0275fac,providedIn:"root"})};export{a};
