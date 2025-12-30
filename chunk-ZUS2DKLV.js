@@ -1,0 +1,1 @@
+function n(){let t=localStorage.getItem("login");if(!t)return null;try{let r=JSON.parse(t);return!r||typeof r!="object"?null:r}catch{return null}}function e(){return(n()?.mobile??"").toString().trim()}function o(){let t=n();return t?[t.firstName,t.lastName].filter(Boolean).join(" ").trim():""}export{n as a,e as b,o as c};
