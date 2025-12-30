@@ -1,9 +1,9 @@
 <!-- Modal -->
 <div class="modal" *ngIf="openModalDetails.isOpen">
-    <div class="modal-backdrop" (click)="closeModal()"></div>
+    <div class="modal-backdrop"></div>
 
     <div class="modal-content" [ngClass]="'is-' + status" role="dialog" aria-modal="true">
-        <button type="button" class="close" aria-label="Close" (click)="closeModal()">&times;</button>
+        <button type="button" class="close close_btn" aria-label="Close" (click)="closeModal()">&times;</button>
 
         <div class="modal-header">
             <h4 class="modal-title">{{ title }}</h4>
@@ -12,7 +12,7 @@
         <p class="action-message" [ngClass]="'is-' + status">{{ openModalDetails.message }}</p>
 
         <div class="modal-footer">
-            <button class="btn btn-primary" (click)="closeModal()">OK</button>
+            <button class="btn btn-primary close_btn" (click)="closeModal()">OK</button>
         </div>
     </div>
 </div>

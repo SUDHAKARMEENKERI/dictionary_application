@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { OnInit } from '@angular/core';
+import { OnDestroy, OnInit } from '@angular/core';
 import { TechnologyService } from '../../service/technology.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Technology } from '../../models/Technology';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { apiFallback } from '../../util/apiRx';
 
 @Component({
   selector: 'app-qa-home',
@@ -13,8 +14,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './qa-home.component.html',
   styleUrl: './qa-home.component.scss'
 })
-export class QaHomeComponent implements OnInit {
-  destroyed$ = new Subject<void>();
+export class QaHomeComponent implements OnInit, OnDestroy {
+  private readonly destroyed$ = new Subject<void>();
   technologies: Technology[] = [];
 
   searchQuery = '';
@@ -24,15 +25,20 @@ export class QaHomeComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Initialization logic can be added here
-    this.technologyService.getAllTechnologies().pipe(takeUntil(this.destroyed$)).subscribe({
-      next: data => {
-        this.technologies = data
-      },
-      error: err => {
-        console.error('Error fetching technologies:', err);
-      }
-    });
+    this.technologyService
+      .getAllTechnologies()
+      .pipe(
+        apiFallback([] as Technology[], 'Error fetching technologies'),
+        takeUntil(this.destroyed$)
+      )
+      .subscribe((data) => {
+        this.technologies = data || [];
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
   }
 
   popularQuestions = [
@@ -90,5 +96,28 @@ export class QaHomeComponent implements OnInit {
 
   get hasSearchResults(): boolean {
     return this.filteredTechnologies.some((t) => (t.items || []).length > 0);
+  }
+
+  getIconSrc(icon: string | undefined | null): string {
+    const raw = (icon ?? '').toString().trim();
+    if (!raw) return 'assets/images/database.png';
+
+    // Allow absolute URLs and data URIs.
+    if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:')) return raw;
+
+    // Normalize Windows/backslash paths.
+    const normalized = raw.replace(/\\/g, '/');
+
+    // If backend sends full public path, strip it.
+    const withoutPublicPrefix = normalized.replace(/^public\//i, '');
+
+    // If already points to assets, keep as-is.
+    if (withoutPublicPrefix.startsWith('assets/')) return withoutPublicPrefix;
+
+    // If starts with a leading slash, keep it relative to site root.
+    if (withoutPublicPrefix.startsWith('/assets/')) return withoutPublicPrefix.slice(1);
+
+    // If it looks like a filename, assume it's under assets/images.
+    return `assets/images/${withoutPublicPrefix}`;
   }
 }

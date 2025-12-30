@@ -30,7 +30,7 @@
             </button>
             <div class="tech-grid">
                 <button type="button" class="tech-card" *ngFor="let item of tech.items" (click)="onLoadQA(tech, item)">
-                    <img [src]="item.icon" alt="{{ item.name }}">
+                    <img [src]="getIconSrc(item.icon)" alt="{{ item.name }}">
                     <h5 class="mb-1">{{ item.name }}</h5>
                     <p class="mb-0">{{ item.questionCount }} Questions</p>
                 </button>

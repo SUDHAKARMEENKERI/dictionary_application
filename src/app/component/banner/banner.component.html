@@ -1,3 +1,8 @@
-<div *ngIf ="openBannerDetails.isOpen" class="alert alert-success alert-dismissible fade show" role="alert">
-     <p class="action-message">{{openBannerDetails.message}}.</p>
+<div
+     *ngIf="openBannerDetails?.isOpen"
+     class="cpb-banner alert alert-success"
+     role="alert"
+     aria-live="polite"
+>
+     <p class="action-message">{{ openBannerDetails?.message }}.</p>
 </div>

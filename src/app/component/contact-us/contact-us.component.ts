@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ContactService } from '../../service/contact.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, timer } from 'rxjs';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { apiEmpty } from '../../util/apiRx';
 
 @Component({
   selector: 'app-contact-us',
@@ -27,22 +28,20 @@ export class ContactUsComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.contactForm.valid) {
-      this.contactService.saveContactForm(this.contactForm.value)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
+      this.contactService
+        .saveContactForm(this.contactForm.value)
+        .pipe(
+          tap(() => {
             this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';
-          },
-          error: (error) => {
-            this.messageShow = 'Error submitting contact form.';
-            console.error('Error submitting contact form', error);
-          }
+            this.contactForm.reset();
+          }),
+          apiEmpty('Error submitting contact form'),
+          switchMap(() => timer(5000)),
+          takeUntil(this.destroy$)
+        )
+        .subscribe(() => {
+          this.messageShow = '';
         });
-
-      setTimeout(() => {
-        this.messageShow = '';
-      }, 5000);
-      this.contactForm.reset();
     }
   }
 

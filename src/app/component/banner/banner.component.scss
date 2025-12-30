@@ -1,0 +1,28 @@
+.cpb-banner {
+	position: fixed;
+	top: 120px;
+	right: 16px;
+	width: min(420px, calc(100vw - 32px));
+	margin: 0;
+	z-index: 2000;
+}
+
+@media (max-width: 480px) {
+	.cpb-banner {
+		left: 16px;
+		right: 16px;
+		width: auto;
+	}
+}
+
+.alert {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.action-message {
+	margin: 0;
+	flex: 1;
+	word-break: break-word;
+}

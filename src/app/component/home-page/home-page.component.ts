@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { WordListService } from '../../service/word-list.service';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, map, takeUntil } from 'rxjs/operators';
+import { readLoginMobile } from '../../util/loginStorage';
 
 export interface DashboardData {
   userName: string;
@@ -57,67 +58,87 @@ export class HomePageComponent implements OnInit, OnDestroy {
     'Exported word list to Excel.'
   ];
 
-  constructor(private router: Router, private userService: UserSignUpService,
+  constructor(private userService: UserSignUpService,
     private wordService: WordListService,
     private questionAnswerService: QuestionAnswerService
   ) { }
 
- 
-
   ngOnInit(): void {
-    const loginData = localStorage.getItem('login');
-    this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
-      next: (user) => {
-        this.dashBoardData.userName = user.firstName + ' ' + user.lastName; // Assuming the user object has a 'name' property
-      },
-      error: (error) => {
-        console.error('Error fetching user details:', error);
-      }
-    });
-    this.userService.getUserCount().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (countData) => {
-        this.dashBoardData.totalUsers = countData.totalUserCount;
-      },
-      error: (error) => {
+    const mobile = readLoginMobile();
+
+    const userName$ = mobile
+      ? this.userService.getUserDetailsByMobile(mobile).pipe(
+        map((user: any) => {
+          const first = (user?.firstName ?? '').toString().trim();
+          const last = (user?.lastName ?? '').toString().trim();
+          return `${first} ${last}`.trim();
+        }),
+        catchError((error) => {
+          console.error('Error fetching user details:', error);
+          return of('');
+        })
+      )
+      : of('');
+
+    const totalUsers$ = this.userService.getUserCount().pipe(
+      map((countData: any) => Number(countData?.totalUserCount ?? 0)),
+      catchError((error) => {
         console.error('Error fetching user count:', error);
-      }
-    });
+        return of(0);
+      })
+    );
 
-    this.wordService.getWordCount().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (countData) => {
-        this.dashBoardData.totalWords = countData.totalWordCount;
-      },
-      error: (error) => {
+    const totalWords$ = this.wordService.getWordCount().pipe(
+      map((countData: any) => Number(countData?.totalWordCount ?? 0)),
+      catchError((error) => {
         console.error('Error fetching word count:', error);
-      }
-    });
+        return of(0);
+      })
+    );
 
-    this.wordService.getWordCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
-      next: (countData) => {
-        this.dashBoardData.wordUserContribution = countData;
-      },
-      error: (error) => {
-        console.error('Error fetching word count:', error);
-      }
-    });
+    const wordUserContribution$ = mobile
+      ? this.wordService.getWordCountByMobile(mobile).pipe(
+        map((countData: any) => Number(countData ?? 0)),
+        catchError((error) => {
+          console.error('Error fetching word count by user mobile:', error);
+          return of(0);
+        })
+      )
+      : of(0);
 
-    this.questionAnswerService.getQuestionAnswerCountByMobile(localStorage.getItem('login') ? JSON.parse(localStorage.getItem('login')!).mobile : '').pipe(takeUntil(this.destroy$)).subscribe({
-      next: (countData) => {
-        this.dashBoardData.qaUserContribution = countData;
-      },
-      error: (error) => {
-        console.error('Error fetching question answer count by user mobile:', error);
-      }
-    });
+    const qaUserContribution$ = mobile
+      ? this.questionAnswerService.getQuestionAnswerCountByMobile(mobile).pipe(
+        map((countData: any) => Number(countData ?? 0)),
+        catchError((error) => {
+          console.error('Error fetching question answer count by user mobile:', error);
+          return of(0);
+        })
+      )
+      : of(0);
 
-    this.questionAnswerService.getQuestionAnswerCount().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (countData: any) => {
-        this.dashBoardData.totalQuestionAnswerCount = countData;
-      },
-      error: (error) => {
+    const totalQuestionAnswerCount$ = this.questionAnswerService.getQuestionAnswerCount().pipe(
+      map((countData: any) => Number(countData ?? 0)),
+      catchError((error) => {
         console.error('Error fetching question answer count:', error);
-      }
-    });
+        return of(0);
+      })
+    );
+
+    forkJoin({
+      userName: userName$,
+      totalUsers: totalUsers$,
+      totalWords: totalWords$,
+      wordUserContribution: wordUserContribution$,
+      qaUserContribution: qaUserContribution$,
+      totalQuestionAnswerCount: totalQuestionAnswerCount$
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        this.dashBoardData = {
+          ...this.dashBoardData,
+          ...result
+        };
+      });
   }
 
   ngOnDestroy(): void {

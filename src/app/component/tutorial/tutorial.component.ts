@@ -1,12 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { from, of, Subject, takeUntil } from 'rxjs';
+import { combineLatest, from, of, Subject } from 'rxjs';
 import { Technology } from '../../models/Technology';
 import { TechnologyService } from '../../service/technology.service';
-import { catchError, concatMap, defaultIfEmpty, filter, map, take } from 'rxjs/operators';
+import {
+  catchError,
+  concatMap,
+  defaultIfEmpty,
+  distinctUntilChanged,
+  finalize,
+  filter,
+  map,
+  shareReplay,
+  startWith,
+  switchMap,
+  take,
+  takeUntil,
+  tap
+} from 'rxjs/operators';
+import { apiFallback } from '../../util/apiRx';
 
 type OutputQuestion = {
   question: string;
@@ -26,7 +41,7 @@ type OutputQuestion = {
   imports: [CommonModule, FormsModule],
   standalone: true
 })
-export class TutorialComponent implements OnInit {
+export class TutorialComponent implements OnInit, OnDestroy {
 
   constructor(
     private activeRouter: ActivatedRoute,
@@ -157,29 +172,47 @@ export class TutorialComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const topic = (params?.['topic'] ?? '').toString().trim();
-      this.selectedTopic = topic ? topic : 'All';
+    const topic$ = this.activeRouter.queryParams.pipe(
+      map((params) => (params?.['topic'] ?? '').toString().trim() || 'All'),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    );
 
-      // When deep-linking or when topic changes, load the appropriate question bank.
-      this.loadQuestionsForSelection(this.selectedTopic);
-    });
+    const technologies$ = this.technologyService.getAllTechnologies().pipe(
+      apiFallback([] as Technology[], 'Error loading technologies'),
+      startWith([] as Technology[]),
+      tap((data) => {
+        this.technologies = data || [];
+      }),
+      shareReplay(1),
+      takeUntil(this.destroy$)
+    );
 
-    this.loadTechnologies();
+    combineLatest([topic$, technologies$])
+      .pipe(
+        tap(([topic]) => {
+          this.selectedTopic = topic;
+        }),
+        tap(() => {
+          this.isLoadingQuestions = true;
+        }),
+        switchMap(([topic]) =>
+          this.getQuestionsForSelection$(topic).pipe(
+            finalize(() => {
+              this.isLoadingQuestions = false;
+            })
+          )
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((qs) => {
+        this.questions = qs || [];
+      });
   }
 
-  private loadTechnologies(): void {
-    this.technologyService
-      .getAllTechnologies()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          this.technologies = data || [];
-        },
-        error: () => {
-          this.technologies = [];
-        }
-      });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goToTopicPicker(): void {
@@ -253,30 +286,9 @@ export class TutorialComponent implements OnInit {
     });
   }
 
-  private loadQuestionsForSelection(topic: string): void {
-    const cleaned = (topic ?? '').toString().trim();
-
-    if (!cleaned || cleaned === 'All') {
-      this.loadAllOutputQuestions();
-      return;
-    }
-
-    // Prefer dummy data for testing so topic selection is predictable,
-    // even before the DB/service provides output-style questions.
-    const dummy = this.buildDummyQuestions(cleaned);
-    if (dummy.length > 0) {
-      this.questions = dummy;
-      this.isLoadingQuestions = false;
-      return;
-    }
-
-    this.loadTopicOutputQuestionsWithFallback(cleaned);
-  }
-
-  private loadAllOutputQuestions(): void {
+  private getAllOutputQuestions$() {
     if (this.allQuestionsCache && this.allQuestionsCache.length > 0) {
-      this.questions = this.allQuestionsCache;
-      return;
+      return of(this.allQuestionsCache);
     }
 
     // If dummy topics exist, make them available immediately for "All".
@@ -292,83 +304,56 @@ export class TutorialComponent implements OnInit {
 
     if (dummyAll.length > 0) {
       this.allQuestionsCache = dummyAll;
-      this.questions = dummyAll;
-      return;
+      return of(dummyAll);
     }
 
-    this.isLoadingQuestions = true;
-    this.questionAnswerService
-      .getAllMcqQA()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          const normalized = this.normalizeOutputQuestions(data);
-          if (normalized.length > 0) {
-            this.allQuestionsCache = normalized;
-            this.questions = normalized;
-          }
-          this.isLoadingQuestions = false;
-        },
-        error: (error) => {
-          console.error(error);
-          this.isLoadingQuestions = false;
-        }
-      });
+    return this.questionAnswerService.getAllMcqQA().pipe(
+      apiFallback<any[]>([], 'Error loading output practice question bank'),
+      map((data) => this.normalizeOutputQuestions(data)),
+      tap((all) => {
+        if (all.length > 0) this.allQuestionsCache = all;
+      })
+    );
   }
 
-  private loadTopicOutputQuestionsWithFallback(topicLabel: string): void {
-    this.isLoadingQuestions = true;
-    this.questions = [];
+  private getQuestionsForSelection$(topic: string) {
+    const cleaned = (topic ?? '').toString().trim();
+    if (!cleaned || cleaned === 'All') {
+      return this.getAllOutputQuestions$();
+    }
 
-    const candidates = this.buildTopicCandidates(topicLabel);
+    // Prefer dummy data for predictable behavior.
+    const dummy = this.buildDummyQuestions(cleaned);
+    if (dummy.length > 0) {
+      return of(dummy);
+    }
 
-    from(candidates)
-      .pipe(
-        concatMap((candidate) =>
-          this.questionAnswerService.getQAByTopic(candidate).pipe(
-            catchError(() => of([] as any[])),
-            map((data) => ({ candidate, normalized: this.normalizeOutputQuestions(data) }))
-          )
-        ),
-        filter((r) => r.normalized.length > 0),
-        take(1),
-        defaultIfEmpty({ candidate: topicLabel, normalized: [] as OutputQuestion[] }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: ({ normalized }) => {
-          if (normalized.length > 0) {
-            this.questions = normalized;
-            this.isLoadingQuestions = false;
-            return;
-          }
+    const candidates = this.buildTopicCandidates(cleaned);
 
-          // Fallback: ensure we have the global bank, then try client-side filter by topic tag.
-          const ensureAll = this.allQuestionsCache
-            ? of(this.allQuestionsCache)
-            : this.questionAnswerService.getAllMcqQA().pipe(
-                catchError(() => of([])),
-                map((data) => {
-                  const all = this.normalizeOutputQuestions(data);
-                  if (all.length > 0) this.allQuestionsCache = all;
-                  return all;
-                })
-              );
+    return from(candidates).pipe(
+      concatMap((candidate) =>
+        this.questionAnswerService.getQAByTopic(candidate).pipe(
+          catchError(() => of([] as any[])),
+          map((data) => this.normalizeOutputQuestions(data))
+        )
+      ),
+      filter((normalized) => normalized.length > 0),
+      take(1),
+      defaultIfEmpty([] as OutputQuestion[]),
+      switchMap((normalized) => {
+        if (normalized.length > 0) return of(normalized);
 
-          ensureAll.pipe(take(1), takeUntil(this.destroy$)).subscribe((all) => {
-            const key = this.normalizeKey(topicLabel);
+        // Fallback: ensure we have the global bank, then try client-side filter by topic tag.
+        return this.getAllOutputQuestions$().pipe(
+          take(1),
+          map((all) => {
+            const key = this.normalizeKey(cleaned);
             const filtered = (all || []).filter((q) => this.normalizeKey(q?.topic || '') === key);
-
-            // If even that fails (no topic tags), keep showing the full bank rather than blank.
-            this.questions = filtered.length > 0 ? filtered : (all || this.questions);
-            this.isLoadingQuestions = false;
-          });
-        },
-        error: (err) => {
-          console.error(err);
-          this.isLoadingQuestions = false;
-        }
-      });
+            return filtered.length > 0 ? filtered : (all || []);
+          })
+        );
+      })
+    );
   }
 
   questions: OutputQuestion[] = [
@@ -591,11 +576,6 @@ undefined`,
 
   resetAll() {
     this.questions.forEach(q => this.resetQuestion(q));
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
 }

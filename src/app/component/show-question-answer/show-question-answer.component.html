@@ -101,6 +101,36 @@
                             </div>
                         </div>
 
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Difficulty">
+                            <button
+                                type="button"
+                                class="btn"
+                                [class.btn-primary]="selectedLevel === 'basic'"
+                                [class.btn-outline-primary]="selectedLevel !== 'basic'"
+                                (click)="setLevel('basic')"
+                            >
+                                Basic
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                [class.btn-primary]="selectedLevel === 'intermediate'"
+                                [class.btn-outline-primary]="selectedLevel !== 'intermediate'"
+                                (click)="setLevel('intermediate')"
+                            >
+                                Intermediate
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                [class.btn-primary]="selectedLevel === 'advanced'"
+                                [class.btn-outline-primary]="selectedLevel !== 'advanced'"
+                                (click)="setLevel('advanced')"
+                            >
+                                Advance
+                            </button>
+                        </div>
+
                         <div class="qa-search">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">
@@ -164,6 +194,12 @@
                             <div class="topic-section" *ngIf="qa.topic">
                                 <span class="badge bg-light text-dark">
                                     <i class="bi bi-tag me-1"></i>{{ qa.topic }}
+                                </span>
+                            </div>
+
+                            <div class="topic-section">
+                                <span class="badge bg-light text-dark">
+                                    {{ levelLabel(qa) }}
                                 </span>
                             </div>
                         </div>

@@ -6,9 +6,11 @@ import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { TechnologyService } from '../../service/technology.service';
 import { DropdownResponse, QuestionTypeDropdownOption } from '../../models/Technology';
+import { readLoginMobile } from '../../util/loginStorage';
+import { apiFallback } from '../../util/apiRx';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -47,6 +49,12 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   selectedQuestionType!: string;
   isNonTheoryQuestion: boolean = false;
 
+  readonly difficultyLevels = [
+    { label: 'Basic', value: 'BASIC' },
+    { label: 'Intermediate', value: 'INTERMEDIATE' },
+    { label: 'Advanced', value: 'ADVANCED' }
+  ] as const;
+
   questionType: QuestionTypeDropdownOption[] = [
     { label: 'Theory', value: 'THEORY' },
     // { label: 'Practical', value: 'PRACTICAL' },
@@ -61,6 +69,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       category: ['', Validators.required],
       topic: ['', Validators.required],
       questionType: ['', Validators.required],
+      level: ['BASIC', Validators.required],
       optionA: [''],
       optionB: [''],
       optionC: [''],
@@ -68,40 +77,47 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       correctAnswer: [''],
     });
 
-    this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const id = params['id'];
-
-      if (id) {
-        this.editMode = {
-          isEditMode: true,
-          id: id
-        };
-        this.questionAnswerService.getAllUserQAById(id).pipe(takeUntil(this.destroy$)).subscribe({
-          next: (data) => {
-            if (data) {
-              const qaItem = data;
-              this.questionAnswerForm.patchValue({
-                question: qaItem.question,
-                answer: qaItem.answer,
-                topic: qaItem.topic.toLowerCase(),
-              });
-              this.imageSrc = qaItem.imageBase64 ? this.getImageSrc(qaItem.imageBase64) : '';
-            }
-          },
-          error: (error) => {
-            console.error('Error fetching QA by ID:', error);
+    this.activeRouter.queryParams
+      .pipe(
+        map((params) => (params?.['id'] ?? '').toString().trim()),
+        tap((id) => {
+          if (id) {
+            this.editMode = { isEditMode: true, id };
           }
-        });
-      }
-    });
+        }),
+        filter((id) => !!id),
+        switchMap((id) =>
+          this.questionAnswerService.getAllUserQAById(id).pipe(
+            apiFallback<any | null>(null, 'Error fetching QA by ID')
+          )
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
+        if (!data) return;
 
-    this.techService.getAllTechCategories().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
-        this.categoryTopic = data;
-      }, error: (error) => {
-        console.error("API failed while fetching tech categories,", error)
-      }
-    });
+        const qaItem = data;
+        this.questionAnswerForm.patchValue({
+          question: qaItem.question,
+          answer: qaItem.answer,
+          topic: (qaItem.topic ?? '').toString().toLowerCase(),
+          level: (qaItem.level ?? qaItem.difficulty ?? qaItem.questionLevel ?? qaItem.experienceLevel ?? 'BASIC')
+            .toString()
+            .trim()
+            .toUpperCase(),
+        });
+        this.imageSrc = qaItem.imageBase64 ? this.getImageSrc(qaItem.imageBase64) : '';
+      });
+
+    this.techService
+      .getAllTechCategories()
+      .pipe(
+        apiFallback([] as DropdownResponse[], 'API failed while fetching tech categories'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
+        this.categoryTopic = data || [];
+      });
   }
 
   onSubmit() {
@@ -120,7 +136,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         questionType: this.questionAnswerForm.value.questionType,
         category: this.questionAnswerForm.value.category,
         topic: this.questionAnswerForm.value.topic,
-        mobile: JSON.parse(localStorage.getItem('login') || '{}').mobile || ''
+        level: this.questionAnswerForm.value.level,
+        mobile: readLoginMobile()
       };
 
       this.questionAnswerService.createMcqQA(reqBoy).
@@ -137,7 +154,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       formData.append('answer', this.questionAnswerForm.value.answer);
       formData.append('topic', this.questionAnswerForm.value.topic);
       formData.append('questionType', this.questionAnswerForm.value.questionType);
-      formData.append('mobile', JSON.parse(localStorage.getItem('login') || '{}').mobile || '');
+      formData.append('level', this.questionAnswerForm.value.level);
+      formData.append('mobile', readLoginMobile());
       if (this.imageFile) {
         formData.append('image', this.imageFile);
       } else {

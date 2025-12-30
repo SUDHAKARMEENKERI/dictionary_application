@@ -9,12 +9,12 @@
             </p>
 
             <div class="hero-actions">
-                <a (click)="onLoadPracticeQuestion()" class="btn primary">
+                <button type="button" (click)="onLoadPracticeQuestion()" class="btn primary">
                     Output Practice
-                </a>
-                <a (click)="onLoadQuiz()" class="btn secondary">
+                </button>
+                <button type="button" (click)="onLoadQuiz()" class="btn secondary">
                     Take Quiz
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -77,8 +77,38 @@
                             <div class="page-subtitle">Interview questions with practical, interview-ready answers</div>
                         </div>
                         <div class="small text-muted" *ngIf="topic">
-                            {{ questionAnswers.length }} questions
+                            {{ questionAnswersBySelectedLevel.length }} questions
                         </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3" *ngIf="topic">
+                        <button
+                            type="button"
+                            class="btn btn-sm"
+                            [class.btn-primary]="selectedLevel === 'basic'"
+                            [class.btn-outline-primary]="selectedLevel !== 'basic'"
+                            (click)="setLevel('basic')"
+                        >
+                            Basic
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm"
+                            [class.btn-primary]="selectedLevel === 'intermediate'"
+                            [class.btn-outline-primary]="selectedLevel !== 'intermediate'"
+                            (click)="setLevel('intermediate')"
+                        >
+                            Intermediate
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm"
+                            [class.btn-primary]="selectedLevel === 'advanced'"
+                            [class.btn-outline-primary]="selectedLevel !== 'advanced'"
+                            (click)="setLevel('advanced')"
+                        >
+                            Advance
+                        </button>
                     </div>
 
                     <div class="intro-card mb-3" *ngIf="topic">
@@ -96,12 +126,22 @@
                         No questions found for <strong>{{ topic }}</strong>.
                     </div>
 
-                    <div class="qa-list" *ngIf="!isLoadingQuestions && questionAnswers.length > 0">
-                        @for (qa of questionAnswers; track qa.question; let i = $index) {
+                    <div class="alert alert-info" *ngIf="!isLoadingQuestions && topic && questionAnswers.length > 0 && questionAnswersBySelectedLevel.length === 0">
+                        No <strong>{{ selectedLevel }}</strong> questions found for <strong>{{ topic }}</strong>.
+                    </div>
+
+                    <div class="qa-list" *ngIf="!isLoadingQuestions && questionAnswersBySelectedLevel.length > 0">
+                        @for (qa of questionAnswersBySelectedLevel; track qa.question; let i = $index) {
                         <div class="qa-card">
                             <div class="qa-header">
                                 <span class="q-badge" [attr.aria-label]="'Question ' + (i + 1)">Q{{ i + 1 }}</span>
                                 <h3 class="qa-question">{{ qa.question }}</h3>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="badge bg-light text-dark">
+                                    {{ levelLabel(qa) }}
+                                </span>
                             </div>
 
                             <div class="qa-answer">

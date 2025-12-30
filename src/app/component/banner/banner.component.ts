@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-banner',
@@ -10,9 +10,28 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 export class BannerComponent implements OnChanges{
   @Input() openBannerDetails: any;
 
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
+
   ngOnChanges(changes: SimpleChanges): void {
-     setTimeout(() => {
-      this.openBannerDetails.isOpen = false;
+    if (!this.openBannerDetails?.isOpen) return;
+
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+
+    this.closeTimer = setTimeout(() => {
+      if (this.openBannerDetails) {
+        this.openBannerDetails.isOpen = false;
+      }
+      this.closeTimer = null;
     }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
   }
 }

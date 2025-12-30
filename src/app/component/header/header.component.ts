@@ -6,6 +6,7 @@ import { UserSignUpService } from '../../service/user-signup.service';
 import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { readLoginMobile } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-header',
@@ -73,8 +74,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getUserDetailsByMobile(): void {
-    const loginData = localStorage.getItem('login');
-    this.userService.getUserDetailsByMobile(loginData ? JSON.parse(loginData).mobile : '')
+    const mobile = readLoginMobile();
+    this.userService.getUserDetailsByMobile(mobile)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user) => {

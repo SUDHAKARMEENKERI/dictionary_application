@@ -6,10 +6,11 @@ import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ModalComponent],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss']
 })
@@ -18,6 +19,13 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy{
    showPassword = false;
    showConfirmPassword = false;
    private destroy$ = new Subject<void>();
+
+   openModalDetails: ModalDetails = {
+     isOpen: false,
+     message: '',
+     status: 'info',
+     title: 'Career Preparation App'
+   };
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router
@@ -38,13 +46,30 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy{
   }
 
   onSubmit() {
-    if (this.forgotForm.valid) {
-      this.userService.updateUser(this.forgotForm.value).pipe(takeUntil(this.destroy$)).subscribe(response => {
+    if (!this.forgotForm.valid) {
+      this.forgotForm.markAllAsTouched();
+      this.openModalDetails = {
+        isOpen: true,
+        status: 'error',
+        title: 'Career Preparation App',
+        message: 'Please enter a valid email and matching passwords.'
+      };
+      return;
+    }
+
+    this.userService.updateUser(this.forgotForm.value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
         this.router.navigate(['/login']);
       }, error => {
         console.error('Error updating password', error);
+        this.openModalDetails = {
+          isOpen: true,
+          status: 'error',
+          title: 'Career Preparation App',
+          message: (error?.error?.message || error?.message || 'Password reset failed. Please try again.')
+        };
       });
-    }
   }
 
   ngOnDestroy(): void {

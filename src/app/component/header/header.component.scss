@@ -3,7 +3,7 @@
   /* Sticks to the top */
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   /* Full screen width */
   height: 60px;
   /* Adjust height as needed */
@@ -21,7 +21,7 @@
   position: fixed;
   top: 60px;
   left: 0;
-  width: 100vw;
+  width: 100%;
   z-index: 999;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);

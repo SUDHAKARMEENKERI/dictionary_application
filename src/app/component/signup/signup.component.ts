@@ -7,10 +7,11 @@ import { RouterModule } from '@angular/router';
 import { LoaderService } from '../../service/loader.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 @Component({
   selector: 'app-signup',
-  imports: [ReactiveFormsModule, CommonModule, RouterModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule, ModalComponent],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
@@ -19,6 +20,13 @@ export class SignupComponent implements OnInit, OnDestroy {
   showPassword = false;
   showConfirmPassword = false;
   private destroy$ = new Subject<void>();
+
+  openModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'info',
+    title: 'Career Preparation App'
+  };
 
   constructor(private fb: FormBuilder, private userService: UserSignUpService,
     private router: Router, private loaderService: LoaderService
@@ -44,17 +52,33 @@ export class SignupComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     this.loaderService.show();
-    if (this.signupForm.valid) {
-      this.userService.registerUser(this.signupForm.value)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(response => {
+    if (!this.signupForm.valid) {
+      this.loaderService.hide();
+      this.signupForm.markAllAsTouched();
+      this.openModalDetails = {
+        isOpen: true,
+        status: 'error',
+        title: 'Career Preparation App',
+        message: 'Please fix the highlighted fields and try again.'
+      };
+      return;
+    }
+
+    this.userService.registerUser(this.signupForm.value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
         this.router.navigate(['/dashboard']);
         this.loaderService.hide();
       }, error => {
         console.error('Error registering user', error);
         this.loaderService.hide();
+        this.openModalDetails = {
+          isOpen: true,
+          status: 'error',
+          title: 'Career Preparation App',
+          message: (error?.error?.message || error?.message || 'Sign up failed. Please try again.')
+        };
       });
-    }
   }
 
   ngOnDestroy(): void {

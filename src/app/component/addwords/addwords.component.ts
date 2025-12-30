@@ -14,6 +14,7 @@ import { ModalComponent } from '../modal/modal.component';
 import { Actions, ofType } from '@ngrx/effects';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { readLoginMobile, readLoginStorage } from '../../util/loginStorage';
 
 
 @Component({
@@ -83,19 +84,15 @@ export class AddwordsComponent implements OnInit, OnDestroy {
       }
     });
 
-    const loginUser = localStorage.getItem('login');
-    if (loginUser) {
-      this.isOwner = JSON.parse(loginUser).mobile === '9611675325' ? true : false;
-    }
+    this.isOwner = readLoginMobile() === '9611675325';
   }
 
   onSubmit() {
     this.loaderService.show();
     if (this.addWordForm.valid) {
       const userData: any = { ...this.addWordForm.value };
-      const data = localStorage.getItem('login');
-      if (data) {
-        const user = JSON.parse(data);
+      const user = readLoginStorage();
+      if (user) {
         userData.mobile = user.mobile;
         userData.firstName = user.firstName;
         userData.lastName = user.lastName;

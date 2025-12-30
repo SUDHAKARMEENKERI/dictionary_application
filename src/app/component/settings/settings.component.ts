@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
+import { readLoginDisplayName } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-settings',
@@ -14,14 +15,7 @@ export class SettingsComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   get displayName(): string {
-    const raw = localStorage.getItem('login');
-    if (!raw) return '';
-    try {
-      const parsed = JSON.parse(raw);
-      return [parsed.firstName, parsed.lastName].filter(Boolean).join(' ');
-    } catch {
-      return '';
-    }
+    return readLoginDisplayName();
   }
 
   logout(): void {

@@ -5,10 +5,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { from, of, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { TechnologyService } from '../../service/technology.service';
 import { Technology } from '../../models/Technology';
-import { catchError, concatMap, defaultIfEmpty, filter, map, take } from 'rxjs/operators';
+import { apiFallback } from '../../util/apiRx';
+import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-show-question-answer',
@@ -23,6 +23,9 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   qaSearchQuery = '';
 
   leftSearchQuery = '';
+
+  readonly levels = ['basic', 'intermediate', 'advanced'] as const;
+  selectedLevel: (typeof this.levels)[number] = 'basic';
 
   technologies: string[] = [];
   selectedTechnology: string = 'All';
@@ -100,20 +103,51 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     return (this.questionAnswers || []).filter((qa) => this.matchesQaSearch(qa, query));
   }
 
+  setLevel(level: (typeof this.levels)[number]): void {
+    this.selectedLevel = level;
+    this.currentPage = 0;
+
+    if (this.isAllMode) {
+      this.loadPage(0);
+      return;
+    }
+
+    this.applyTopicSearchAndRefresh();
+  }
+
+  private getQaLevel(qa: any): (typeof this.levels)[number] {
+    const raw = (
+      qa?.level ??
+      qa?.difficulty ??
+      qa?.questionLevel ??
+      qa?.experienceLevel ??
+      ''
+    )
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (raw.startsWith('adv')) return 'advanced';
+    if (raw.startsWith('int') || raw.startsWith('mid')) return 'intermediate';
+    return 'basic';
+  }
+
+  levelLabel(qa: any): string {
+    const lvl = this.getQaLevel(qa);
+    if (lvl === 'advanced') return 'Advanced';
+    if (lvl === 'intermediate') return 'Intermediate';
+    return 'Basic';
+  }
+
   private loadTechnologies(): void {
-    this.technologyService.getAllTechnologies().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
+    this.technologyService
+      .getAllTechnologies()
+      .pipe(apiFallback([] as Technology[], 'Error loading technologies'), takeUntil(this.destroy$))
+      .subscribe((data) => {
         this.technologyIndex = data || [];
         this.technologySections = this.technologyIndex;
         this.rebuildTechnologiesFromIndex();
-      },
-      error: () => {
-        // Fallback: will be built from loaded QAs.
-        this.technologyIndex = [];
-        this.technologySections = [];
-        this.rebuildTechnologiesFromCurrentData();
-      }
-    });
+      });
   }
 
   private rebuildTechnologiesFromIndex(): void {
@@ -195,7 +229,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   private getTopicSearchList(): any[] {
-    const base = this.selectedTechAllQAs || [];
+    const base = (this.selectedTechAllQAs || []).filter((qa) => this.getQaLevel(qa) === this.selectedLevel);
     const query = (this.qaSearchQuery ?? '').toString().trim().toLowerCase();
     if (!query) return base;
     return base.filter((qa) => this.matchesQaSearch(qa, query));
@@ -260,16 +294,23 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   loadPage(page: number) {
-    this.questionAnswerService.getPagedQuestionAnswers(page, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe(res => {
-      this.questionAnswers = res.content;
-      this.totalPages = res.totalPages;
-      this.currentPage = res.number;
-      this.totalResults = typeof res.totalElements === 'number' ? res.totalElements : (res.content?.length ?? 0);
+    const fallback = { content: [], totalPages: 1, number: page, totalElements: 0 } as any;
 
-      if (!this.technologyIndex?.length) {
-        this.rebuildTechnologiesFromCurrentData();
-      }
-    });
+    this.questionAnswerService
+      .getPagedQuestionAnswers(page, this.pageSize)
+      .pipe(apiFallback(fallback, 'Error loading question answers'), takeUntil(this.destroy$))
+      .subscribe((res: any) => {
+        const content = (res?.content as any[]) ?? [];
+        this.questionAnswers = content;
+        this.totalPages = Math.max(1, Number(res?.totalPages ?? 1));
+        this.currentPage = Number(res?.number ?? page);
+        this.totalResults =
+          typeof res?.totalElements === 'number' ? res.totalElements : (content?.length ?? 0);
+
+        if (!this.technologyIndex?.length) {
+          this.rebuildTechnologiesFromCurrentData();
+        }
+      });
   }
 
   goToPage(page: number) {
@@ -307,9 +348,11 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   onDelete(qa: any): void {
-    this.questionAnswerService.deleteUserQAById(qa.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => {
-        console.log('QA deleted successfully:', response);
+    this.questionAnswerService
+      .deleteUserQAById(qa.id)
+      .pipe(apiFallback(null as any, 'Error deleting QA'), takeUntil(this.destroy$))
+      .subscribe((response) => {
+        if (!response) return;
 
         // Remove from the currently visible list
         this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
@@ -325,11 +368,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
           }
           this.updateVisibleSlice(list);
         }
-      },
-      error: (error) => {
-        console.error('Error deleting QA:', error);
-      }
-    });
+      });
   }
   ngOnDestroy(): void {
     this.destroy$.next();

@@ -111,4 +111,8 @@ and add it to any page where you want an ad unit. Example inputs:
 - `adSlot`: your AdSense slot id
 - `adClient`: optional (usually omit; the script client is used)
 
+
+### npm run deploy:gh --> 1st run this command 
+### npm run deploy --> Next run this comman(might work this command only)
+
 Note: Angular is an SPA, so ads are refreshed on route navigation automatically.

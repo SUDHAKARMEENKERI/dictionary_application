@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { QaListComponent } from '../qa-list/qa-list.component';
 import { TutorialComponent } from '../tutorial/tutorial.component';
 import { QuizComponent } from '../quiz/quiz.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { from, of, Subject, takeUntil } from 'rxjs';
 import { QuestionAnswer, Technology, TechnologyItem } from '../../models/Technology';
 import { TechnologyService } from '../../service/technology.service';
+import { catchError, concatMap, defaultIfEmpty, filter, map, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-qa-page',
@@ -18,7 +19,7 @@ import { TechnologyService } from '../../service/technology.service';
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class QaPageComponent implements OnInit {
+export class QaPageComponent implements OnInit, OnDestroy {
   constructor(
     private activeRouter: ActivatedRoute,
     private questionAnswerService: QuestionAnswerService,
@@ -37,6 +38,9 @@ export class QaPageComponent implements OnInit {
   questionAnswers: QuestionAnswer[] = [];
   topic: string = '';
   isLoadingQuestions = false;
+
+  readonly levels = ['basic', 'intermediate', 'advanced'] as const;
+  selectedLevel: (typeof this.levels)[number] = 'basic';
 
   ngOnInit(): void {
     this.technologyService.getAllTechnologies()
@@ -60,6 +64,37 @@ export class QaPageComponent implements OnInit {
 
   private normalize(value: string | null | undefined): string {
     return (value || '').trim().toLowerCase();
+  }
+
+  private normalizeKey(value: string): string {
+    return (value || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[_\s]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-');
+  }
+
+  private buildTopicCandidates(label: string): string[] {
+    const raw = (label ?? '').toString().trim();
+    if (!raw) return [];
+
+    const normalized = this.normalizeKey(raw);
+    const lower = raw.toLowerCase();
+
+    const candidates: string[] = [raw];
+    if (lower && lower !== raw) candidates.push(lower);
+    if (normalized && normalized !== raw && normalized !== lower) candidates.push(normalized);
+
+    const seen = new Set<string>();
+    return candidates.filter((c) => {
+      const v = (c ?? '').toString().trim();
+      if (!v) return false;
+      if (seen.has(v)) return false;
+      seen.add(v);
+      return true;
+    });
   }
 
   private applySelectionFromUrl(): void {
@@ -114,6 +149,39 @@ export class QaPageComponent implements OnInit {
     });
   }
 
+  setLevel(level: (typeof this.levels)[number]): void {
+    this.selectedLevel = level;
+  }
+
+  private getQaLevel(qa: any): (typeof this.levels)[number] {
+    const raw = (
+      qa?.level ??
+      qa?.difficulty ??
+      qa?.questionLevel ??
+      qa?.experienceLevel ??
+      ''
+    )
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (raw.startsWith('adv')) return 'advanced';
+    if (raw.startsWith('int') || raw.startsWith('mid')) return 'intermediate';
+    return 'basic';
+  }
+
+  levelLabel(qa: any): string {
+    const lvl = this.getQaLevel(qa);
+    if (lvl === 'advanced') return 'Advanced';
+    if (lvl === 'intermediate') return 'Intermediate';
+    return 'Basic';
+  }
+
+  get questionAnswersBySelectedLevel(): QuestionAnswer[] {
+    const list = (this.questionAnswers || []) as any[];
+    return list.filter((qa) => this.getQaLevel(qa) === this.selectedLevel) as QuestionAnswer[];
+  }
+
   private loadQuestions(): void {
     if (!this.topic) {
       this.questionAnswers = [];
@@ -121,8 +189,22 @@ export class QaPageComponent implements OnInit {
     }
 
     this.isLoadingQuestions = true;
-    this.questionAnswerService.getQAByTopic(this.topic)
-      .pipe(takeUntil(this.destroy$))
+
+    const candidates = this.buildTopicCandidates(this.topic);
+
+    from(candidates)
+      .pipe(
+        concatMap((candidate) =>
+          this.questionAnswerService.getQAByTopic(candidate).pipe(
+            catchError(() => of([] as QuestionAnswer[])),
+            map((qas) => (qas || []) as QuestionAnswer[])
+          )
+        ),
+        filter((qas) => (qas?.length ?? 0) > 0),
+        take(1),
+        defaultIfEmpty([] as QuestionAnswer[]),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
         next: (data) => {
           this.questionAnswers = data || [];
@@ -144,11 +226,13 @@ export class QaPageComponent implements OnInit {
   }
 
   onLoadQuiz() {
-    this.router.navigate(['/quiz/play'], { queryParams: { topic: this.topic } });
+    const topic = (this.topic ?? '').toString().trim();
+    this.router.navigate(['/quiz'], { queryParams: topic ? { topic } : {} });
   }
 
   onLoadPracticeQuestion() {
-    this.router.navigate(['/output-practice/play'], { queryParams: { topic: this.topic } });
+    const topic = (this.topic ?? '').toString().trim();
+    this.router.navigate(['/output-practice'], { queryParams: topic ? { topic } : {} });
   }
 
 }

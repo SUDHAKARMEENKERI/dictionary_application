@@ -10,10 +10,12 @@
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
+    z-index: 0;
 }
 
 .modal-content {
     position: relative;
+    z-index: 1;
     width: min(520px, calc(100vw - 32px));
     border-radius: 14px;
     background: #fff;
@@ -96,4 +98,8 @@
     gap: 10px;
     margin-top: 14px;
     padding: 0;
+}
+
+.close_btn{
+    cursor: pointer;
 }

@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { apiFallback } from '../../util/apiRx';
 
 type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string };
 type QuizAttempt = {
@@ -32,7 +33,7 @@ const QUIZ_ATTEMPTS_KEY = 'cpb_quiz_attempts';
   standalone: true,
   imports: [CommonModule],
 })
-export class QuizComponent implements OnInit {
+export class QuizComponent implements OnInit, OnDestroy {
   quizStarted = false;
   isLoadingQuestions = false;
   displayQuestions: QuizQuestion[] = [];
@@ -140,8 +141,13 @@ export class QuizComponent implements OnInit {
     // Use hardcoded questions by default, but try to load from service if compatible.
     // The service payload may not match the quiz UI shape, so we normalize it.
     this.isLoadingQuestions = true;
-    this.questionAnswerService.getAllMcqQA().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
+    this.questionAnswerService
+      .getAllMcqQA()
+      .pipe(
+        apiFallback<any[]>([], 'Error loading quiz questions from service, using default questions'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
         const normalized = this.normalizeMcqQuestions(data);
         if (normalized.length > 0) {
           this.questions = normalized;
@@ -156,12 +162,12 @@ export class QuizComponent implements OnInit {
           console.warn('MCQ service returned unsupported shape; using default quiz questions.');
         }
         this.isLoadingQuestions = false;
-      },
-      error: (error) => {
-        console.error('Error loading questions from service, using default questions', error);
-        this.isLoadingQuestions = false;
-      }
-    });
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   questions: QuizQuestion[] = [
@@ -479,10 +485,4 @@ export class QuizComponent implements OnInit {
   backToPlans() {
     this.reload();
   }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
 }

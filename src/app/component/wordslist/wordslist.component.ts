@@ -15,7 +15,8 @@ import * as XLSX from 'xlsx';
 import { FormsModule } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
+import { readLoginMobile, readLoginStorage } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-wordslist',
@@ -55,8 +56,7 @@ export class WordslistComponent implements OnInit, OnDestroy {
   private store: Store = inject(Store);
 
   ngOnInit(): void {
-    const login = localStorage.getItem('login');
-    this.ownerData = login ? JSON.parse(login) : null;
+    this.ownerData = readLoginStorage();
     this.loadWordsList();
     this.activeRouter.paramMap.pipe(takeUntil(this.destroy$)).subscribe(el => {
       if (el.get('state') === 'add') {
@@ -86,7 +86,9 @@ export class WordslistComponent implements OnInit, OnDestroy {
 
   private errorHandleForSubmit(success: any, failure: any, message: string) {
     this.actions$.pipe(
-      ofType(success, failure)
+      ofType(success, failure),
+      take(1),
+      takeUntil(this.destroy$)
     ).subscribe(action => {
       this.loaderService.hide();
       if (action.type === failure.type) {
@@ -112,9 +114,8 @@ export class WordslistComponent implements OnInit, OnDestroy {
       if (this.isShowAllUserWords) {
         this.showAllUserWordList();
       } else {
-        const data = localStorage.getItem('login');
-        if (data) {
-          const mobile = JSON.parse(data).mobile;
+        const mobile = readLoginMobile();
+        if (mobile) {
           this.wordService.fetchWordsByMobile(mobile).pipe(takeUntil(this.destroy$)).subscribe({
             next: (data) => {
               this.loaderService.hide();
@@ -200,16 +201,7 @@ export class WordslistComponent implements OnInit, OnDestroy {
 
   private uploadToDb() {
     setTimeout(() => {
-      const login = localStorage.getItem('login');
-      let currentUser: any = null;
-      if (login) {
-        try {
-          currentUser = JSON.parse(login);
-        } catch (e) {
-          console.error('Failed to parse login from localStorage', e);
-          currentUser = null;
-        }
-      }
+      const currentUser = readLoginStorage();
 
       if (currentUser) {
         // Attach user details to each imported row
