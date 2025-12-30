@@ -3,8 +3,12 @@
 <div class="quiz-container">
     <!-- Header -->
     <div class="quiz-header">
-        <h1>CareerPrepBook — JavaScript Quiz</h1>
-        <p>Choose your plan and test your skills with curated JavaScript questions. Track your progress and see how you rank!</p>
+        <h1>CareerPrepBook — {{ topic ? (topic + ' Quiz') : 'Quiz' }}</h1>
+        <p>
+            Choose your plan and test your skills with curated questions.
+            <span *ngIf="topic">Topic: <b>{{ topic }}</b>.</span>
+            Track your progress and see how you rank!
+        </p>
         <div class="career-prep-info">
             <h3>{{ careerPrepBookInfo.title }}</h3>
             <p>{{ careerPrepBookInfo.description }}</p>
@@ -126,11 +130,51 @@
         <p>You completed the quiz.</p>
 
         <div class="result-top">
-            <div class="result-chart" aria-label="Result chart">
-                <div class="donut" [ngStyle]="resultChartStyle" role="img" aria-label="Correct, wrong and unattempted breakdown"></div>
-                <div class="donut-center">
-                    <div class="donut-value">{{ score }}</div>
-                    <div class="donut-label">/ {{ totalQuestions }}</div>
+            <div class="result-chart-wrap">
+                <div class="result-chart" aria-label="Result chart">
+                    <div class="donut" [ngStyle]="resultChartStyle" role="img" aria-label="Correct, wrong and unattempted breakdown"></div>
+                    <div class="donut-center">
+                        <div class="donut-value">{{ score }}</div>
+                        <div class="donut-label">/ {{ totalQuestions }}</div>
+                    </div>
+
+                    <div class="donut-hover" aria-hidden="true">
+                        <div class="donut-hover-title">Result breakdown</div>
+                        <div class="donut-hover-row">
+                            <span class="legend-dot correct" aria-hidden="true"></span>
+                            <span>Correct:</span>
+                            <b>{{ correctCount }}</b>
+                            <span class="muted">({{ correctPercent }}%)</span>
+                        </div>
+                        <div class="donut-hover-row">
+                            <span class="legend-dot wrong" aria-hidden="true"></span>
+                            <span>Wrong:</span>
+                            <b>{{ wrongCount }}</b>
+                            <span class="muted">({{ wrongPercent }}%)</span>
+                        </div>
+                        <div class="donut-hover-row">
+                            <span class="legend-dot unattempted" aria-hidden="true"></span>
+                            <span>Unattempted:</span>
+                            <b>{{ unattemptedCount }}</b>
+                            <span class="muted">({{ unattemptedPercent }}%)</span>
+                        </div>
+                        <div class="donut-hover-foot">Hover to preview • Use review below to learn</div>
+                    </div>
+                </div>
+
+                <div class="result-legend" aria-label="Chart legend">
+                    <div class="legend-item" *ngIf="correctCount > 0">
+                        <span class="legend-dot correct" aria-hidden="true"></span>
+                        <span>Correct ({{ correctCount }})</span>
+                    </div>
+                    <div class="legend-item" *ngIf="wrongCount > 0">
+                        <span class="legend-dot wrong" aria-hidden="true"></span>
+                        <span>Wrong ({{ wrongCount }})</span>
+                    </div>
+                    <div class="legend-item" *ngIf="unattemptedCount > 0">
+                        <span class="legend-dot unattempted" aria-hidden="true"></span>
+                        <span>Unattempted ({{ unattemptedCount }})</span>
+                    </div>
                 </div>
             </div>
 
@@ -156,8 +200,17 @@
             <span *ngIf="score/questionsToShow.length >= 0.5 && score/questionsToShow.length < 0.8">👍 Good job! Keep practicing.</span>
             <span *ngIf="score/questionsToShow.length < 0.5">💡 Don't worry, try again and improve!</span>
         </div>
-        <div class="chat-result">
-            <div class="chat-bubble" *ngFor="let msg of chatResult">{{ msg }}</div>
+        <div class="chat-result" *ngIf="chatMessages.length">
+            <div
+                class="chat-bubble"
+                *ngFor="let msg of chatMessages"
+                [class.from-bot]="msg.from === 'bot'"
+                [class.from-user]="msg.from === 'user'"
+                [class.tone-success]="msg.tone === 'success'"
+                [class.tone-warning]="msg.tone === 'warning'"
+                [class.tone-danger]="msg.tone === 'danger'">
+                {{ msg.text }}
+            </div>
         </div>
 
         <div class="review" *ngIf="questionsToShow.length > 0">

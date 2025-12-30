@@ -39,12 +39,15 @@ export const routes: Routes = [
 
   // Learning & Practice
   { path: 'tutorial', component: QaPageComponent, title: 'CareerPrepBook | Topic Tutorial', data: { description: 'Topic-based interview learning with guided explanations and practice.' } },
-  { path: 'quiz', component: QuizComponent, title: 'CareerPrepBook | Quiz', data: { description: 'Take curated quizzes and see your score with correct/wrong/unattempted breakdown.' } },
-  { path: 'output-practice', component: TutorialComponent, title: 'CareerPrepBook | Output Practice', data: { description: 'Practice output-based questions and check your answers instantly.' } },
+  { path: 'quiz', loadComponent: () => import('./component/quiz-landing/quiz-landing.component').then(m => m.QuizLandingComponent), title: 'CareerPrepBook | Quiz Topics', data: { description: 'Choose a technology/topic and start a quiz.' } },
+  { path: 'quiz/play', component: QuizComponent, title: 'CareerPrepBook | Quiz', data: { description: 'Take curated quizzes and see your score with correct/wrong/unattempted breakdown.' } },
+  { path: 'output-practice', loadComponent: () => import('./component/output-practice-landing/output-practice-landing.component').then(m => m.OutputPracticeLandingComponent), title: 'CareerPrepBook | Output Practice Topics', data: { description: 'Choose a technology/topic and start output practice.' } },
+  { path: 'output-practice/play', component: TutorialComponent, title: 'CareerPrepBook | Output Practice', data: { description: 'Practice output-based questions and check your answers instantly.' } },
   { path: 'programming-questions', loadComponent: () => import('./component/programming-questions/programming-questions.component').then(m => m.ProgrammingQuestionsComponent), title: 'CareerPrepBook | Programming Questions', data: { description: 'Programming interview questions to improve problem-solving and coding skills.' } },
 
   // Legal & Support
   { path: 'help-center', loadComponent: () => import('./component/help-center/help-center.component').then(m => m.HelpCenterComponent), title: 'CareerPrepBook | Help Center', data: { description: 'Help Center and FAQ for using CareerPrepBook.' } },
+  { path: 'faq', loadComponent: () => import('./component/faq/faq.component').then(m => m.FaqComponent), title: 'CareerPrepBook | FAQ', data: { description: 'Frequently asked questions about CareerPrepBook.' } },
   { path: 'privacy-policy', loadComponent: () => import('./component/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent), title: 'CareerPrepBook | Privacy Policy', data: { description: 'Privacy Policy for CareerPrepBook.' } },
   { path: 'terms', loadComponent: () => import('./component/terms/terms.component').then(m => m.TermsComponent), title: 'CareerPrepBook | Terms', data: { description: 'Terms and conditions for using CareerPrepBook.' } },
 

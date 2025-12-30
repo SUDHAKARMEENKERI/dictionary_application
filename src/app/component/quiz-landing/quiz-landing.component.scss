@@ -1,0 +1,111 @@
+.quiz-landing {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+.header {
+  text-align: center;
+  margin: 0 auto 18px auto;
+  max-width: 720px;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #64748b;
+  font-size: 14px;
+  margin: 10px auto 18px auto;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #6366f1;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tech-sections {
+  display: grid;
+  gap: 18px;
+}
+
+.tech-section {
+  background: #ffffff;
+  border: 1px solid #e8eaf6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+  padding: 14px;
+}
+
+.tech-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1a237e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.topic-card {
+  appearance: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.topic-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.12);
+  transform: translateY(-1px);
+}
+
+.topic-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+}
+
+.topic-name {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.topic-meta {
+  font-size: 13px;
+  color: #64748b;
+}

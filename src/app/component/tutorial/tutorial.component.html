@@ -5,6 +5,17 @@
     <h1>CareerPrepBook — Output Practice</h1>
     <p>Analyze the code and predict the output</p>
 
+    <div class="selection-summary" *ngIf="!isLoadingQuestions">
+      <span class="badge-pill">
+        <i class="bi bi-tag me-1"></i>
+        {{ selectedTopic === 'All' ? 'All Topics' : selectedTopic }}
+      </span>
+      <span class="badge-pill">
+        <i class="bi bi-collection me-1"></i>
+        Loaded {{ totalQuestions }} question(s)
+      </span>
+    </div>
+
     <div class="topbar">
       <div class="topbar-left">
         <div class="pill" *ngIf="isLoadingQuestions">
@@ -37,15 +48,17 @@
       </div>
 
       <div class="topbar-actions">
+        <button type="button" class="ghost-btn" (click)="goToTopicPicker()">Change Topic</button>
         <button type="button" class="ghost-btn" (click)="resetAll()">Reset All</button>
       </div>
     </div>
+
   </div>
 
   <!-- Question List -->
   <div class="output-list">
 
-    @for (q of questions; track q.code; let i = $index) {
+    @for (q of displayedQuestions; track q.code; let i = $index) {
       <div class="output-card">
 
         <!-- Question -->

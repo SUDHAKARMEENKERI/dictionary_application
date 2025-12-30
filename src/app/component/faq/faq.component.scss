@@ -1,0 +1,49 @@
+.cpb-faq {
+  .card {
+    border-radius: 14px;
+  }
+
+  .info-panel {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .info-panel .title {
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .tips {
+    margin: 0;
+    padding-left: 18px;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 1.7;
+  }
+
+  .section-title {
+    margin: 18px 0 10px;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+  }
+
+  .accordion-item {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 10px;
+  }
+
+  .accordion-button {
+    font-weight: 700;
+  }
+
+  .accordion-button:focus {
+    box-shadow: none;
+  }
+
+  .accordion-body {
+    line-height: 1.7;
+  }
+}

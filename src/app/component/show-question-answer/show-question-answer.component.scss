@@ -4,6 +4,132 @@
   padding: 20px;
 }
 
+// Left Panel (Technology selector)
+.tech-panel {
+  background: #ffffff;
+  border: 1px solid #e8eaf6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+  overflow: hidden;
+
+  @media (min-width: 992px) {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.tech-panel-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8eaf6;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  .title {
+    font-weight: 700;
+    color: #1a237e;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #757575;
+  }
+}
+
+.tech-panel-search {
+  border-bottom: 1px solid #e8eaf6;
+  background: rgba(243, 246, 255, 0.45);
+}
+
+.tech-list {
+  max-height: 60vh;
+  overflow: auto;
+
+  .list-group-item {
+    border: 0;
+    border-bottom: 1px solid #f0f1fb;
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .list-group-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+  }
+}
+
+.tech-sections {
+  padding-bottom: 8px;
+}
+
+.tech-section {
+  padding: 10px 12px 0 12px;
+}
+
+.tech-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a237e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 10px 4px 6px 4px;
+}
+
+.tech-topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.topic-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topic-count {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f3f6ff;
+  color: #1565c0;
+  border: 1px solid #e8eaf6;
+}
+
+// Right Panel (Questions)
+.qa-panel {
+  background: #ffffff;
+  border: 1px solid #e8eaf6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+  overflow: hidden;
+}
+
+.qa-panel-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8eaf6;
+  background: linear-gradient(180deg, rgba(243, 246, 255, 0.9), rgba(255, 255, 255, 1));
+}
+
+.qa-search {
+  min-width: 240px;
+  max-width: 360px;
+  flex: 1;
+}
+
+.qa-panel-body {
+  padding: 16px;
+}
+
+.qa-page-indicator {
+  padding: 6px 10px;
+  border: 1px solid #e8eaf6;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
 // Header Styles
 .page-title {
   font-size: 28px;
@@ -25,7 +151,7 @@
 // Grid Layout
 .questions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
   margin-bottom: 40px;
 

@@ -53,7 +53,7 @@
     <div class="menu-card">
         <div class="user-name">
             👤 {{ firstName }}
-            <div class="page-link" *ngFor="let link of navLinks; trackBy: trackByPath">
+            <div class="page-link" *ngFor="let link of secondaryLinks; trackBy: trackByPath">
                 <a [routerLink]="link.path" (click)="closeMenu()">{{ link.label }}</a>
             </div>
         </div>

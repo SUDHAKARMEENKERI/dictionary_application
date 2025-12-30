@@ -24,6 +24,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   navLinks: Array<{ label: string; path: string }> = [
     { label: 'Home', path: '/dashboard' },
+    // { label: 'FAQ', path: '/faq' },
     // { label: 'Programming', path: '/programming-questions' },
   ];
 
@@ -41,6 +42,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // { label: 'Profile', path: '/profile' },
     //{ label: 'Settings', path: '/settings' },
     { label: 'Help Center', path: '/help-center' },
+    // { label: 'FAQ', path: '/faq' },
     // { label: 'About', path: '/about' },
     //{ label: 'Contact', path: '/contact' },
   ];

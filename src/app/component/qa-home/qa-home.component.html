@@ -1,40 +1,40 @@
-<div class="container mt-4">
+<div class="cpb-qa-home container mt-4">
     <div class="hero">
-        <h1>Prepare Smarter for Your Career</h1>
-        <p>Java, Angular, JavaScript interview questions & answers</p>
+        <h1>Prepare Smarter with CareerPrepBook</h1>
+        <p>Explore technology-wise interview questions, clear answers, and practice modes to build confidence for your next role.</p>
 
-        <input type="text" class="search-box" placeholder="Search interview questions..." />
+        <input
+            type="text"
+            class="search-box"
+            placeholder="Search technologies or topics (e.g., Angular, JavaScript, Spring)…"
+            [(ngModel)]="searchQuery"
+        />
+        <div class="hero-hint small mt-3">Tip: Pick a technology and a topic to start learning instantly.</div>
     </div>
 
     <!-- Technologies -->
     <div class="section">
-        <h2>Popular Technologies</h2>
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+            <h2 class="section-title mb-0">Popular Technologies</h2>
+            <div class="text-muted small">Select a topic to open the Q&A page</div>
+        </div>
 
-        <div class="container mt-5">
-            <div *ngFor="let tech of technologies">
-                <h2 class="category-title">
-                    {{ tech.name }}
-                </h2>
-                <div class="tech-grid">
-                    <div class="tech-card" *ngFor="let item of tech.items" (click)="onLoadQA(item)">
-                        <img [src]="item.icon" alt="{{ item.name }}">
-                        <h5>{{ item.name }}</h5>
-                        <p>{{ item.questionCount }} Questions</p>
-                    </div>
-                </div>
+        <div class="alert alert-info" *ngIf="searchQuery && !hasSearchResults">
+            No results found for <strong>{{ searchQuery }}</strong>. Try searching by technology or topic name.
+        </div>
+
+        <div *ngFor="let tech of filteredTechnologies" class="mb-4">
+            <button type="button" class="category-title category-link" (click)="onOpenCategory(tech)">
+                {{ tech.name }}
+                <span class="chev">›</span>
+            </button>
+            <div class="tech-grid">
+                <button type="button" class="tech-card" *ngFor="let item of tech.items" (click)="onLoadQA(tech, item)">
+                    <img [src]="item.icon" alt="{{ item.name }}">
+                    <h5 class="mb-1">{{ item.name }}</h5>
+                    <p class="mb-0">{{ item.questionCount }} Questions</p>
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- Popular Questions -->
-    <div class="section">
-        <h2>Most Asked Questions</h2>
-
-        <div class="question-card" *ngFor="let q of popularQuestions">
-            <h5>{{ q.question }}</h5>
-            <p>{{ q.shortAnswer }}</p>
-            <a href="#">Read More →</a>
-        </div>
-    </div>
-
 </div>

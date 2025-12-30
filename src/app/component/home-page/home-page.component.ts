@@ -46,6 +46,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     { label: 'Programming Questions', link: '/programming-questions', icon: 'bi bi-code-slash' },
     { label: 'Profile', link: '/profile', icon: 'bi bi-person' },
     { label: 'About', link: '/about', icon: 'bi bi-info-circle' },
+    { label: 'FAQ', link: '/faq', icon: 'bi bi-question-circle' },
     { label: 'Contact', link: '/contact', icon: 'bi bi-envelope' },
     { label: 'Interview Prep', link: '/interview-prep', icon: 'bi bi-list-ul' },
     // { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }

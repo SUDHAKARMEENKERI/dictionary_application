@@ -65,6 +65,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       optionB: [''],
       optionC: [''],
       optionD: [''],
+      correctAnswer: [''],
     });
 
     this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -115,7 +116,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       
       const reqBoy = {
         option: option,
-        answer: this.questionAnswerForm.value.answer,
+        answer: this.questionAnswerForm.value.correctAnswer,
         questionType: this.questionAnswerForm.value.questionType,
         category: this.questionAnswerForm.value.category,
         topic: this.questionAnswerForm.value.topic,
@@ -198,8 +199,6 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   removeImage() {
     this.imageSrc = null;
     this.imageFile = null;
-
-    this
   }
 
   getImageSrc(imageData: string): string {

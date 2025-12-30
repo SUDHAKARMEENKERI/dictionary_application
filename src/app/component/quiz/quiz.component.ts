@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
-type QuizQuestion = { question: string; options: string[]; correct: number };
+type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string };
 type QuizAttempt = {
   id: string;
   createdAt: string;
@@ -15,6 +15,12 @@ type QuizAttempt = {
   wrong: number;
   unattempted: number;
   percent: number;
+};
+
+type ChatMessage = {
+  from: 'bot' | 'user';
+  text: string;
+  tone?: 'success' | 'warning' | 'danger' | 'neutral';
 };
 
 const QUIZ_ATTEMPTS_KEY = 'cpb_quiz_attempts';
@@ -52,6 +58,16 @@ export class QuizComponent implements OnInit {
   private destroy$ = new Subject<void>();
   topic = '';
 
+  private normalizeKey(value: string): string {
+    return (value || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[_\s]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-');
+  }
+
   private normalizeMcqQuestions(data: any): QuizQuestion[] {
     if (!Array.isArray(data)) return [];
 
@@ -60,6 +76,8 @@ export class QuizComponent implements OnInit {
         const question = (item?.question ?? item?.ques ?? item?.title ?? '').toString().trim();
         const optionsRaw = item?.options ?? item?.option ?? item?.choices ?? item?.answers;
         const options = Array.isArray(optionsRaw) ? optionsRaw.map((o: any) => String(o)) : [];
+
+        const topic = (item?.topic ?? item?.technology ?? item?.category ?? item?.tag ?? item?.subject ?? '').toString().trim();
 
         let correct: number | undefined;
         if (typeof item?.correct === 'number') correct = item.correct;
@@ -78,7 +96,7 @@ export class QuizComponent implements OnInit {
           correct = 0;
         }
 
-        return { question, options, correct };
+        return { question, options, correct, topic: topic || undefined };
       })
       .filter(Boolean) as QuizQuestion[];
 
@@ -111,6 +129,12 @@ export class QuizComponent implements OnInit {
   ngOnInit(): void {
     this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.topic = (params?.['topic'] ?? '').toString();
+
+      // If user navigates to a different topic while already on the quiz route,
+      // reset plan selection so the next run uses the new topic question bank.
+      if (this.quizStarted) {
+        this.reload();
+      }
     });
 
     // Use hardcoded questions by default, but try to load from service if compatible.
@@ -125,7 +149,8 @@ export class QuizComponent implements OnInit {
 
           // If user already picked a plan, refresh the sliced questions.
           if (this.quizStarted && this.selectedPlan?.count) {
-            this.displayQuestions = this.questions.slice(0, this.selectedPlan.count);
+            const available = this.questionsToShow;
+            this.displayQuestions = available.slice(0, this.selectedPlan.count);
           }
         } else {
           console.warn('MCQ service returned unsupported shape; using default quiz questions.');
@@ -358,12 +383,27 @@ export class QuizComponent implements OnInit {
     const cw = Math.min(100, c + w);
 
     return {
-      background: `conic-gradient(#16a34a 0 ${c}%, #ef4444 ${c}% ${cw}%, #e5e7eb ${cw}% 100%)`,
+      // Use a more visible neutral for unattempted so the chart doesn't blend into card borders.
+      background: `conic-gradient(#16a34a 0 ${c}%, #ef4444 ${c}% ${cw}%, #94a3b8 ${cw}% 100%)`,
     };
   }
 
+  private get topicFilteredQuestions(): QuizQuestion[] {
+    const topicKey = this.normalizeKey(this.topic);
+    if (!topicKey) return this.questions;
+
+    const filtered = (this.questions || []).filter((q) => {
+      const qTopicKey = this.normalizeKey(q?.topic ?? '');
+      return qTopicKey && qTopicKey === topicKey;
+    });
+
+    // If we don't have topic-tagged questions, fall back to the full bank.
+    return filtered.length > 0 ? filtered : this.questions;
+  }
+
   get questionsToShow() {
-    return this.displayQuestions.length > 0 ? this.displayQuestions : this.questions;
+    const base = this.displayQuestions.length > 0 ? this.displayQuestions : this.topicFilteredQuestions;
+    return base;
   }
 
   // ...existing code...
@@ -380,18 +420,43 @@ export class QuizComponent implements OnInit {
       }
     }
 
-    chatResult: string[] = [];
+    chatMessages: ChatMessage[] = [];
     generateChatResult() {
       const total = this.questionsToShow.length;
-      this.chatResult = [
-        `👋 Hi, thanks for taking the quiz!`,
-        `You scored ${this.score} out of ${total}.`,
-        this.score / total >= 0.8
-          ? `🌟 Excellent! You're a JavaScript master.`
-          : this.score / total >= 0.5
-          ? `👍 Good job! Keep practicing and you'll master JavaScript soon.`
-          : `💡 Don't worry, try again and improve your skills!`,
-        `🚀 Explore more quizzes and resources at CareerPrepBook to boost your career.`
+      if (!total) {
+        this.chatMessages = [
+          { from: 'bot', text: 'No questions were attempted in this run. Please try another plan.', tone: 'neutral' },
+        ];
+        return;
+      }
+
+      const percent = Math.round((this.score / total) * 100);
+      const topicText = (this.topic || '').toString().trim();
+      const title = topicText ? `${topicText} Quiz` : 'Quiz';
+
+      let tone: ChatMessage['tone'] = 'neutral';
+      let coaching = 'Try a shorter plan and focus on fundamentals.';
+
+      if (percent >= 80) {
+        tone = 'success';
+        coaching = 'Excellent accuracy—try the bigger plan next.';
+      } else if (percent >= 50) {
+        tone = 'warning';
+        coaching = 'Good progress—review wrong answers and try again.';
+      } else {
+        tone = 'danger';
+        coaching = 'Don’t worry—review the basics and retake this topic.';
+      }
+
+      this.chatMessages = [
+        { from: 'bot', text: `Nice work finishing the ${title}.`, tone: 'neutral' },
+        {
+          from: 'bot',
+          text: `Score: ${this.score}/${total} (${percent}%). Correct ${this.correctCount}, Wrong ${this.wrongCount}, Unattempted ${this.unattemptedCount}.`,
+          tone,
+        },
+        { from: 'bot', text: coaching, tone },
+        { from: 'bot', text: 'Tip: open Interview Q&A for the same topic and practice 10 minutes daily.', tone: 'neutral' },
       ];
     }
 
@@ -403,7 +468,7 @@ export class QuizComponent implements OnInit {
     this.quizStarted = false;
     this.displayQuestions = [];
     this.selectedPlan = null;
-    this.chatResult = [];
+    this.chatMessages = [];
     this.answeredOptions = [];
     this.visited = [];
     this.correctCount = 0;

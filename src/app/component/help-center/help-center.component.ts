@@ -13,23 +13,23 @@ export class HelpCenterComponent {
   faqs = [
     {
       q: 'How do I add a new word to my dictionary?',
-      a: 'Go to Word List → Add Word, fill the word and meaning, then submit.'
+      a: 'Go to Word List → Add Word, enter the word + meaning (and any notes if available), then submit. Your word will appear in your list.'
     },
     {
       q: 'How do I edit an existing word?',
-      a: 'Open Word List and click Edit on the word you want to update.'
+      a: 'Open Word List, find the word, then click Edit to update the meaning, notes, or corrections.'
     },
     {
       q: 'Where can I practice interview questions?',
-      a: 'Use Interview Prep for topics, then open Tutorial, Quiz, or Output Practice.'
+      a: 'Open Interview Prep, choose a technology and a topic, then learn via Tutorial (Q&A). Use Quiz for scoring and Output Practice for code-output style questions.'
     },
     {
       q: 'How do I add an Interview Q&A?',
-      a: 'Open Interview Q&A → Add Interview Q&A and submit your question and answer.'
+      a: 'Open Interview Q&A → Add Interview Q&A. Write a clear question, add a concise answer, and include key points or examples when possible.'
     },
     {
       q: 'I forgot my password. What should I do?',
-      a: 'Use the Forgot Password page from the Login screen to reset it.'
+      a: 'Go to Login → Forgot Password and follow the steps to reset your password securely. If you still can’t access your account, contact support.'
     }
   ];
 

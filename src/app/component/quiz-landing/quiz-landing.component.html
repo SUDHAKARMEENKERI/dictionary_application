@@ -1,0 +1,67 @@
+<div class="quiz-landing">
+  <div class="container py-4">
+    <div class="header">
+      <h1 class="title">CareerPrepBook — Quiz</h1>
+      <p class="subtitle">Choose a technology/topic and start a quiz in seconds.</p>
+
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="startGeneralQuiz()">
+        <i class="bi bi-lightning-charge me-1"></i>
+        Start General Quiz
+      </button>
+    </div>
+
+    <div class="row g-2 align-items-center mb-3" *ngIf="!isLoading && technologies.length > 0">
+      <div class="col-12 col-md-6">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            class="form-control"
+            type="text"
+            placeholder="Search technologies or topics…"
+            [(ngModel)]="searchQuery"
+          />
+        </div>
+      </div>
+      <div class="col-12 col-md-6 text-muted small" *ngIf="searchQuery">
+        Showing <strong>{{ filteredTechnologies.length }}</strong> technology section(s)
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="isLoading">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>Loading technologies…</span>
+    </div>
+
+    <div class="alert alert-info" *ngIf="!isLoading && technologies.length === 0">
+      No technologies available right now. You can still start a general quiz.
+    </div>
+
+    <div class="alert alert-info" *ngIf="!isLoading && technologies.length > 0 && searchQuery && !hasSearchResults">
+      No topics match your search.
+    </div>
+
+    <div class="tech-sections" *ngIf="!isLoading && filteredTechnologies.length > 0">
+      <div class="tech-section" *ngFor="let tech of filteredTechnologies">
+        <div class="tech-title">{{ tech.name }}</div>
+
+        <div class="topic-grid" *ngIf="tech.items?.length">
+          <button
+            type="button"
+            class="topic-card"
+            *ngFor="let item of tech.items"
+            (click)="startTopicQuiz(item.name)"
+          >
+            <div class="topic-name">{{ item.name }}</div>
+            <div class="topic-meta" *ngIf="item.questionCount">{{ item.questionCount }} questions</div>
+          </button>
+        </div>
+
+        <div class="text-muted small" *ngIf="!tech.items?.length">
+          No topics available for this technology.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

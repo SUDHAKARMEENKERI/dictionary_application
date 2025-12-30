@@ -33,6 +33,28 @@
   color: #64748b;
 }
 
+.selection-summary {
+  margin: 10px auto 0 auto;
+  max-width: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 800;
+  font-size: 12px;
+}
+
 .topbar {
   margin: 18px auto 0 auto;
   max-width: 900px;

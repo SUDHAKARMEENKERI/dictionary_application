@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
@@ -13,11 +14,13 @@ type ProgrammingQuestion = {
 @Component({
   selector: 'app-programming-questions',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './programming-questions.component.html',
   styleUrls: ['./programming-questions.component.scss'],
 })
 export class ProgrammingQuestionsComponent {
+  searchQuery = '';
+
   questions: ProgrammingQuestion[] = [
     {
       title: 'Two Sum',
@@ -155,6 +158,25 @@ export class ProgrammingQuestionsComponent {
         'Given two words and a dictionary, find the length of the shortest transformation sequence changing one letter at a time.',
     },
   ];
+
+  get filteredQuestions(): ProgrammingQuestion[] {
+    const q = (this.searchQuery ?? '').toString().trim().toLowerCase();
+    if (!q) return this.questions;
+
+    return (this.questions || []).filter((item) => {
+      const haystack = [
+        item.title,
+        item.prompt,
+        item.difficulty,
+        ...(item.topics || []),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(q);
+    });
+  }
 
   trackByTitle = (_: number, q: ProgrammingQuestion) => q.title;
 }

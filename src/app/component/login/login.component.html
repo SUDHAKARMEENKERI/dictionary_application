@@ -1,33 +1,72 @@
-<div class="container">
-    <h4>User Login</h4>
-</div>
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-4 border rounded bg-light">
-    <div class="mb-3">
-        <label>Mobile Number:</label>
-        <input formControlName="mobile" type="text" class="form-control" />
-        <div *ngIf="loginForm.get('mobile')?.invalid && loginForm.get('mobile')?.touched">
-            Enter a valid mobile number.
+<div class="cpb-auth py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-7 col-lg-5">
+                <div class="card shadow-sm cpb-auth-card">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <div class="cpb-auth-icon mb-2">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <h1 class="h4 mb-1">Welcome back</h1>
+                            <div class="text-muted small">Log in to continue</div>
+                        </div>
+
+                        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                            <div class="mb-3">
+                                <label class="form-label">Mobile Number</label>
+                                <input
+                                    formControlName="mobile"
+                                    type="tel"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    class="form-control"
+                                    placeholder="10-digit mobile number"
+                                />
+                                <div class="text-danger small mt-1"
+                                    *ngIf="loginForm.get('mobile')?.invalid && loginForm.get('mobile')?.touched">
+                                    Enter a valid 10-digit mobile number.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input
+                                        [type]="showPassword ? 'text' : 'password'"
+                                        formControlName="password"
+                                        autocomplete="current-password"
+                                        class="form-control"
+                                        placeholder="Your password"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        (click)="showPassword = !showPassword"
+                                        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                                    >
+                                        <span *ngIf="!showPassword" class="bi bi-eye"></span>
+                                        <span *ngIf="showPassword" class="bi bi-eye-slash"></span>
+                                    </button>
+                                </div>
+                                <div class="text-danger small mt-1"
+                                    *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                                    Password must be at least 6 characters.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" [disabled]="loginForm.invalid">
+                                Log In
+                            </button>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2 mt-3 small">
+                                <a [routerLink]="'/sign-up'">Create an account</a>
+                                <a [routerLink]="'/forgot-password'">Forgot password?</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="mb-3">
-        <label>Password:</label>
-        <div class="input-group">
-            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control" />
-            <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword"
-                tabindex="-1">
-                <span *ngIf="!showPassword" class="bi bi-eye"></span>
-                <span *ngIf="showPassword" class="bi bi-eye-slash"></span>
-            </button>
-        </div>
-        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-            Password must be at least 6 characters.
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid">Log In</button>
-</form>
-<div class="row mb-3 mt-2">
-    <div class="col"><a [routerLink]="'/sign-up'">Don't have an account? Register</a></div>
-    <div class="col"><a [routerLink]="'/forgot-password'">Forgot Password?</a></div>
 </div>

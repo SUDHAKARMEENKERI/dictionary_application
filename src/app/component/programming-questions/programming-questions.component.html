@@ -4,8 +4,30 @@
     <p>Curated list of common coding interview questions (easy → hard). Use these to practice problem solving, data structures, and algorithms.</p>
   </header>
 
+  <section class="pq-search">
+    <div class="input-group">
+      <span class="input-group-text">
+        <i class="bi bi-search"></i>
+      </span>
+      <input
+        class="form-control"
+        type="text"
+        placeholder="Search by title, prompt, topic, or difficulty…"
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+
+    <div class="pq-results text-muted" *ngIf="filteredQuestions.length">
+      Showing <strong>{{ filteredQuestions.length }}</strong> question(s)
+    </div>
+  </section>
+
   <section class="pq-list">
-    @for (q of questions; track trackByTitle; let i = $index) {
+    <div class="alert alert-info" *ngIf="filteredQuestions.length === 0">
+      No questions match your search.
+    </div>
+
+    @for (q of filteredQuestions; track trackByTitle; let i = $index) {
       <article class="pq-card">
         <div class="pq-top">
           <div class="pq-title">

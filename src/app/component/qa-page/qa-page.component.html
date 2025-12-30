@@ -1,61 +1,118 @@
-<div class="container">
-    <div class="hero ">
+<div class="cpb-tutorial">
+    <div class="hero">
         <div class="hero-content">
             <span class="badge">🔥 Trending</span>
-            <h1>{{topic}} Tutorial</h1>
+            <h1>{{ categoryTitle }}</h1>
             <p>
-                Master {{topic}} step by step with real-world examples,
-                interview questions, and online quizzes.
+                Choose a topic on the left to explore interview questions and clear answers.
+                Use Quiz and Output Practice to check your understanding and build speed.
             </p>
 
             <div class="hero-actions">
                 <a (click)="onLoadPracticeQuestion()" class="btn primary">
-                    Practice Questions
-                </a>
-                <a (click)="onLoadPracticeQuestion()" class="btn secondary">
                     Output Practice
                 </a>
-                <a (click)="onLoadQuiz()" class="btn primary">
+                <a (click)="onLoadQuiz()" class="btn secondary">
                     Take Quiz
                 </a>
             </div>
         </div>
     </div>
 
-    <section>
-        <article class="intro-card">
-            <h2>What is {{topic}}?</h2>
-            <p>
-                {{topic}} is a lightweight, interpreted programming language
-                used to build interactive and dynamic web applications.
-                It runs directly in the browser and is one of the core
-                technologies of the modern web.
-            </p>
-        </article>
+    <div class="container my-4">
+        <div class="row g-4">
+            <!-- Left: Topics -->
+            <div class="col-12 col-lg-3">
+                <div class="topics-card">
+                    <div class="topics-header">
+                        <div class="title">Topics</div>
+                        <div class="hint">Select one</div>
+                    </div>
 
-        <h2 class="section-title">Practice Questions</h2>
-    </section>
+                    <div class="topics-search p-3" *ngIf="topics.length">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input
+                                type="text"
+                                class="form-control"
+                                placeholder="Search topics…"
+                                [(ngModel)]="topicSearchQuery"
+                            />
+                        </div>
+                    </div>
 
-    <div class="qa-wrapper">
-        <h1 class="page-title">{{topic}} Interview Questions</h1>
-        <p class="page-subtitle">
-            Frequently asked {{topic}} interview questions with clear answers.
-        </p>
+                    <div class="list-group topics-list" *ngIf="topics.length; else noTopics">
+                        <button
+                            type="button"
+                            class="list-group-item list-group-item-action"
+                            *ngFor="let t of filteredTopics; trackBy: trackByTopicName"
+                            [class.active]="t.name === topic"
+                            (click)="onSelectTopic(t.name)"
+                        >
+                            <span class="topic-name">{{ t.name }}</span>
+                            <span class="topic-count" *ngIf="t.questionCount">{{ t.questionCount }}</span>
+                        </button>
+                    </div>
 
-        <div class="qa-list">
-            @for (qa of questionAnswers; track qa.question) {
-            <div class="qa-card">
-                <div class="qa-header">
-                    <span class="q-badge">Q</span>
-                    <h3 class="qa-question">{{ qa.question }}</h3>
-                </div>
+                    <div class="text-muted small p-3" *ngIf="topics.length && filteredTopics.length === 0">
+                        No topics match your search.
+                    </div>
 
-                <div class="qa-answer">
-                    <span class="a-badge">A</span>
-                    <p>{{ qa.answer }}</p>
+                    <ng-template #noTopics>
+                        <div class="text-muted small p-3">
+                            No topic list available for this category.
+                        </div>
+                    </ng-template>
                 </div>
             </div>
-            }
+
+            <!-- Right: Q&A -->
+            <div class="col-12 col-lg-9">
+                <div class="qa-wrapper">
+                    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+                        <div>
+                            <h2 class="page-title mb-1">{{ topic || 'Questions' }}</h2>
+                            <div class="page-subtitle">Interview questions with practical, interview-ready answers</div>
+                        </div>
+                        <div class="small text-muted" *ngIf="topic">
+                            {{ questionAnswers.length }} questions
+                        </div>
+                    </div>
+
+                    <div class="intro-card mb-3" *ngIf="topic">
+                        <h3 class="h5 mb-1">{{ topic }}</h3>
+                        <div class="text-muted small">
+                            Browse Q&A for this topic. Use Output Practice and Quiz from the top.
+                        </div>
+                    </div>
+
+                    <div class="text-center py-5 text-muted" *ngIf="isLoadingQuestions">
+                        Loading questions…
+                    </div>
+
+                    <div class="alert alert-info" *ngIf="!isLoadingQuestions && topic && questionAnswers.length === 0">
+                        No questions found for <strong>{{ topic }}</strong>.
+                    </div>
+
+                    <div class="qa-list" *ngIf="!isLoadingQuestions && questionAnswers.length > 0">
+                        @for (qa of questionAnswers; track qa.question; let i = $index) {
+                        <div class="qa-card">
+                            <div class="qa-header">
+                                <span class="q-badge" [attr.aria-label]="'Question ' + (i + 1)">Q{{ i + 1 }}</span>
+                                <h3 class="qa-question">{{ qa.question }}</h3>
+                            </div>
+
+                            <div class="qa-answer">
+                                <span class="a-badge">A</span>
+                                <p>{{ qa.answer }}</p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

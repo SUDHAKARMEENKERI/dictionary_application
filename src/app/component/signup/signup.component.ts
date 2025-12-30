@@ -3,13 +3,14 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { LoaderService } from '../../service/loader.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-signup',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })

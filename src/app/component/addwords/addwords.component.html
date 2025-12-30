@@ -6,7 +6,8 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h2 class="page-title mb-1">
-                    <i class="bi bi-book-fill me-2"></i>Add A New Word
+                    <i class="bi" [ngClass]="isEditFlow ? 'bi-pencil-square' : 'bi-book-fill'"></i>
+                    <span class="ms-2">{{ isEditFlow ? 'Edit Word' : 'Add a New Word' }}</span>
                 </h2>
                 <p class="text-muted">Manage and organize your vocabulary</p>
             </div>

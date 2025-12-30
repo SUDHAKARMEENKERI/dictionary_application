@@ -59,9 +59,9 @@ export class QuestionAnswerService {
         return this.http.post<any>(url, formData);
     }
 
-    getQAByTopic(topic: string){
+    getQAByTopic(topic: string) {
         const url = `${this.apiUrl}/qa?topic=${topic}`;
-        return this.http.get<QuestionAnswer>(url);
+        return this.http.get<QuestionAnswer[]>(url);
     }
 
     createMcqQA(reqBody: any){
