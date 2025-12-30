@@ -40,6 +40,8 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/dictionary_application/",
+              "deployUrl": "/dictionary_application/",
               "budgets": [
                 {
                   "type": "initial",
