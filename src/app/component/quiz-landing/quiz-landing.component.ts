@@ -86,11 +86,14 @@ export class QuizLandingComponent implements OnInit, OnDestroy {
     this.router.navigate(['/quiz/play']);
   }
 
-  startTopicQuiz(topic: string): void {
+  startTopicQuiz(tech: Technology, topic: string): void {
     const cleaned = (topic ?? '').toString().trim();
     if (!cleaned) return;
 
-    this.router.navigate(['/quiz/play'], { queryParams: { topic: cleaned } });
+    const category = (tech?.slug || tech?.name || '').toString().trim();
+    this.router.navigate(['/quiz/play'], {
+      queryParams: category ? { topic: cleaned, category } : { topic: cleaned },
+    });
   }
 
   ngOnDestroy(): void {

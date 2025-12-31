@@ -51,7 +51,7 @@
             type="button"
             class="topic-card"
             *ngFor="let item of tech.items"
-            (click)="startTopicQuiz(item.name)"
+            (click)="startTopicQuiz(tech, item.name)"
           >
             <div class="topic-name">{{ item.name }}</div>
             <div class="topic-meta" *ngIf="item.questionCount">{{ item.questionCount }} questions</div>

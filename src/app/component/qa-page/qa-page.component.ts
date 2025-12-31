@@ -232,7 +232,8 @@ export class QaPageComponent implements OnInit, OnDestroy {
 
   onLoadQuiz() {
     const topic = (this.topic ?? '').toString().trim();
-    this.router.navigate(['/quiz'], { queryParams: topic ? { topic } : {} });
+    const category = (this.category || this.categoryTitle || '').toString().trim();
+    this.router.navigate(['/quiz'], { queryParams: topic ? (category ? { topic, category } : { topic }) : (category ? { category } : {}) });
   }
 
   onLoadPracticeQuestion() {
