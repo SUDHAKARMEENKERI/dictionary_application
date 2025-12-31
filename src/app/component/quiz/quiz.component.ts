@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { apiFallback } from '../../util/apiRx';
+import { MCQQuestionService } from '../../service/mcqQuestion.service';
 
 type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string };
 type QuizAttempt = {
@@ -53,11 +53,13 @@ export class QuizComponent implements OnInit, OnDestroy {
     description: 'Boost your tech career with curated quizzes, interview prep, and learning resources. Join thousands of successful candidates who started here!'
   };
 
-  constructor(private activeRouter: ActivatedRoute,
-    private questionAnswerService: QuestionAnswerService
+  constructor(
+    private activeRouter: ActivatedRoute,
+    private mcqQuestionService: MCQQuestionService
   ) { }
   private destroy$ = new Subject<void>();
   topic = '';
+  category = '';
 
   private normalizeKey(value: string): string {
     return (value || '')
@@ -128,41 +130,18 @@ export class QuizComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.topic = (params?.['topic'] ?? '').toString();
+    this.activeRouter.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.topic = (params?.['topic'] ?? '').toString().trim();
+      this.category = (params?.['category'] ?? '').toString().trim();
 
       // If user navigates to a different topic while already on the quiz route,
       // reset plan selection so the next run uses the new topic question bank.
       if (this.quizStarted) {
         this.reload();
       }
+
+      this.loadQuestionBank();
     });
-
-    // Use hardcoded questions by default, but try to load from service if compatible.
-    // The service payload may not match the quiz UI shape, so we normalize it.
-    this.isLoadingQuestions = true;
-    this.questionAnswerService
-      .getAllMcqQA()
-      .pipe(
-        apiFallback<any[]>([], 'Error loading quiz questions from service, using default questions'),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((data) => {
-        const normalized = this.normalizeMcqQuestions(data);
-        if (normalized.length > 0) {
-          this.questions = normalized;
-          console.log('Quiz questions loaded from service:', normalized);
-
-          // If user already picked a plan, refresh the sliced questions.
-          if (this.quizStarted && this.selectedPlan?.count) {
-            const available = this.questionsToShow;
-            this.displayQuestions = available.slice(0, this.selectedPlan.count);
-          }
-        } else {
-          console.warn('MCQ service returned unsupported shape; using default quiz questions.');
-        }
-        this.isLoadingQuestions = false;
-      });
   }
 
   ngOnDestroy(): void {
@@ -170,88 +149,32 @@ export class QuizComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  questions: QuizQuestion[] = [
-      {
-        question: 'What is JavaScript?',
-        options: [
-          'A programming language',
-          'A database',
-          'An operating system',
-          'A browser'
-        ],
-        correct: 0
-      },
-      {
-        question: 'Which keyword is used to declare a variable in JavaScript?',
-        options: ['var', 'int', 'string', 'define'],
-        correct: 0
-      },
-      {
-        question: 'Which company developed JavaScript?',
-        options: ['Netscape', 'Microsoft', 'Google', 'Apple'],
-        correct: 0
-      },
-      {
-        question: 'Which method is used to print in JavaScript?',
-        options: ['console.log()', 'print()', 'echo()', 'write()'],
-        correct: 0
-      },
-      {
-        question: 'Which symbol is used for single-line comments?',
-        options: ['//', '#', '/*', '<!--'],
-        correct: 0
-      },
-      {
-        question: 'What does DOM stand for?',
-        options: ['Document Object Model', 'Data Object Model', 'Desktop Object Model', 'Document Oriented Model'],
-        correct: 0
-      },
-      {
-        question: 'Which array method adds an item to the end?',
-        options: ['push()', 'pop()', 'shift()', 'unshift()'],
-        correct: 0
-      },
-      {
-        question: 'How do you write a function in JavaScript?',
-        options: ['function myFunc() {}', 'def myFunc() {}', 'func myFunc() {}', 'function:myFunc() {}'],
-        correct: 0
-      },
-      {
-        question: 'Which operator is used to assign a value?',
-        options: ['=', '==', '===', ':='],
-        correct: 0
-      },
-      {
-        question: 'Which keyword is used to define a constant?',
-        options: ['const', 'constant', 'let', 'var'],
-        correct: 0
-      },
-      {
-        question: 'Which method converts JSON to a JavaScript object?',
-        options: ['JSON.parse()', 'JSON.stringify()', 'parseJSON()', 'toObject()'],
-        correct: 0
-      },
-      {
-        question: 'Which event occurs when a user clicks an HTML element?',
-        options: ['onclick', 'onchange', 'onmouseover', 'onload'],
-        correct: 0
-      },
-      {
-        question: 'How do you declare an array?',
-        options: ['let arr = []', 'let arr = {}', 'let arr = ()', 'let arr = <>'],
-        correct: 0
-      },
-      {
-        question: 'Which method removes the last element from an array?',
-        options: ['pop()', 'push()', 'shift()', 'splice()'],
-        correct: 0
-      },
-      {
-        question: 'Which keyword is used to exit a loop?',
-        options: ['break', 'exit', 'stop', 'return'],
-        correct: 0
-      }
-    ];
+  questions: QuizQuestion[] = [];
+
+  private loadQuestionBank(): void {
+    this.isLoadingQuestions = true;
+
+    this.mcqQuestionService
+      .getAllMcq({ topic: this.topic, category: this.category, questionType: 'MCQ' })
+      .pipe(
+        apiFallback<any[]>([], 'Error loading quiz questions from service'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
+        const normalized = this.normalizeMcqQuestions(data);
+        this.questions = normalized;
+
+        // If user already picked a plan, refresh the sliced questions.
+        if (this.quizStarted && this.selectedPlan?.count) {
+          const available = this.questionsToShow;
+          this.displayQuestions = available.slice(0, this.selectedPlan.count);
+          this.answeredOptions = new Array(this.displayQuestions.length).fill(null);
+          this.visited = new Array(this.displayQuestions.length).fill(false);
+        }
+
+        this.isLoadingQuestions = false;
+      });
+  }
 
   currentIndex = 0;
   selectedOption: number | null = null;

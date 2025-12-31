@@ -55,11 +55,14 @@ export class OutputPracticeLandingComponent implements OnInit, OnDestroy {
     this.router.navigate(['/output-practice/play']);
   }
 
-  startTopicPractice(topic: string): void {
+  startTopicPractice(tech: Technology, topic: string): void {
     const cleaned = (topic ?? '').toString().trim();
     if (!cleaned) return;
 
-    this.router.navigate(['/output-practice/play'], { queryParams: { topic: cleaned } });
+    const category = (tech?.slug || tech?.name || '').toString().trim();
+    this.router.navigate(['/output-practice/play'], {
+      queryParams: category ? { topic: cleaned, category } : { topic: cleaned },
+    });
   }
 
   get filteredTechnologies(): Technology[] {

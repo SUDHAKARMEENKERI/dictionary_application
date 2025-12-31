@@ -37,7 +37,7 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="category" class="form-label">Category</label>
-                            <select formControlName="category" id="category" [(ngModel)]="selectedCategoryId" class="form-select" (change)="onCategoryChange()">
+                            <select formControlName="category" id="category" class="form-select">
                                 <option value="">Select a Category</option>
                                 <option *ngFor="let opt of categoryTopic" [value]="opt.id">{{ opt.name }}</option>
                             </select>
@@ -53,9 +53,9 @@
 
                         <div class="col-12">
                             <label for="questionType" class="form-label">Question Type</label>
-                            <select formControlName="questionType" id="questionType" [(ngModel)]="selectedQuestionType" class="form-select" (change)="onLoadQuestionTypeChange()">
+                            <select formControlName="questionType" id="questionType" class="form-select">
                                 <option value="">Select a Question Type</option>
-                                <option *ngFor="let opt of questionType" [value]="opt.label">{{ opt.value }}</option>
+                                <option *ngFor="let opt of questionType" [value]="opt.value">{{ opt.label }}</option>
                             </select>
                         </div>
 

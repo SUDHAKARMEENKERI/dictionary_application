@@ -18,6 +18,8 @@ export interface DropdownResponse {
 export interface QuestionAnswer {
   question: string;
   answer: string;
+  level:string;
+  topic: string;
 }
 
 export interface QuestionTypeDropdownOption {

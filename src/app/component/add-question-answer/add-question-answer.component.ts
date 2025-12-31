@@ -45,9 +45,9 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     message: ''
   }
   excelFile!: File;
-  selectedCategoryId!: number;
-  selectedQuestionType!: string;
   isNonTheoryQuestion: boolean = false;
+
+  private pendingEditQa: any | null = null;
 
   readonly difficultyLevels = [
     { label: 'Basic', value: 'BASIC' },
@@ -57,9 +57,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
   questionType: QuestionTypeDropdownOption[] = [
     { label: 'Theory', value: 'THEORY' },
-    // { label: 'Practical', value: 'PRACTICAL' },
-    { label: 'mcq', value: 'MCQ' },
-    { label: 'OutPutBasesMCQ', value: 'OUTPUT BASED MCQ' }
+    { label: 'MCQ', value: 'MCQ' },
+    { label: 'Output Based MCQ', value: 'OUTPUTBASEDMCQ' }
   ];
 
   ngOnInit(): void {
@@ -76,6 +75,21 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       optionD: [''],
       correctAnswer: [''],
     });
+
+    this.questionAnswerForm
+      .get('category')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((categoryValue) => {
+        this.loadTopicsForCategory(categoryValue);
+      });
+
+    this.questionAnswerForm
+      .get('questionType')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((questionTypeValue) => {
+        const normalized = this.normalize(questionTypeValue);
+        this.isNonTheoryQuestion = normalized !== 'theory';
+      });
 
     this.activeRouter.queryParams
       .pipe(
@@ -97,15 +111,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         if (!data) return;
 
         const qaItem = data;
-        this.questionAnswerForm.patchValue({
-          question: qaItem.question,
-          answer: qaItem.answer,
-          topic: (qaItem.topic ?? '').toString().toLowerCase(),
-          level: (qaItem.level ?? qaItem.difficulty ?? qaItem.questionLevel ?? qaItem.experienceLevel ?? 'BASIC')
-            .toString()
-            .trim()
-            .toUpperCase(),
-        });
+        this.pendingEditQa = qaItem;
+        this.applyEditQa(qaItem);
         this.imageSrc = qaItem.imageBase64 ? this.getImageSrc(qaItem.imageBase64) : '';
       });
 
@@ -117,13 +124,110 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       )
       .subscribe((data) => {
         this.categoryTopic = data || [];
+        // If edit mode loaded first, reconcile category/topic once categories exist.
+        if (this.pendingEditQa) {
+          this.syncCategoryFromPendingEdit(this.pendingEditQa);
+        }
+      });
+  }
+
+  private normalize(value: unknown): string {
+    return (value ?? '').toString().trim().toLowerCase();
+  }
+
+  private normalizeQuestionType(value: unknown): string {
+    const v = (value ?? '').toString().trim();
+    if (!v) return '';
+    const lower = v.toLowerCase();
+    if (lower === 'theory') return 'THEORY';
+    if (lower === 'mcq') return 'MCQ';
+    if (lower.includes('output') && lower.includes('mcq')) return 'OUTPUT BASED MCQ';
+    if (v.toUpperCase() === 'THEORY' || v.toUpperCase() === 'MCQ') return v.toUpperCase();
+    if (v.toUpperCase().includes('OUTPUT') && v.toUpperCase().includes('MCQ')) return 'OUTPUT BASED MCQ';
+    return v;
+  }
+
+  private parseCategoryId(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const raw = (value ?? '').toString().trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  private resolveCategoryIdFromName(value: unknown): number | null {
+    const raw = (value ?? '').toString().trim();
+    if (!raw) return null;
+    const key = this.normalize(raw);
+    const match = (this.categoryTopic || []).find((c) => this.normalize(c?.name) === key);
+    const id = this.parseCategoryId(match?.id);
+    return id;
+  }
+
+  private applyEditQa(qaItem: any): void {
+    const normalizedLevel = (qaItem.level ?? qaItem.difficulty ?? qaItem.questionLevel ?? qaItem.experienceLevel ?? 'BASIC')
+      .toString()
+      .trim()
+      .toUpperCase();
+
+    this.questionAnswerForm.patchValue({
+      question: qaItem.question,
+      answer: qaItem.answer,
+      // Category is reconciled once categories are loaded (id is required for select value).
+      category: '',
+      questionType: this.normalizeQuestionType(qaItem.questionType),
+      topic: (qaItem.topic ?? '').toString().trim(),
+      level: normalizedLevel || 'BASIC',
+    });
+
+    this.syncCategoryFromPendingEdit(qaItem);
+  }
+
+  private syncCategoryFromPendingEdit(qaItem: any): void {
+    if (!this.categoryTopic?.length) return;
+
+    const current = this.questionAnswerForm.get('category')?.value;
+    const hasId = this.parseCategoryId(current);
+    if (hasId) return;
+
+    const categoryId = this.parseCategoryId(qaItem?.category) ?? this.resolveCategoryIdFromName(qaItem?.category);
+    if (!categoryId) return;
+
+    // Setting category triggers loadTopicsForCategory via valueChanges.
+    this.questionAnswerForm.get('category')?.setValue(categoryId);
+  }
+
+  private loadTopicsForCategory(categoryValue: unknown): void {
+    const categoryId = this.parseCategoryId(categoryValue);
+    if (!categoryId) {
+      this.topicItem = [];
+      return;
+    }
+
+    this.techService
+      .getAllTechItems(categoryId)
+      .pipe(
+        apiFallback([] as DropdownResponse[], 'API failed while fetching tech Items'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
+        this.topicItem = data || [];
+
+        // In edit mode, once topics arrive, select the exact matching topic option.
+        const pendingTopic = (this.pendingEditQa?.topic ?? this.questionAnswerForm.get('topic')?.value ?? '').toString().trim();
+        if (!pendingTopic) return;
+
+        const match = (this.topicItem || []).find((t) => this.normalize(t?.name) === this.normalize(pendingTopic));
+        if (match?.name) {
+          this.questionAnswerForm.get('topic')?.setValue(match.name);
+        }
       });
   }
 
   onSubmit() {
     if (this.questionAnswerForm.invalid) return;
     if (this.isNonTheoryQuestion) {
-      const option = [
+      const options = [
         this.questionAnswerForm.value.optionA,
         this.questionAnswerForm.value.optionB,
         this.questionAnswerForm.value.optionC,
@@ -131,11 +235,12 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       ];
       
       const reqBoy = {
-        option: option,
-        answer: this.questionAnswerForm.value.correctAnswer,
+        options: options,
+        correctAnswer: this.questionAnswerForm.value.correctAnswer,
         questionType: this.questionAnswerForm.value.questionType,
         category: this.questionAnswerForm.value.category,
         topic: this.questionAnswerForm.value.topic,
+        question: this.questionAnswerForm.value.question,
         level: this.questionAnswerForm.value.level,
         mobile: readLoginMobile()
       };
@@ -154,6 +259,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       formData.append('answer', this.questionAnswerForm.value.answer);
       formData.append('topic', this.questionAnswerForm.value.topic);
       formData.append('questionType', this.questionAnswerForm.value.questionType);
+      formData.append('category', this.questionAnswerForm.value.category);
       formData.append('level', this.questionAnswerForm.value.level);
       formData.append('mobile', readLoginMobile());
       if (this.imageFile) {
@@ -244,26 +350,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     });
   }
 
-  onCategoryChange() {
-    if (!this.selectedCategoryId) return;
-    this.techService.getAllTechItems(this.selectedCategoryId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
-        this.topicItem = data;
-      }, error: (error) => {
-        console.error("API failed while fetching tech Items", error)
-      }
-    });
-
-  }
-
-  onLoadQuestionTypeChange() {
-    if (this.selectedQuestionType.toLowerCase() !== 'theory') {
-      this.isNonTheoryQuestion = true;
-    } else {
-      this.isNonTheoryQuestion = false;
-    }
-
-  }
+  // Category/topic and question-type behavior are handled via reactive form valueChanges.
 
   ngOnDestroy(): void {
     this.destroy$.next();

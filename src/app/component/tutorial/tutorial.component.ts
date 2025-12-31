@@ -1,34 +1,26 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, from, of, Subject } from 'rxjs';
-import { Technology } from '../../models/Technology';
-import { TechnologyService } from '../../service/technology.service';
+import { Subject } from 'rxjs';
 import {
-  catchError,
-  concatMap,
-  defaultIfEmpty,
   distinctUntilChanged,
   finalize,
-  filter,
   map,
-  shareReplay,
-  startWith,
   switchMap,
-  take,
   takeUntil,
   tap
 } from 'rxjs/operators';
 import { apiFallback } from '../../util/apiRx';
+import { MCQQuestionService } from '../../service/mcqQuestion.service';
 
 type OutputQuestion = {
   question: string;
   code: string;
   answer: string;
+  options: string[];
+  selectedOption: string;
   topic?: string;
-  userOutput: string;
   showAnswer: boolean;
   checked: boolean;
   isCorrect: boolean | null;
@@ -46,91 +38,16 @@ export class TutorialComponent implements OnInit, OnDestroy {
   constructor(
     private activeRouter: ActivatedRoute,
     private router: Router,
-    private questionAnswerService: QuestionAnswerService,
-    private technologyService: TechnologyService
+    private mcqQuestionService: MCQQuestionService
   ) {}
 
   private destroy$ = new Subject<void>();
   isLoadingQuestions = false;
-
-  // Loaded only to improve topic fallback matching; topic selection UI is on /output-practice
-  technologies: Technology[] = [];
   selectedTopic: string = 'All';
 
-  private allQuestionsCache: OutputQuestion[] | null = null;
+  category = '';
 
-  private readonly dummyOutputQuestionsByTopic: Record<string, Omit<OutputQuestion, 'userOutput' | 'showAnswer' | 'checked' | 'isCorrect'>[]> = {
-    javascript: [
-      {
-        question: 'What will be the output (type coercion)?',
-        code: `console.log(1 + '2' + 3);`,
-        answer: '123',
-        topic: 'JavaScript',
-      },
-      {
-        question: 'Promise order (microtask vs macrotask).',
-        code: `console.log('A');\n\nsetTimeout(() => console.log('B'), 0);\n\nPromise.resolve().then(() => console.log('C'));\n\nconsole.log('D');`,
-        answer: `A\nD\nC\nB`,
-        topic: 'JavaScript',
-      },
-    ],
-    typescript: [
-      {
-        question: 'What is the output (union narrowing)?',
-        code: `function f(x: string | number) {\n  if (typeof x === 'string') return x.toUpperCase();\n  return x + 1;\n}\n\nconsole.log(f('hi'));\nconsole.log(f(41));`,
-        answer: `HI\n42`,
-        topic: 'TypeScript',
-      },
-      {
-        question: 'What will be logged (enum values)?',
-        code: `enum Role { Admin, User }\nconsole.log(Role.Admin);\nconsole.log(Role[0]);`,
-        answer: `0\nAdmin`,
-        topic: 'TypeScript',
-      },
-    ],
-    angular: [
-      {
-        question: 'What will be the output (RxJS map)?',
-        code: `import { of } from 'rxjs';\nimport { map } from 'rxjs/operators';\n\nof(1, 2, 3).pipe(map(x => x * 2)).subscribe(v => console.log(v));`,
-        answer: `2\n4\n6`,
-        topic: 'Angular',
-      },
-      {
-        question: 'What will be printed (async pipe concept check)?',
-        code: `// Assume an observable emits 10 then 20\n// With async pipe, template shows latest value\n// What is the last value shown?`,
-        answer: '20',
-        topic: 'Angular',
-      },
-    ],
-    java: [
-      {
-        question: 'What will be the output (post-increment)?',
-        code: `int x = 10;\nSystem.out.println(x++);\nSystem.out.println(x);`,
-        answer: `10\n11`,
-        topic: 'Java',
-      },
-      {
-        question: 'What will be printed (string immutability)?',
-        code: `String s = "hi";\ns.concat("!");\nSystem.out.println(s);`,
-        answer: 'hi',
-        topic: 'Java',
-      },
-    ],
-    python: [
-      {
-        question: 'What is the output (list aliasing)?',
-        code: `a = [1, 2]\nb = a\nb.append(3)\nprint(a)`,
-        answer: '[1, 2, 3]',
-        topic: 'Python',
-      },
-      {
-        question: 'What is the output (default argument pitfall)?',
-        code: `def f(x, acc=[]):\n    acc.append(x)\n    return acc\n\nprint(f(1))\nprint(f(2))`,
-        answer: `[1]\n[1, 2]`,
-        topic: 'Python',
-      },
-    ],
-  };
+  questions: OutputQuestion[] = [];
 
   private normalizeOutput(text: string): string {
     // Normalizes whitespace/newlines so users can type the same output format in different ways.
@@ -144,60 +61,79 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   private normalizeOutputQuestions(data: any): OutputQuestion[] {
-    if (!Array.isArray(data)) return [];
+    const list = Array.isArray(data)
+      ? data
+      : (data?.data ?? data?.result ?? data?.items ?? data?.content ?? []);
 
-    const normalized = data
+    if (!Array.isArray(list)) return [];
+
+    return list
       .map((item: any) => {
-        const question = (item?.question ?? item?.ques ?? item?.title ?? '').toString().trim();
-        const code = (item?.code ?? item?.snippet ?? item?.program ?? '').toString();
-        const answer = (item?.answer ?? item?.output ?? item?.expectedOutput ?? '').toString();
+        const question = (item?.questionText ?? item?.prompt ?? item?.question ?? item?.ques ?? item?.title ?? '').toString().trim();
+        const code = (
+          item?.code ??
+          item?.codeSnippet ??
+          item?.questionCode ??
+          item?.snippet ??
+          item?.program ??
+          item?.source ??
+          item?.body ??
+          item?.content ??
+          ''
+        ).toString();
+        const answer = (
+          item?.correctAnswer ??
+          item?.answer ??
+          item?.output ??
+          item?.expectedOutput ??
+          item?.expected ??
+          ''
+        ).toString();
+
+        const optionsRaw = item?.options ?? item?.option ?? item?.choices ?? item?.answers;
+        const options = Array.isArray(optionsRaw)
+          ? optionsRaw.map((o: any) => (o ?? '').toString()).filter((v: string) => v.trim().length > 0)
+          : [];
         const topic = (item?.topic ?? item?.technology ?? item?.category ?? item?.tech ?? '').toString().trim();
 
-        if (!question || !code || !answer) return null;
+        // For output-practice we need at least a prompt + expected output.
+        // Backend may send expected value in `correctAnswer` (OUTPUTBASEDMCQ).
+        if (!question || !answer) return null;
 
         return {
           question,
           code,
           answer,
+          options,
+          selectedOption: '',
           topic: topic || undefined,
-          userOutput: '',
           showAnswer: false,
           checked: false,
           isCorrect: null,
         } as OutputQuestion;
       })
       .filter(Boolean) as OutputQuestion[];
-
-    return normalized;
   }
 
   ngOnInit(): void {
-    const topic$ = this.activeRouter.queryParams.pipe(
-      map((params) => (params?.['topic'] ?? '').toString().trim() || 'All'),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    );
-
-    const technologies$ = this.technologyService.getAllTechnologies().pipe(
-      apiFallback([] as Technology[], 'Error loading technologies'),
-      startWith([] as Technology[]),
-      tap((data) => {
-        this.technologies = data || [];
-      }),
-      shareReplay(1),
-      takeUntil(this.destroy$)
-    );
-
-    combineLatest([topic$, technologies$])
+    this.activeRouter.queryParams
       .pipe(
-        tap(([topic]) => {
-          this.selectedTopic = topic;
+        map((params) => {
+          const topic = (params?.['topic'] ?? '').toString().trim();
+          const category = (params?.['category'] ?? '').toString().trim();
+          return {
+            topic: topic || 'All',
+            category,
+          };
         }),
-        tap(() => {
+        distinctUntilChanged((a, b) => a.topic === b.topic && a.category === b.category),
+        tap(({ topic, category }) => {
+          this.selectedTopic = topic;
+          this.category = category;
           this.isLoadingQuestions = true;
         }),
-        switchMap(([topic]) =>
-          this.getQuestionsForSelection$(topic).pipe(
+        switchMap(({ topic, category }) =>
+          this.loadQuestionBank$(topic === 'All' ? '' : topic, category).pipe(
             finalize(() => {
               this.isLoadingQuestions = false;
             })
@@ -208,6 +144,13 @@ export class TutorialComponent implements OnInit, OnDestroy {
       .subscribe((qs) => {
         this.questions = qs || [];
       });
+  }
+
+  private loadQuestionBank$(topic: string, category: string) {
+    return this.mcqQuestionService.getAllMcq({ topic, category, questionType: 'OUTPUTBASEDMCQ' }).pipe(
+      apiFallback<any[]>([], 'Error loading output practice question bank'),
+      map((data) => this.normalizeOutputQuestions(data))
+    );
   }
 
   ngOnDestroy(): void {
@@ -223,325 +166,12 @@ export class TutorialComponent implements OnInit, OnDestroy {
     return this.questions;
   }
 
-  private normalizeKey(value: string): string {
-    return (value || '')
-      .toString()
-      .trim()
-      .toLowerCase()
-      .replace(/[_\s]+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-');
-  }
-
-  private toDummyKey(label: string): string {
-    // Our dummy keys are simple words like "javascript", "typescript".
-    // Strip separators to match better.
-    return this.normalizeKey(label).replace(/-/g, '');
-  }
-
-  private buildDummyQuestions(topicLabel: string): OutputQuestion[] {
-    const key = this.toDummyKey(topicLabel);
-    const raw = this.dummyOutputQuestionsByTopic[key] || [];
-    return raw.map((q) => ({
-      ...q,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    }));
-  }
-
-  private buildTopicCandidates(label: string): string[] {
-    const raw = (label ?? '').toString().trim();
-    if (!raw) return [];
-
-    const normalized = this.normalizeKey(raw);
-    const candidates: string[] = [raw];
-    if (normalized && normalized !== raw) candidates.push(normalized);
-
-    for (const tech of this.technologies || []) {
-      const techName = (tech?.name ?? '').toString().trim();
-      const techSlug = (tech?.slug ?? '').toString().trim();
-
-      if (this.normalizeKey(techName) === normalized || this.normalizeKey(techSlug) === normalized) {
-        if (techName) candidates.push(techName);
-        if (techSlug) candidates.push(techSlug);
-      }
-
-      for (const item of tech?.items || []) {
-        const itemName = (item?.name ?? '').toString().trim();
-        if (this.normalizeKey(itemName) === normalized) {
-          candidates.push(itemName);
-        }
-      }
-    }
-
-    const seen = new Set<string>();
-    return candidates.filter((c) => {
-      const v = (c ?? '').toString().trim();
-      if (!v) return false;
-      if (seen.has(v)) return false;
-      seen.add(v);
-      return true;
-    });
-  }
-
-  private getAllOutputQuestions$() {
-    if (this.allQuestionsCache && this.allQuestionsCache.length > 0) {
-      return of(this.allQuestionsCache);
-    }
-
-    // If dummy topics exist, make them available immediately for "All".
-    const dummyAll = Object.values(this.dummyOutputQuestionsByTopic)
-      .flat()
-      .map((q) => ({
-        ...q,
-        userOutput: '',
-        showAnswer: false,
-        checked: false,
-        isCorrect: null,
-      } as OutputQuestion));
-
-    if (dummyAll.length > 0) {
-      this.allQuestionsCache = dummyAll;
-      return of(dummyAll);
-    }
-
-    return this.questionAnswerService.getAllMcqQA().pipe(
-      apiFallback<any[]>([], 'Error loading output practice question bank'),
-      map((data) => this.normalizeOutputQuestions(data)),
-      tap((all) => {
-        if (all.length > 0) this.allQuestionsCache = all;
-      })
-    );
-  }
-
-  private getQuestionsForSelection$(topic: string) {
-    const cleaned = (topic ?? '').toString().trim();
-    if (!cleaned || cleaned === 'All') {
-      return this.getAllOutputQuestions$();
-    }
-
-    // Prefer dummy data for predictable behavior.
-    const dummy = this.buildDummyQuestions(cleaned);
-    if (dummy.length > 0) {
-      return of(dummy);
-    }
-
-    const candidates = this.buildTopicCandidates(cleaned);
-
-    return from(candidates).pipe(
-      concatMap((candidate) =>
-        this.questionAnswerService.getQAByTopic(candidate).pipe(
-          catchError(() => of([] as any[])),
-          map((data) => this.normalizeOutputQuestions(data))
-        )
-      ),
-      filter((normalized) => normalized.length > 0),
-      take(1),
-      defaultIfEmpty([] as OutputQuestion[]),
-      switchMap((normalized) => {
-        if (normalized.length > 0) return of(normalized);
-
-        // Fallback: ensure we have the global bank, then try client-side filter by topic tag.
-        return this.getAllOutputQuestions$().pipe(
-          take(1),
-          map((all) => {
-            const key = this.normalizeKey(cleaned);
-            const filtered = (all || []).filter((q) => this.normalizeKey(q?.topic || '') === key);
-            return filtered.length > 0 ? filtered : (all || []);
-          })
-        );
-      })
-    );
-  }
-
-  questions: OutputQuestion[] = [
-    {
-      question: 'What will be the output of the following JavaScript code?',
-      code: `let x = 10;
-x++;
-console.log(x);`,
-      answer: '11',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What is the output?',
-      code: `console.log(typeof null);`,
-      answer: 'object',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be printed?',
-      code: `console.log(1 + '2' + 3);`,
-      answer: '123',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'Predict the output (array coercion).',
-      code: `console.log([] + []);
-console.log([] + {});
-console.log({} + []);`,
-      answer: `
-[object Object]
-[object Object]`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be the output (== vs ===)?',
-      code: `console.log(0 == false);
-console.log(0 === false);`,
-      answer: `true
-false`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be logged (let/var scope)?',
-      code: `function test() {
-  if (true) {
-    var a = 1;
-    let b = 2;
-  }
-  console.log(a);
-  console.log(typeof b);
-}
-
-test();`,
-      answer: `1
-undefined`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'Predict the output (hoisting).',
-      code: `console.log(x);
-var x = 10;`,
-      answer: 'undefined',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What is the output (NaN check)?',
-      code: `console.log(Number.isNaN(NaN));
-console.log(isNaN('hello'));`,
-      answer: `true
-true`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be output (parseInt behavior)?',
-      code: `console.log(parseInt('08'));
-console.log(parseInt('08', 10));`,
-      answer: `8
-8`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'Predict the output (default sort).',
-      code: `console.log([1, 2, 10].sort());`,
-      answer: '1,10,2',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be logged (closure)?',
-      code: `function make() {
-  let count = 0;
-  return function () {
-    count++;
-    return count;
-  };
-}
-
-const inc = make();
-console.log(inc());
-console.log(inc());`,
-      answer: `1
-2`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'Promise order (microtask vs macrotask).',
-      code: `console.log('A');
-
-setTimeout(() => console.log('B'), 0);
-
-Promise.resolve().then(() => console.log('C'));
-
-console.log('D');`,
-      answer: `A
-D
-C
-B`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'What will be printed (object reference)?',
-      code: `const a = { x: 1 };
-const b = a;
-b.x = 2;
-console.log(a.x);`,
-      answer: '2',
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-    {
-      question: 'Predict output (map vs forEach).',
-      code: `const arr = [1, 2, 3];
-const r1 = arr.map(x => x * 2);
-const r2 = arr.forEach(x => x * 2);
-console.log(r1);
-console.log(r2);`,
-      answer: `2,4,6
-undefined`,
-      userOutput: '',
-      showAnswer: false,
-      checked: false,
-      isCorrect: null,
-    },
-  ];
-
   get totalQuestions(): number {
     return this.displayedQuestions.length;
   }
 
   get attemptedCount(): number {
-    return this.displayedQuestions.filter(q => this.normalizeOutput(q.userOutput).length > 0).length;
+    return this.displayedQuestions.filter(q => (q.selectedOption ?? '').toString().trim().length > 0).length;
   }
 
   get correctCount(): number {
@@ -562,13 +192,22 @@ undefined`,
 
   checkAnswer(q: OutputQuestion) {
     const expected = this.normalizeOutput(q.answer);
-    const actual = this.normalizeOutput(q.userOutput);
+    const actual = this.normalizeOutput(q.selectedOption);
     q.checked = true;
     q.isCorrect = actual.length > 0 && actual === expected;
   }
 
+  selectOption(q: OutputQuestion, option: string) {
+    q.selectedOption = (option ?? '').toString();
+    // If user changes option after checking, mark as unchecked until they press Check again.
+    if (q.checked) {
+      q.checked = false;
+      q.isCorrect = null;
+    }
+  }
+
   resetQuestion(q: OutputQuestion) {
-    q.userOutput = '';
+    q.selectedOption = '';
     q.checked = false;
     q.isCorrect = null;
     q.showAnswer = false;

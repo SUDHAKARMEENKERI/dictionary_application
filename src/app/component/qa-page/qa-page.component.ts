@@ -103,7 +103,12 @@ export class QaPageComponent implements OnInit, OnDestroy {
     const urlTopic = params['topic'] || '';
 
     if (!this.technologies?.length) {
-      this.topic = urlTopic;
+      this.categoryTitle = this.category || 'Tutorial';
+      if (urlTopic && urlTopic !== this.topic) {
+        this.setTopic(urlTopic);
+      } else if (urlTopic && (this.questionAnswers?.length ?? 0) === 0 && !this.isLoadingQuestions) {
+        this.loadQuestions();
+      }
       return;
     }
 
@@ -232,7 +237,8 @@ export class QaPageComponent implements OnInit, OnDestroy {
 
   onLoadPracticeQuestion() {
     const topic = (this.topic ?? '').toString().trim();
-    this.router.navigate(['/output-practice'], { queryParams: topic ? { topic } : {} });
+    const category = (this.category || this.categoryTitle || '').toString().trim();
+    this.router.navigate(['/output-practice'], { queryParams: topic ? (category ? { topic, category } : { topic }) : (category ? { category } : {}) });
   }
 
 }

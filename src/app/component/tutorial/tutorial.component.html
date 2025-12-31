@@ -58,7 +58,7 @@
   <!-- Question List -->
   <div class="output-list">
 
-    @for (q of displayedQuestions; track q.code; let i = $index) {
+    @for (q of displayedQuestions; track $index; let i = $index) {
       <div class="output-card">
 
         <!-- Question -->
@@ -68,23 +68,35 @@
         </div>
 
         <!-- Code -->
-        <pre class="code-block"><code>{{ q.code }}</code></pre>
+        <div class="code-block">
+          <ng-container *ngIf="q.code && q.code.trim().length > 0">
+            <pre class="code-pre"><code>{{ q.code }}</code></pre>
+          </ng-container>
 
-        <!-- User Input -->
-        <div class="input-row">
-          <label>Your Output</label>
-          <input
-            type="text"
-            placeholder="Enter expected output"
-            [(ngModel)]="q.userOutput"
-            [class.input-correct]="q.checked && q.isCorrect === true"
-            [class.input-wrong]="q.checked && q.isCorrect === false"
-             />
+          <div class="code-options-title">Choose the correct output</div>
+
+          <div class="code-options" *ngIf="q.options?.length">
+            @for (opt of q.options; track opt) {
+              <button
+                type="button"
+                class="option-btn"
+                [class.active]="q.selectedOption === opt"
+                (click)="selectOption(q, opt)">
+                <span class="opt-text">{{ opt }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="code-options-empty" *ngIf="!q.options?.length">
+            No options available for this question.
+          </div>
         </div>
 
         <!-- Actions -->
         <div class="btn-row">
-          <button type="button" class="primary-btn" (click)="checkAnswer(q)">Check</button>
+          <button type="button" class="primary-btn" (click)="checkAnswer(q)" [disabled]="!q.selectedOption">
+            Check
+          </button>
           <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
             {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
           </button>
