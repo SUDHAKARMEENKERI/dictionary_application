@@ -40,7 +40,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   totalResults = 0;
 
   currentPage = 0;
-  pageSize = 10;
+  pageSize = 25;
   totalPages = 0;
   private destroy$ = new Subject<void>();
 
@@ -323,6 +323,44 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
 
     this.currentPage = page;
     this.updateVisibleSlice(this.getTopicSearchList());
+  }
+
+  get paginationItems(): Array<number | 'ellipsis'> {
+    const total = Math.max(1, Number(this.totalPages ?? 1));
+    const current = Math.min(Math.max(0, Number(this.currentPage ?? 0)), total - 1);
+
+    // Keep it compact so it doesn't stretch on desktop.
+    const maxButtons = 7;
+
+    if (total <= maxButtons) {
+      return Array.from({ length: total }, (_, i) => i);
+    }
+
+    const first = 0;
+    const last = total - 1;
+
+    // Window around current page
+    const windowSize = 3; // current +/- 1 plus itself
+    let start = Math.max(first + 1, current - 1);
+    let end = Math.min(last - 1, current + 1);
+
+    // Expand a bit if we're near the edges
+    if (current <= first + 2) {
+      start = first + 1;
+      end = first + windowSize;
+    } else if (current >= last - 2) {
+      start = last - windowSize;
+      end = last - 1;
+    }
+
+    const items: Array<number | 'ellipsis'> = [first];
+
+    if (start > first + 1) items.push('ellipsis');
+    for (let i = start; i <= end; i++) items.push(i);
+    if (end < last - 1) items.push('ellipsis');
+
+    items.push(last);
+    return items;
   }
 
   private updateVisibleSlice(source?: any[]): void {

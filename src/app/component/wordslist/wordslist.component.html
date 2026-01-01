@@ -133,7 +133,12 @@
 
   <!-- Pagination -->
   <div class="pagination-section mt-4">
-    <pagination-controls (pageChange)="page = $event"></pagination-controls>
+    <pagination-controls
+      [maxSize]="7"
+      [responsive]="true"
+      [autoHide]="true"
+      (pageChange)="page = $event"
+    ></pagination-controls>
   </div>
 
   <!-- Modal -->

@@ -328,6 +328,17 @@
     }
   }
 
+  .page-item.disabled .page-link {
+    justify-content: center;
+  }
+
+  @media (max-width: 576px) {
+    .page-link {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+
   .page-item.active .page-link {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-color: #667eea;

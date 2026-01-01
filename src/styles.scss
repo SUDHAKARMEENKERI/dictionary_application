@@ -1,1 +1,53 @@
 /* You can add global styles to this file, and also import other style files */
+
+/*
+	Pagination layout fixes (global)
+	- Prevents long paginations from overflowing/breaking layout
+	- Works for both Bootstrap pagination (.pagination) and ngx-pagination (.ngx-pagination)
+*/
+
+.pagination-section {
+	max-width: 100%;
+}
+
+/* Bootstrap-style pagination (custom + Bootstrap classes) */
+.pagination-section nav {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	display: flex;
+	justify-content: center;
+}
+
+.pagination-section .pagination {
+	max-width: 100%;
+	display: inline-flex;
+	flex-wrap: wrap;
+}
+
+/* ngx-pagination (used by <pagination-controls>) */
+.pagination-section .ngx-pagination {
+	max-width: 100%;
+	display: inline-flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	padding-left: 0;
+	margin: 0;
+}
+
+.pagination-section .ngx-pagination li {
+	display: inline-flex;
+}
+
+@media (max-width: 576px) {
+	/* On very small screens, keep a single row and allow horizontal scroll */
+	.pagination-section nav {
+		justify-content: flex-start;
+	}
+
+	.pagination-section .pagination,
+	.pagination-section .ngx-pagination {
+		flex-wrap: nowrap;
+		width: max-content;
+	}
+}
