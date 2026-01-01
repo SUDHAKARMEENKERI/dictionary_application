@@ -53,12 +53,36 @@
       </div>
     </div>
 
+    <div class="tabbar" *ngIf="!isLoadingQuestions">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeSection === 'mcq'"
+        (click)="setActiveSection('mcq')">
+        MCQ (Options)
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeSection === 'typed'"
+        (click)="setActiveSection('typed')">
+        Type Answer
+      </button>
+    </div>
+
   </div>
 
-  <!-- Question List -->
+  <!-- Sections -->
   <div class="output-list">
 
-    @for (q of displayedQuestions; track $index; let i = $index) {
+    <!-- Section 1: MCQ (4 options) -->
+    <div class="section-header" *ngIf="activeSection === 'mcq'">
+      <h2>Output MCQ (Choose from options)</h2>
+      <p>Select the correct output from the given options.</p>
+    </div>
+
+    @for (q of mcqQuestions; track $index; let i = $index) {
+      <ng-container *ngIf="activeSection === 'mcq'">
       <div class="output-card">
 
         <!-- Question -->
@@ -94,7 +118,7 @@
 
         <!-- Actions -->
         <div class="btn-row">
-          <button type="button" class="primary-btn" (click)="checkAnswer(q)" [disabled]="!q.selectedOption">
+          <button type="button" class="primary-btn" (click)="checkMcqAnswer(q)" [disabled]="!q.selectedOption">
             Check
           </button>
           <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
@@ -102,9 +126,9 @@
           </button>
           <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
 
-          <span class="result-pill ok" *ngIf="q.checked && q.isCorrect === true">Correct</span>
-          <span class="result-pill no" *ngIf="q.checked && q.isCorrect === false">Wrong</span>
-          <span class="result-pill" *ngIf="q.checked && q.isCorrect === null">Not checked</span>
+          <span class="result-pill ok" *ngIf="q.mcqChecked && q.mcqIsCorrect === true">Correct</span>
+          <span class="result-pill no" *ngIf="q.mcqChecked && q.mcqIsCorrect === false">Wrong</span>
+          <span class="result-pill" *ngIf="q.mcqChecked && q.mcqIsCorrect === null">Not checked</span>
         </div>
 
         <!-- Answer -->
@@ -117,6 +141,74 @@
         </div>
 
       </div>
+      </ng-container>
+    }
+
+    <!-- Section 2: Typed output -->
+    <div class="section-header" *ngIf="activeSection === 'typed'">
+      <h2>Output Practice (Type the answer)</h2>
+      <p>Type the output and verify your answer.</p>
+    </div>
+
+    @for (q of typedQuestions; track $index; let i = $index) {
+      <ng-container *ngIf="activeSection === 'typed'">
+      <div class="output-card">
+
+        <!-- Question -->
+        <div class="question-row">
+          <span class="badge q">Q{{ i + 1 }}</span>
+          <h3>{{ q.question }}</h3>
+        </div>
+
+        <!-- Code -->
+        <ng-container *ngIf="q.code && q.code.trim().length > 0; else noTypedCode">
+          <div class="code-block">
+            <pre class="code-pre"><code>{{ q.code }}</code></pre>
+          </div>
+        </ng-container>
+
+        <ng-template #noTypedCode>
+          <div class="code-options-empty">No code available for this question.</div>
+        </ng-template>
+
+        <!-- Input -->
+        <div class="input-row">
+          <label>Enter output</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="q.userAnswer"
+            (ngModelChange)="onTypedAnswerChanged(q)"
+            [class.input-correct]="q.typedChecked && q.typedIsCorrect === true"
+            [class.input-wrong]="q.typedChecked && q.typedIsCorrect === false"
+            placeholder="Type the expected output here..."></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-row">
+          <button type="button" class="primary-btn" (click)="checkTypedAnswer(q)" [disabled]="!q.userAnswer">
+            Verify
+          </button>
+          <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
+            {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
+          </button>
+          <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
+
+          <span class="result-pill ok" *ngIf="q.typedChecked && q.typedIsCorrect === true">Correct</span>
+          <span class="result-pill no" *ngIf="q.typedChecked && q.typedIsCorrect === false">Wrong</span>
+          <span class="result-pill" *ngIf="q.typedChecked && q.typedIsCorrect === null">Not checked</span>
+        </div>
+
+        <!-- Answer -->
+        <div class="answer" *ngIf="q.showAnswer">
+          <span class="badge a">A</span>
+          <p>
+            Correct Output:
+            <strong>{{ q.answer }}</strong>
+          </p>
+        </div>
+
+      </div>
+      </ng-container>
     }
 
   </div>

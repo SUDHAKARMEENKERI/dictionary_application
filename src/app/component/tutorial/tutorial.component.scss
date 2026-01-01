@@ -116,12 +116,65 @@
   justify-content: flex-end;
 }
 
+.tabbar {
+  margin: 14px auto 0 auto;
+  max-width: 900px;
+  display: inline-flex;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.tab-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.tab-btn.active {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.10);
+  color: #0f172a;
+}
+
 /* List */
 .output-list {
   max-width: 900px;
   margin: auto;
   display: grid;
   gap: 24px;
+}
+
+.section-header {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.section-header p {
+  margin: 6px 0 0 0;
+  color: #64748b;
+  font-weight: 600;
 }
 
 /* Card */
@@ -242,7 +295,21 @@
   font-size: 14px;
 }
 
+.input-row textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #c7d2fe;
+  outline: none;
+  font-size: 14px;
+  resize: vertical;
+}
+
 .input-row input:focus {
+  border-color: #6366f1;
+}
+
+.input-row textarea:focus {
   border-color: #6366f1;
 }
 
@@ -251,7 +318,17 @@
   background: #ecfdf5;
 }
 
+.input-row textarea.input-correct {
+  border-color: rgba(22, 163, 74, 0.65);
+  background: #ecfdf5;
+}
+
 .input-row input.input-wrong {
+  border-color: rgba(239, 68, 68, 0.65);
+  background: #fef2f2;
+}
+
+.input-row textarea.input-wrong {
   border-color: rgba(239, 68, 68, 0.65);
   background: #fef2f2;
 }

@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { from, of, Subject } from 'rxjs';
 import { TechnologyService } from '../../service/technology.service';
 import { Technology } from '../../models/Technology';
-import { apiFallback } from '../../util/apiRx';
+import { apiEmpty, apiFallback } from '../../util/apiRx';
 import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -388,24 +388,30 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   onDelete(qa: any): void {
     this.questionAnswerService
       .deleteUserQAById(qa.id)
-      .pipe(apiFallback(null as any, 'Error deleting QA'), takeUntil(this.destroy$))
-      .subscribe((response) => {
-        if (!response) return;
+      // Many backends return an empty body for DELETE; treat next() as success.
+      // On error, don't emit anything so the UI isn't mutated.
+      .pipe(apiEmpty('Error deleting QA'), takeUntil(this.destroy$))
+      .subscribe(() => {
+        // Optimistically remove from current view for instant UI feedback.
+        this.questionAnswers = (this.questionAnswers || []).filter((item) => item?.id !== qa.id);
 
-        // Remove from the currently visible list
-        this.questionAnswers = this.questionAnswers.filter(item => item.id !== qa.id);
-
-        // Remove from topic cache when filtering by a technology
-        if (!this.isAllMode) {
-          this.selectedTechAllQAs = (this.selectedTechAllQAs || []).filter(item => item.id !== qa.id);
-          const list = this.getTopicSearchList();
-          this.totalResults = list.length;
-          this.totalPages = Math.max(1, Math.ceil(list.length / this.pageSize));
-          if (this.currentPage >= this.totalPages) {
-            this.currentPage = Math.max(0, this.totalPages - 1);
-          }
-          this.updateVisibleSlice(list);
+        if (this.isAllMode) {
+          // In All mode, data is server-paged; reload the page so counts/pages are consistent.
+          const willBeEmpty = (this.questionAnswers?.length ?? 0) === 0;
+          const targetPage = willBeEmpty && this.currentPage > 0 ? this.currentPage - 1 : this.currentPage;
+          this.loadPage(targetPage);
+          return;
         }
+
+        // Topic mode: maintain the cached full list, then recalc paging and slice.
+        this.selectedTechAllQAs = (this.selectedTechAllQAs || []).filter((item) => item?.id !== qa.id);
+        const list = this.getTopicSearchList();
+        this.totalResults = list.length;
+        this.totalPages = Math.max(1, Math.ceil(list.length / this.pageSize));
+        if (this.currentPage >= this.totalPages) {
+          this.currentPage = Math.max(0, this.totalPages - 1);
+        }
+        this.updateVisibleSlice(list);
       });
   }
   ngOnDestroy(): void {

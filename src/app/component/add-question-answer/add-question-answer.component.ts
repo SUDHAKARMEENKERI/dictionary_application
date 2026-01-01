@@ -46,6 +46,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   }
   excelFile!: File;
   isNonTheoryQuestion: boolean = false;
+  isOutputBasedQuestion: boolean = false;
 
   private pendingEditQa: any | null = null;
 
@@ -58,12 +59,14 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   questionType: QuestionTypeDropdownOption[] = [
     { label: 'Theory', value: 'THEORY' },
     { label: 'MCQ', value: 'MCQ' },
-    { label: 'Output Based MCQ', value: 'OUTPUTBASEDMCQ' }
+    { label: 'Output Based MCQ', value: 'OUTPUTBASEDMCQ' },
+    { label: 'Output Based (Type Answer)', value: 'OUTPUTBASED' }
   ];
 
   ngOnInit(): void {
     this.questionAnswerForm = this.formBuilder.group({
       question: ['', Validators.required],
+      code: [''],
       answer: [''],
       category: ['', Validators.required],
       topic: ['', Validators.required],
@@ -88,7 +91,60 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((questionTypeValue) => {
         const normalized = this.normalize(questionTypeValue);
-        this.isNonTheoryQuestion = normalized !== 'theory';
+        // Only option-based question types should show Option A-D + correctAnswer.
+        this.isNonTheoryQuestion = normalized === 'mcq' || normalized === 'outputbasedmcq';
+        this.isOutputBasedQuestion = normalized === 'outputbasedmcq' || normalized === 'outputbased';
+
+        // Dynamic validators based on type
+        const answerCtrl = this.questionAnswerForm.get('answer');
+        const codeCtrl = this.questionAnswerForm.get('code');
+        const optionA = this.questionAnswerForm.get('optionA');
+        const optionB = this.questionAnswerForm.get('optionB');
+        const optionC = this.questionAnswerForm.get('optionC');
+        const optionD = this.questionAnswerForm.get('optionD');
+        const correctAnswer = this.questionAnswerForm.get('correctAnswer');
+
+        // Reset validators
+        answerCtrl?.clearValidators();
+        codeCtrl?.clearValidators();
+        optionA?.clearValidators();
+        optionB?.clearValidators();
+        optionC?.clearValidators();
+        optionD?.clearValidators();
+        correctAnswer?.clearValidators();
+
+        if (this.isNonTheoryQuestion) {
+          optionA?.setValidators([Validators.required]);
+          optionB?.setValidators([Validators.required]);
+          optionC?.setValidators([Validators.required]);
+          optionD?.setValidators([Validators.required]);
+          correctAnswer?.setValidators([Validators.required]);
+          // For MCQ types we don't require long-form answer.
+          answerCtrl?.setValue('');
+        } else {
+          // THEORY and OUTPUTBASED (typed) require answer.
+          answerCtrl?.setValidators([Validators.required]);
+          // Clear MCQ fields
+          optionA?.setValue('');
+          optionB?.setValue('');
+          optionC?.setValue('');
+          optionD?.setValue('');
+          correctAnswer?.setValue('');
+        }
+
+        if (this.isOutputBasedQuestion) {
+          codeCtrl?.setValidators([Validators.required]);
+        } else {
+          codeCtrl?.setValue('');
+        }
+
+        answerCtrl?.updateValueAndValidity({ emitEvent: false });
+        codeCtrl?.updateValueAndValidity({ emitEvent: false });
+        optionA?.updateValueAndValidity({ emitEvent: false });
+        optionB?.updateValueAndValidity({ emitEvent: false });
+        optionC?.updateValueAndValidity({ emitEvent: false });
+        optionD?.updateValueAndValidity({ emitEvent: false });
+        correctAnswer?.updateValueAndValidity({ emitEvent: false });
       });
 
     this.activeRouter.queryParams
@@ -141,9 +197,11 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     const lower = v.toLowerCase();
     if (lower === 'theory') return 'THEORY';
     if (lower === 'mcq') return 'MCQ';
-    if (lower.includes('output') && lower.includes('mcq')) return 'OUTPUT BASED MCQ';
+    if (lower.includes('output') && lower.includes('mcq')) return 'OUTPUTBASEDMCQ';
+    if (lower.includes('output')) return 'OUTPUTBASED';
     if (v.toUpperCase() === 'THEORY' || v.toUpperCase() === 'MCQ') return v.toUpperCase();
-    if (v.toUpperCase().includes('OUTPUT') && v.toUpperCase().includes('MCQ')) return 'OUTPUT BASED MCQ';
+    if (v.toUpperCase().includes('OUTPUT') && v.toUpperCase().includes('MCQ')) return 'OUTPUTBASEDMCQ';
+    if (v.toUpperCase().includes('OUTPUT')) return 'OUTPUTBASED';
     return v;
   }
 
@@ -172,6 +230,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
     this.questionAnswerForm.patchValue({
       question: qaItem.question,
+      code: (qaItem.code ?? qaItem.codeSnippet ?? qaItem.questionCode ?? qaItem.snippet ?? qaItem.program ?? ''),
       answer: qaItem.answer,
       // Category is reconciled once categories are loaded (id is required for select value).
       category: '',
@@ -226,7 +285,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (this.questionAnswerForm.invalid) return;
-    if (this.isNonTheoryQuestion) {
+    if (this.isNonTheoryQuestion || this.isOutputBasedQuestion) {
       const options = [
         this.questionAnswerForm.value.optionA,
         this.questionAnswerForm.value.optionB,
@@ -235,6 +294,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
       ];
       
       const reqBoy = {
+        code: this.questionAnswerForm.value.code,
+        answer: this.questionAnswerForm.value.answer,
         options: options,
         correctAnswer: this.questionAnswerForm.value.correctAnswer,
         questionType: this.questionAnswerForm.value.questionType,
@@ -256,6 +317,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     } else {
       const formData = new FormData();
       formData.append('question', this.questionAnswerForm.value.question);
+      formData.append('code', this.questionAnswerForm.value.code ?? '');
       formData.append('answer', this.questionAnswerForm.value.answer);
       formData.append('topic', this.questionAnswerForm.value.topic);
       formData.append('questionType', this.questionAnswerForm.value.questionType);

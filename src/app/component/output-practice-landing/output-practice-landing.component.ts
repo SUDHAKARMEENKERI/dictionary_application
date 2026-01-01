@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Technology } from '../../models/Technology';
+import { DropdownResponse, Technology } from '../../models/Technology';
 import { TechnologyService } from '../../service/technology.service';
 
 @Component({
@@ -18,6 +18,7 @@ export class OutputPracticeLandingComponent implements OnInit, OnDestroy {
 
   isLoading = false;
   technologies: Technology[] = [];
+  categories: DropdownResponse[] = [];
   searchQuery = '';
 
   constructor(
@@ -36,6 +37,20 @@ export class OutputPracticeLandingComponent implements OnInit, OnDestroy {
     });
 
     this.isLoading = true;
+
+    // Load categories so we can pass numeric `category` id in query params.
+    this.technologyService
+      .getAllTechCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cats) => {
+          this.categories = cats || [];
+        },
+        error: () => {
+          this.categories = [];
+        },
+      });
+
     this.technologyService
       .getAllTechnologies()
       .pipe(takeUntil(this.destroy$))
@@ -51,6 +66,30 @@ export class OutputPracticeLandingComponent implements OnInit, OnDestroy {
       });
   }
 
+  private normalizeKey(value: unknown): string {
+    return (value ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[_\s]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-');
+  }
+
+  private resolveCategoryIdForTech(tech: Technology): number | null {
+    const slugKey = this.normalizeKey(tech?.slug);
+    const nameKey = this.normalizeKey(tech?.name);
+    if (!slugKey && !nameKey) return null;
+
+    const match = (this.categories || []).find((c) => {
+      const key = this.normalizeKey(c?.name);
+      return !!key && (key === slugKey || key === nameKey);
+    });
+
+    const id = (match?.id ?? null) as any;
+    return typeof id === 'number' && Number.isFinite(id) ? id : null;
+  }
+
   startGeneralPractice(): void {
     this.router.navigate(['/output-practice/play']);
   }
@@ -59,6 +98,15 @@ export class OutputPracticeLandingComponent implements OnInit, OnDestroy {
     const cleaned = (topic ?? '').toString().trim();
     if (!cleaned) return;
 
+    const categoryId = this.resolveCategoryIdForTech(tech);
+    if (categoryId !== null) {
+      this.router.navigate(['/output-practice/play'], {
+        queryParams: { topic: cleaned, category: String(categoryId) },
+      });
+      return;
+    }
+
+    // Fallback: keep old behavior if we couldn't resolve an id.
     const category = (tech?.slug || tech?.name || '').toString().trim();
     this.router.navigate(['/output-practice/play'], {
       queryParams: category ? { topic: cleaned, category } : { topic: cleaned },
