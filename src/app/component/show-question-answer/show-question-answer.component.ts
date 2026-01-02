@@ -9,6 +9,7 @@ import { TechnologyService } from '../../service/technology.service';
 import { Technology } from '../../models/Technology';
 import { apiEmpty, apiFallback } from '../../util/apiRx';
 import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil } from 'rxjs/operators';
+import { readLoginMobile } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-show-question-answer',
@@ -44,10 +45,39 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   totalPages = 0;
   private destroy$ = new Subject<void>();
 
+  private readonly currentMobile = readLoginMobile();
+  private readonly adminMobile = '9611675325';
+
   constructor(private questionAnswerService: QuestionAnswerService,
     private technologyService: TechnologyService,
     private sanitizer: DomSanitizer,
     private router: Router) { }
+
+  canManageQa(qa: any): boolean {
+    const current = (this.currentMobile ?? '').toString().trim();
+    if (!current) return false;
+    if (current === this.adminMobile) return true;
+
+    const owner = this.getQaOwnerMobile(qa);
+    if (!owner) return false;
+    return owner === current;
+  }
+
+  private getQaOwnerMobile(qa: any): string {
+    const candidates = [
+      qa?.mobile,
+      qa?.userMobile,
+      qa?.mobileNo,
+      qa?.createdByMobile,
+      qa?.createdBy?.mobile,
+      qa?.ownerMobile
+    ];
+    for (const c of candidates) {
+      const v = (c ?? '').toString().trim();
+      if (v) return v;
+    }
+    return '';
+  }
 
   ngOnInit(): void {
     this.loadTechnologies();
@@ -382,10 +412,12 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   onEdit(qa: any): void {
+    if (!this.canManageQa(qa)) return;
     this.router.navigate(['/interview-qa/editor'], { queryParams: { id: qa.id } });
   }
 
   onDelete(qa: any): void {
+    if (!this.canManageQa(qa)) return;
     this.questionAnswerService
       .deleteUserQAById(qa.id)
       // Many backends return an empty body for DELETE; treat next() as success.

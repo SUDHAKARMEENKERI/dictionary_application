@@ -7,6 +7,7 @@ import { LoaderComponent } from './shared/loader/loader.component';
 import { FooterComponent } from './component/footer/footer.component';
 import { SeoService } from './service/seo.service';
 import { AdsenseService } from './service/adsense.service';
+import { PageViewCounterService } from './service/page-view-counter.service';
 
 @Component({
   selector: 'app-root',
@@ -15,9 +16,15 @@ import { AdsenseService } from './service/adsense.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  constructor(public router: Router, private seo: SeoService, private adsense: AdsenseService) {
+  constructor(
+    public router: Router,
+    private seo: SeoService,
+    private adsense: AdsenseService,
+    private pageViewCounter: PageViewCounterService
+  ) {
     this.seo.init();
     this.adsense.init();
+    this.pageViewCounter.init();
   }
   title = 'CareerPrepBook';
 }

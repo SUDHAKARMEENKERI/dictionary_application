@@ -64,7 +64,7 @@ export class SignupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.userService.registerUser(this.signupForm.value)
+    this.userService.registerUser({ ...this.signupForm.value, isAdmin: false })
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.router.navigate(['/dashboard']);

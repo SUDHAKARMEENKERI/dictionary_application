@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -22,7 +22,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   constructor(private formBuilder: FormBuilder,
     private questionAnswerService: QuestionAnswerService,
     private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer,
-    private techService: TechnologyService) { }
+    private techService: TechnologyService,
+    private router: Router) { }
 
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
@@ -49,6 +50,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   isOutputBasedQuestion: boolean = false;
 
   private pendingEditQa: any | null = null;
+
+  private readonly adminMobile = '9611675325';
 
   readonly difficultyLevels = [
     { label: 'Basic', value: 'BASIC' },
@@ -167,6 +170,21 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         if (!data) return;
 
         const qaItem = data;
+
+        if (!this.canManageQa(qaItem)) {
+          this.modalMessage('You can edit/delete only your own Q&A.');
+          this.editMode = { isEditMode: false, id: null };
+          this.pendingEditQa = null;
+          // Clear the id from the URL so the user can create a new Q&A instead.
+          this.router.navigate([], {
+            relativeTo: this.activeRouter,
+            queryParams: { id: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+          });
+          return;
+        }
+
         this.pendingEditQa = qaItem;
         this.applyEditQa(qaItem);
         this.imageSrc = qaItem.imageBase64 ? this.getImageSrc(qaItem.imageBase64) : '';
@@ -189,6 +207,31 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
   private normalize(value: unknown): string {
     return (value ?? '').toString().trim().toLowerCase();
+  }
+
+  private canManageQa(qa: any): boolean {
+    const current = (readLoginMobile() ?? '').toString().trim();
+    if (!current) return false;
+    if (current === this.adminMobile) return true;
+    const owner = this.getQaOwnerMobile(qa);
+    if (!owner) return false;
+    return owner === current;
+  }
+
+  private getQaOwnerMobile(qa: any): string {
+    const candidates = [
+      qa?.mobile,
+      qa?.userMobile,
+      qa?.mobileNo,
+      qa?.createdByMobile,
+      qa?.createdBy?.mobile,
+      qa?.ownerMobile
+    ];
+    for (const c of candidates) {
+      const v = (c ?? '').toString().trim();
+      if (v) return v;
+    }
+    return '';
   }
 
   private normalizeQuestionType(value: unknown): string {

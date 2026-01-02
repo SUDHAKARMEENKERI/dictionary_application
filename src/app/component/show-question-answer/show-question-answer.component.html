@@ -200,10 +200,10 @@
 
                                 <!-- Action Buttons -->
                                 <div class="qa-actions">
-                                    <button class="btn btn-sm btn-outline-primary" title="Edit Question" (click)="onEdit(qa)">
+                                    <button class="btn btn-sm btn-outline-primary" title="Edit Question" (click)="onEdit(qa)" [disabled]="!canManageQa(qa)">
                                         <i class="bi bi-pencil"></i> Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" title="Delete Question" (click)="onDelete(qa)">
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete Question" (click)="onDelete(qa)" [disabled]="!canManageQa(qa)">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </div>
