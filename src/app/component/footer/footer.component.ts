@@ -33,6 +33,7 @@ export class FooterComponent {
     { label: 'Help Center', path: '/help-center' },
     { label: 'FAQ', path: '/faq' },
     { label: 'Privacy Policy', path: '/privacy-policy' },
+    { label: 'Disclaimer', path: '/disclaimer' },
     { label: 'Terms', path: '/terms' },
   ];
 

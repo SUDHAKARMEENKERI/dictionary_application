@@ -49,6 +49,7 @@ export const routes: Routes = [
   { path: 'help-center', loadComponent: () => import('./component/help-center/help-center.component').then(m => m.HelpCenterComponent), title: 'CareerPrepBook | Help Center', data: { description: 'Help Center and FAQ for using CareerPrepBook.' } },
   { path: 'faq', loadComponent: () => import('./component/faq/faq.component').then(m => m.FaqComponent), title: 'CareerPrepBook | FAQ', data: { description: 'Frequently asked questions about CareerPrepBook.' } },
   { path: 'privacy-policy', loadComponent: () => import('./component/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent), title: 'CareerPrepBook | Privacy Policy', data: { description: 'Privacy Policy for CareerPrepBook.' } },
+  { path: 'disclaimer', loadComponent: () => import('./component/disclaimer/disclaimer.component').then(m => m.DisclaimerComponent), title: 'CareerPrepBook | Disclaimer', data: { description: 'Disclaimer for CareerPrepBook.' } },
   { path: 'terms', loadComponent: () => import('./component/terms/terms.component').then(m => m.TermsComponent), title: 'CareerPrepBook | Terms', data: { description: 'Terms and conditions for using CareerPrepBook.' } },
 
   // Backward-compatible redirects (old URLs)
