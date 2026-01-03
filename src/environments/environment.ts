@@ -14,7 +14,8 @@ export const environment: Environment = {
   },
 
   // Google AdSense
-  // Set `adsenseEnabled: true` and `adsenseClient: 'ca-pub-...'` to enable ads.
+  // Set `adsenseEnabled: true`, `adsenseClient: 'ca-pub-...'`, and `adsenseSlot: '...'` to enable ads.
   adsenseEnabled: false,
-  adsenseClient: ''
+  adsenseClient: '',
+  adsenseSlot: ''
 };

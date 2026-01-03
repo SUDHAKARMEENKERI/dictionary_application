@@ -36,6 +36,11 @@
   }
 }
 
+.tech-panel-mobile {
+  border-bottom: 1px solid #e8eaf6;
+  background: rgba(243, 246, 255, 0.45);
+}
+
 .tech-panel-search {
   border-bottom: 1px solid #e8eaf6;
   background: rgba(243, 246, 255, 0.45);
@@ -55,6 +60,14 @@
   .list-group-item.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-color: transparent;
+  }
+}
+
+@media (max-width: 991.98px) {
+  /* Mobile uses the dropdown; avoid reserving tall scroll areas. */
+  .tech-list {
+    max-height: none;
+    overflow: visible;
   }
 }
 

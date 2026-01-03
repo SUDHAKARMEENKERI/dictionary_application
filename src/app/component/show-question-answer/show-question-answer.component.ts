@@ -59,6 +59,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     if (current === this.adminMobile) return true;
 
     const owner = this.getQaOwnerMobile(qa);
+    console.log('QA Owner:', owner, 'Current User:', current);
     if (!owner) return false;
     return owner === current;
   }

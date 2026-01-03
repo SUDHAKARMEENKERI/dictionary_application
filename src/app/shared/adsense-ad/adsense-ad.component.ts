@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, Input } from '@angular/core';
 import { AdsenseService } from '../../service/adsense.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-adsense-ad',
@@ -12,9 +13,15 @@ import { AdsenseService } from '../../service/adsense.service';
 export class AdsenseAdComponent implements AfterViewInit {
   // If not provided, falls back to environment client loaded by the script.
   @Input() adClient = '';
-  @Input({ required: true }) adSlot!: string;
+  @Input() adSlot = '';
   @Input() adFormat: 'auto' | 'fluid' = 'auto';
   @Input() fullWidthResponsive = true;
+
+  protected readonly env = environment;
+
+  get resolvedSlot(): string {
+    return this.adSlot || this.env.adsenseSlot || '';
+  }
 
   constructor(private ads: AdsenseService) {}
 

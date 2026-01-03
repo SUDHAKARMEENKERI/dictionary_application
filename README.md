@@ -79,9 +79,10 @@ GitHub Pages does not support server-side rewrites. This project includes a GitH
 - [public/404.html](public/404.html): redirects deep links to `/?/...`
 - [src/index.html](src/index.html): restores the original route before Angular boots
 
-Make sure your deploy base href matches your repo name. Default is configured as:
+Make sure your deploy base href matches where the site is served:
 
-- `baseHref`: `/dictionary_application/` in [angular.json](angular.json)
+- **Custom domain (served at domain root)**: base href should be `/`.
+- **github.io project site (served at `/<repo>/`)**: base href should be `/<repo>/`.
 
 If your repository name is different, update `baseHref` accordingly.
 
@@ -112,7 +113,9 @@ and add it to any page where you want an ad unit. Example inputs:
 - `adClient`: optional (usually omit; the script client is used)
 
 
-### npm run deploy:gh --> 1st run this command 
-### npm run deploy --> Next run this comman(might work this command only)
+### Deploy commands
+
+- **Custom domain (careerprepbook.com)**: `npm run deploy:domain`
+- **github.io project pages**: `npm run deploy:gh`
 
 Note: Angular is an SPA, so ads are refreshed on route navigation automatically.

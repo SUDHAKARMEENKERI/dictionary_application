@@ -107,7 +107,7 @@
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
-            "baseHref": "/dictionary_application/",
+            "baseHref": "/",
             "dir": "dist/dictionary_application/browser"
           }
         }

@@ -20,7 +20,19 @@
                     <div class="hint">Select one</div>
                 </div>
 
-                <div class="tech-panel-search p-3">
+                <!-- Mobile: compact dropdown (prevents a very long scrollable list) -->
+                <div class="tech-panel-mobile d-lg-none p-3">
+                    <label class="form-label small text-muted mb-2">Choose a topic</label>
+                    <select
+                        class="form-select form-select-sm"
+                        [ngModel]="selectedTechnology"
+                        (ngModelChange)="selectTechnology($event)"
+                    >
+                        <option *ngFor="let t of filteredTechnologiesFlat" [value]="t">{{ t }}</option>
+                    </select>
+                </div>
+
+                <div class="tech-panel-search p-3 d-none d-lg-block">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text">
                             <i class="bi bi-search"></i>
@@ -34,8 +46,10 @@
                     </div>
                 </div>
 
-                <!-- Preferred: sectioned by Technology -->
-                <div class="tech-sections" *ngIf="technologySections?.length; else flatTechList">
+                <!-- Desktop: full list with search + sections -->
+                <div class="d-none d-lg-block">
+                    <!-- Preferred: sectioned by Technology -->
+                    <div class="tech-sections" *ngIf="technologySections?.length; else flatTechList">
                     <div class="list-group tech-list">
                         <button
                             type="button"
@@ -63,10 +77,10 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                    </div>
 
-                <!-- Fallback: flat list -->
-                <ng-template #flatTechList>
+                    <!-- Fallback: flat list -->
+                    <ng-template #flatTechList>
                     <div class="list-group tech-list" *ngIf="technologies?.length">
                         <button
                             type="button"
@@ -78,10 +92,11 @@
                             {{ t }}
                         </button>
                     </div>
-                </ng-template>
+                    </ng-template>
 
-                <div class="text-muted small p-3" *ngIf="!technologies?.length">
-                    Loading technologies…
+                    <div class="text-muted small p-3" *ngIf="!technologies?.length">
+                        Loading technologies…
+                    </div>
                 </div>
             </div>
         </div>

@@ -9,4 +9,6 @@ export type Environment = {
   };
   adsenseEnabled: boolean;
   adsenseClient: string;
+  /** Default AdSense slot id to use for global placements. */
+  adsenseSlot: string;
 };

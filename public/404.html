@@ -8,7 +8,9 @@
     // GitHub Pages SPA redirect
     // Keeps 1 path segment (the repo name). Example:
     // https://<user>.github.io/<repo>/quiz -> https://<user>.github.io/<repo>/?/quiz
-    var pathSegmentsToKeep = 1;
+    // On a custom domain, the site is served at the domain root, so keep 0.
+    // On <user>.github.io project pages, keep 1 (the repo name).
+    var pathSegmentsToKeep = (window.location.hostname || '').endsWith('github.io') ? 1 : 0;
 
     var l = window.location;
     l.replace(

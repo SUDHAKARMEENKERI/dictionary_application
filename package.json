@@ -6,10 +6,12 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
+    "build:domain": "ng build --configuration production --base-href / --deploy-url /",
     "build:gh": "ng build --configuration production --base-href /dictionary_application/ --deploy-url /dictionary_application/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy": "ng deploy",
+    "deploy:domain": "npm run build:domain && npx angular-cli-ghpages --dir dist/dictionary_application/browser --cname careerprepbook.com",
     "deploy:gh": "npm run build:gh && npx angular-cli-ghpages --dir dist/dictionary_application/browser"
   },
   "private": true,

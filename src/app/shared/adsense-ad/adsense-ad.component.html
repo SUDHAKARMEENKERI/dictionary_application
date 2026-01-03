@@ -1,8 +1,9 @@
 <ins
+  *ngIf="resolvedSlot"
   class="adsbygoogle"
   style="display:block"
-  [attr.data-ad-client]="adClient || null"
-  [attr.data-ad-slot]="adSlot"
+  [attr.data-ad-client]="adClient || env.adsenseClient || null"
+  [attr.data-ad-slot]="resolvedSlot"
   [attr.data-ad-format]="adFormat"
   [attr.data-full-width-responsive]="fullWidthResponsive ? 'true' : 'false'">
 </ins>
