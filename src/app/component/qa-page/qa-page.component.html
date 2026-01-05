@@ -71,50 +71,66 @@
             <!-- Right: Q&A -->
             <div class="col-12 col-lg-9">
                 <div class="qa-wrapper">
-                    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+                    <div class="d-flex flex-wrap flex-lg-nowrap justify-content-between align-items-end gap-2 mb-2">
                         <div>
                             <h2 class="page-title mb-1">{{ topic || 'Questions' }}</h2>
                             <div class="page-subtitle">Interview questions with practical, interview-ready answers</div>
                         </div>
                         <div class="small text-muted" *ngIf="topic">
-                            {{ questionAnswersBySelectedLevel.length }} questions
+                            {{ filteredQuestionAnswersBySelectedLevel.length }} questions
                         </div>
                     </div>
 
-                    <div class="d-flex flex-wrap gap-2 mb-3" *ngIf="topic">
-                        <button
-                            type="button"
-                            class="btn btn-sm"
-                            [class.btn-primary]="selectedLevel === 'basic'"
-                            [class.btn-outline-primary]="selectedLevel !== 'basic'"
-                            (click)="setLevel('basic')"
-                        >
-                            Basic
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-sm"
-                            [class.btn-primary]="selectedLevel === 'intermediate'"
-                            [class.btn-outline-primary]="selectedLevel !== 'intermediate'"
-                            (click)="setLevel('intermediate')"
-                        >
-                            Intermediate
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-sm"
-                            [class.btn-primary]="selectedLevel === 'advanced'"
-                            [class.btn-outline-primary]="selectedLevel !== 'advanced'"
-                            (click)="setLevel('advanced')"
-                        >
-                            Advance
-                        </button>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3" *ngIf="topic">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                [class.btn-primary]="selectedLevel === 'basic'"
+                                [class.btn-outline-primary]="selectedLevel !== 'basic'"
+                                (click)="setLevel('basic')"
+                            >
+                                Basic
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                [class.btn-primary]="selectedLevel === 'intermediate'"
+                                [class.btn-outline-primary]="selectedLevel !== 'intermediate'"
+                                (click)="setLevel('intermediate')"
+                            >
+                                Intermediate
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                [class.btn-primary]="selectedLevel === 'advanced'"
+                                [class.btn-outline-primary]="selectedLevel !== 'advanced'"
+                                (click)="setLevel('advanced')"
+                            >
+                                Advance
+                            </button>
+                        </div>
                     </div>
 
                     <div class="intro-card mb-3" *ngIf="topic">
                         <h3 class="h5 mb-1">{{ topic }}</h3>
                         <div class="text-muted small">
                             Browse Q&A for this topic. Use Output Practice and Quiz from the top.
+                        </div>
+                    </div>
+
+                    <div class="qa-search mb-3" *ngIf="topic">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input
+                                type="text"
+                                class="form-control"
+                                placeholder="Search questions/answers…"
+                                [(ngModel)]="qaSearchQuery"
+                            />
                         </div>
                     </div>
 
@@ -126,27 +142,65 @@
                         No questions found for <strong>{{ topic }}</strong>.
                     </div>
 
-                    <div class="alert alert-info" *ngIf="!isLoadingQuestions && topic && questionAnswers.length > 0 && questionAnswersBySelectedLevel.length === 0">
+                    <div class="alert alert-info" *ngIf="!isLoadingQuestions && topic && !qaSearchQuery?.trim() && questionAnswers.length > 0 && questionAnswersBySelectedLevel.length === 0">
                         No <strong>{{ selectedLevel }}</strong> questions found for <strong>{{ topic }}</strong>.
                     </div>
 
-                    <div class="qa-list" *ngIf="!isLoadingQuestions && questionAnswersBySelectedLevel.length > 0">
-                        @for (qa of questionAnswersBySelectedLevel; track qa.question; let i = $index) {
-                        <div class="qa-card">
-                            <div class="qa-header">
-                                <span class="q-badge" [attr.aria-label]="'Question ' + (i + 1)">Q{{ i + 1 }}</span>
-                                <h3 class="qa-question">{{ qa.question }}</h3>
+                    <div class="alert alert-info" *ngIf="!isLoadingQuestions && topic && qaSearchQuery?.trim() && questionAnswers.length > 0 && filteredQuestionAnswersBySelectedLevel.length === 0">
+                        No results found for <strong>"{{ qaSearchQuery }}"</strong>.
+                    </div>
+
+                    <div class="qa-list" *ngIf="!isLoadingQuestions && filteredQuestionAnswersBySelectedLevel.length > 0">
+                        @for (qa of filteredQuestionAnswersBySelectedLevel; track qa.question; let i = $index) {
+                        <div class="qa-item">
+                            <div class="qa-item-header">
+                                <div class="qa-summary-left">
+                                    <div class="qa-marker" aria-hidden="true">
+                                        <span class="qa-badge question-badge">{{ i + 1 }}</span>
+                                    </div>
+
+                                    <div class="qa-summary-text">
+                                        <div class="qa-question">{{ qa.question }}</div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="mb-2">
-                                <span class="badge bg-light text-dark">
-                                    {{ levelLabel(qa) }}
-                                </span>
-                            </div>
+                            <div class="qa-item-body">
+                                <div class="qa-answer-row">
+                                    <span class="qa-badge answer-badge" aria-hidden="true">A</span>
+                                    <div class="qa-answer">
+                                        <ng-container *ngFor="let part of answerParts(qa.answer)">
+                                            <span *ngIf="part.kind === 'text'" class="qa-answer-text">{{ part.text }}</span>
+                                            <div *ngIf="part.kind === 'example'" class="qa-example">
+                                                <div class="qa-example-label">Example</div>
+                                                <pre class="qa-example-code">{{ part.text }}</pre>
+                                            </div>
+                                            <div *ngIf="part.kind === 'table'" class="qa-table">
+                                                <table class="qa-table-table" aria-label="Answer table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th *ngFor="let h of part.headers">{{ h }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr *ngFor="let row of part.rows">
+                                                            <td *ngFor="let cell of row">{{ cell }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                </div>
 
-                            <div class="qa-answer">
-                                <span class="a-badge">A</span>
-                                <p>{{ qa.answer }}</p>
+                                <div class="qa-item-footer">
+                                    <div class="qa-footer-meta">
+                                        <span class="badge bg-light text-dark" *ngIf="qa.topic || topic">
+                                            <i class="bi bi-tag me-1"></i>{{ qa.topic || topic }}
+                                        </span>
+                                        <span class="badge bg-light text-dark">{{ levelLabel(qa) }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         }

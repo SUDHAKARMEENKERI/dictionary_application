@@ -1,5 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* Global typography: keep a consistent Bootstrap/system font across the app */
+body {
+	font-family: var(--bs-font-sans-serif);
+}
+
 /*
 	Pagination layout fixes (global)
 	- Prevents long paginations from overflowing/breaking layout

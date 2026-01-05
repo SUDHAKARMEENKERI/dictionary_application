@@ -31,6 +31,7 @@ export class QaPageComponent implements OnInit, OnDestroy {
   technologies: Technology[] = [];
   topics: TechnologyItem[] = [];
   topicSearchQuery = '';
+  qaSearchQuery = '';
 
   category = '';
   categoryTitle = '';
@@ -137,7 +138,17 @@ export class QaPageComponent implements OnInit, OnDestroy {
 
   private setTopic(nextTopic: string): void {
     this.topic = nextTopic;
+    this.qaSearchQuery = '';
     this.loadQuestions();
+  }
+
+  private matchesQaSearch(qa: any, queryLower: string): boolean {
+    const haystack = [qa?.question, qa?.answer, qa?.topic]
+      .filter(Boolean)
+      .join(' ')
+      .toString()
+      .toLowerCase();
+    return haystack.includes(queryLower);
   }
 
   get filteredTopics(): TechnologyItem[] {
@@ -182,9 +193,171 @@ export class QaPageComponent implements OnInit, OnDestroy {
     return 'Basic';
   }
 
+  answerParts(answer: unknown):
+    Array<
+      | { kind: 'text' | 'example'; text: string }
+      | { kind: 'table'; headers: string[]; rows: string[][] }
+    > {
+    const raw = (answer ?? '').toString();
+    if (!raw.trim()) return [];
+
+    const lines = raw.split(/\r?\n/);
+    const parts:
+      Array<
+        | { kind: 'text' | 'example'; text: string }
+        | { kind: 'table'; headers: string[]; rows: string[][] }
+      > = [];
+
+    let textBuffer: string[] = [];
+    let exampleBuffer: string[] = [];
+    let tableBuffer: string[][] = [];
+    let inExample = false;
+    let inTable = false;
+
+    const splitColumns = (value: string): string[] | null => {
+      const line = (value ?? '').toString();
+      if (!line.trim()) return null;
+
+      if (/\t+/.test(line)) {
+        const cols = line.split(/\t+/).map((c) => c.trim());
+        return cols.length >= 2 ? cols : null;
+      }
+
+      if (/\s{2,}/.test(line.trim())) {
+        const cols = line.trim().split(/\s{2,}/).map((c) => c.trim());
+        return cols.length >= 2 ? cols : null;
+      }
+
+      if (line.includes('|')) {
+        const cols = line
+          .split('|')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0);
+        return cols.length >= 2 ? cols : null;
+      }
+
+      return null;
+    };
+
+    const flushText = () => {
+      const text = textBuffer.join('\n').trimEnd();
+      if (text) parts.push({ kind: 'text', text });
+      textBuffer = [];
+    };
+
+    const flushExample = () => {
+      const text = exampleBuffer.join('\n').trimEnd();
+      if (text) parts.push({ kind: 'example', text });
+      exampleBuffer = [];
+    };
+
+    const flushTable = () => {
+      if (tableBuffer.length < 2) {
+        for (const row of tableBuffer) {
+          textBuffer.push(row.join('\t'));
+        }
+        tableBuffer = [];
+        return;
+      }
+
+      const maxCols = Math.max(...tableBuffer.map((r) => r.length));
+      const headers = (tableBuffer[0] || []).map((c) => (c ?? '').toString().trim());
+      while (headers.length < maxCols) headers.push('');
+
+      const rows = (tableBuffer.slice(1) || []).map((r) => {
+        const row = r.map((c) => (c ?? '').toString().trim());
+        while (row.length < maxCols) row.push('');
+        return row;
+      });
+
+      parts.push({ kind: 'table', headers, rows });
+      tableBuffer = [];
+    };
+
+    for (let idx = 0; idx < lines.length; idx++) {
+      const line = (lines[idx] ?? '').toString();
+
+      const exampleMatch = line.match(/^\s*(examples?|eg|e\.g\.)\s*(?:[:\-]\s*)?(.*)$/i);
+      if (exampleMatch) {
+        if (inTable) {
+          flushTable();
+          inTable = false;
+        }
+        if (inExample) {
+          flushExample();
+          inExample = false;
+        }
+        flushText();
+        inExample = true;
+        const first = (exampleMatch[2] ?? '').toString();
+        if (first) exampleBuffer.push(first);
+        continue;
+      }
+
+      if (inExample) {
+        if (!line.trim()) {
+          flushExample();
+          inExample = false;
+          continue;
+        }
+        exampleBuffer.push(line);
+        continue;
+      }
+
+      if (inTable) {
+        if (!line.trim()) {
+          flushTable();
+          inTable = false;
+          continue;
+        }
+
+        const cols = splitColumns(line);
+        if (cols && cols.length >= 2) {
+          tableBuffer.push(cols);
+          continue;
+        }
+
+        flushTable();
+        inTable = false;
+        idx--;
+        continue;
+      }
+
+      const cols = splitColumns(line);
+      if (cols && cols.length >= 2) {
+        const next = idx + 1 < lines.length ? (lines[idx + 1] ?? '').toString() : '';
+        const nextCols = next.trim() ? splitColumns(next) : null;
+        if (nextCols && nextCols.length >= 2) {
+          flushText();
+          inTable = true;
+          tableBuffer = [cols];
+          continue;
+        }
+      }
+
+      textBuffer.push(line);
+    }
+
+    if (inTable) flushTable();
+    if (inExample) flushExample();
+    flushText();
+
+    return parts;
+  }
+
   get questionAnswersBySelectedLevel(): QuestionAnswer[] {
     const list = (this.questionAnswers || []) as any[];
     return list.filter((qa) => this.getQaLevel(qa) === this.selectedLevel) as QuestionAnswer[];
+  }
+
+  get filteredQuestionAnswersBySelectedLevel(): QuestionAnswer[] {
+    const query = (this.qaSearchQuery ?? '').toString().trim().toLowerCase();
+
+    // When searching, search across ALL levels.
+    // When not searching, keep the normal selected-level browsing behavior.
+    const base = (query ? (this.questionAnswers || []) : this.questionAnswersBySelectedLevel) as any[];
+    if (!query) return base as QuestionAnswer[];
+    return base.filter((qa) => this.matchesQaSearch(qa, query)) as QuestionAnswer[];
   }
 
   private loadQuestions(): void {

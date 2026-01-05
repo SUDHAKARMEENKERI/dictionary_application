@@ -27,22 +27,25 @@ export class ContactUsComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.contactForm.valid) {
-      this.contactService
-        .saveContactForm(this.contactForm.value)
-        .pipe(
-          tap(() => {
-            this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';
-            this.contactForm.reset();
-          }),
-          apiEmpty('Error submitting contact form'),
-          switchMap(() => timer(5000)),
-          takeUntil(this.destroy$)
-        )
-        .subscribe(() => {
-          this.messageShow = '';
-        });
+    if (!this.contactForm?.valid) {
+      this.contactForm?.markAllAsTouched();
+      return;
     }
+
+    this.contactService
+      .saveContactForm(this.contactForm.value)
+      .pipe(
+        tap(() => {
+          this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';
+          this.contactForm.reset();
+        }),
+        apiEmpty('Error submitting contact form'),
+        switchMap(() => timer(5000)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.messageShow = '';
+      });
   }
 
   ngOnDestroy(): void {

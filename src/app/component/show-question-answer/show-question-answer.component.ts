@@ -126,12 +126,18 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
 
   get displayQuestionAnswers(): any[] {
     const query = (this.qaSearchQuery ?? '').toString().trim().toLowerCase();
-    if (!query) return this.questionAnswers;
+    const base = this.isAllMode
+      ? (this.questionAnswers || []).filter((qa) => this.getQaLevel(qa) === this.selectedLevel)
+      : (this.questionAnswers || []);
 
-    // In topic mode, questionAnswers already reflects the filtered + paged slice.
-    if (!this.isAllMode) return this.questionAnswers;
+    if (!query) return base;
 
-    return (this.questionAnswers || []).filter((qa) => this.matchesQaSearch(qa, query));
+    // Topic mode filtering happens in applyTopicSearchAndRefresh().
+    if (!this.isAllMode) return base;
+
+    // In All mode we keep server paging; if the backend supports server-side search,
+    // results will already be filtered in the returned page.
+    return base;
   }
 
   setLevel(level: (typeof this.levels)[number]): void {
@@ -168,6 +174,166 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     if (lvl === 'advanced') return 'Advanced';
     if (lvl === 'intermediate') return 'Intermediate';
     return 'Basic';
+  }
+
+  answerParts(answer: unknown):
+    Array<
+      | { kind: 'text' | 'example'; text: string }
+      | { kind: 'table'; headers: string[]; rows: string[][] }
+    > {
+    const raw = (answer ?? '').toString();
+    if (!raw.trim()) return [];
+
+    const lines = raw.split(/\r?\n/);
+    const parts:
+      Array<
+        | { kind: 'text' | 'example'; text: string }
+        | { kind: 'table'; headers: string[]; rows: string[][] }
+      > = [];
+
+    let textBuffer: string[] = [];
+    let exampleBuffer: string[] = [];
+    let tableBuffer: string[][] = [];
+    let inExample = false;
+    let inTable = false;
+
+    const splitColumns = (value: string): string[] | null => {
+      const line = (value ?? '').toString();
+      if (!line.trim()) return null;
+
+      // Prefer tabs when present.
+      if (/\t+/.test(line)) {
+        const cols = line.split(/\t+/).map((c) => c.trim());
+        return cols.length >= 2 ? cols : null;
+      }
+
+      // Common: multiple spaces used to align columns.
+      if (/\s{2,}/.test(line.trim())) {
+        const cols = line.trim().split(/\s{2,}/).map((c) => c.trim());
+        return cols.length >= 2 ? cols : null;
+      }
+
+      // Fallback: pipe-separated table (keep it conservative).
+      if (line.includes('|')) {
+        const cols = line
+          .split('|')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0);
+        return cols.length >= 2 ? cols : null;
+      }
+
+      return null;
+    };
+
+    const flushText = () => {
+      const text = textBuffer.join('\n').trimEnd();
+      if (text) parts.push({ kind: 'text', text });
+      textBuffer = [];
+    };
+
+    const flushExample = () => {
+      const text = exampleBuffer.join('\n').trimEnd();
+      if (text) parts.push({ kind: 'example', text });
+      exampleBuffer = [];
+    };
+
+    const flushTable = () => {
+      if (tableBuffer.length < 2) {
+        // Not enough rows to be a real table; treat as text.
+        for (const row of tableBuffer) {
+          textBuffer.push(row.join('\t'));
+        }
+        tableBuffer = [];
+        return;
+      }
+
+      const maxCols = Math.max(...tableBuffer.map((r) => r.length));
+      const headers = (tableBuffer[0] || []).map((c) => (c ?? '').toString().trim());
+      while (headers.length < maxCols) headers.push('');
+
+      const rows = (tableBuffer.slice(1) || []).map((r) => {
+        const row = r.map((c) => (c ?? '').toString().trim());
+        while (row.length < maxCols) row.push('');
+        return row;
+      });
+
+      parts.push({ kind: 'table', headers, rows });
+      tableBuffer = [];
+    };
+
+    for (let idx = 0; idx < lines.length; idx++) {
+      const line = (lines[idx] ?? '').toString();
+
+      // Example blocks take priority.
+      const exampleMatch = line.match(/^\s*(examples?|eg|e\.g\.)\s*(?:[:\-]\s*)?(.*)$/i);
+      if (exampleMatch) {
+        if (inTable) {
+          flushTable();
+          inTable = false;
+        }
+        if (inExample) {
+          flushExample();
+          inExample = false;
+        }
+        flushText();
+        inExample = true;
+        const first = (exampleMatch[2] ?? '').toString();
+        if (first) exampleBuffer.push(first);
+        continue;
+      }
+
+      if (inExample) {
+        // End example block on blank line.
+        if (!line.trim()) {
+          flushExample();
+          inExample = false;
+          continue;
+        }
+        exampleBuffer.push(line);
+        continue;
+      }
+
+      if (inTable) {
+        if (!line.trim()) {
+          flushTable();
+          inTable = false;
+          continue;
+        }
+
+        const cols = splitColumns(line);
+        if (cols && cols.length >= 2) {
+          tableBuffer.push(cols);
+          continue;
+        }
+
+        // End of table block; re-process this line as normal text.
+        flushTable();
+        inTable = false;
+        idx--;
+        continue;
+      }
+
+      // Try to start a table block (require at least 2 consecutive table lines).
+      const cols = splitColumns(line);
+      if (cols && cols.length >= 2) {
+        const next = idx + 1 < lines.length ? (lines[idx + 1] ?? '').toString() : '';
+        const nextCols = next.trim() ? splitColumns(next) : null;
+        if (nextCols && nextCols.length >= 2) {
+          flushText();
+          inTable = true;
+          tableBuffer = [cols];
+          continue;
+        }
+      }
+
+      textBuffer.push(line);
+    }
+
+    if (inTable) flushTable();
+    if (inExample) flushExample();
+    flushText();
+
+    return parts;
   }
 
   private loadTechnologies(): void {
@@ -247,8 +413,14 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   onQaSearchChange(): void {
-    if (this.isAllMode) return;
     this.currentPage = 0;
+
+    if (this.isAllMode) {
+      // All mode is server-paged; search must be applied via the API.
+      this.loadPage(0);
+      return;
+    }
+
     this.applyTopicSearchAndRefresh();
   }
 
@@ -328,7 +500,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     const fallback = { content: [], totalPages: 1, number: page, totalElements: 0 } as any;
 
     this.questionAnswerService
-      .getPagedQuestionAnswers(page, this.pageSize)
+      .getPagedQuestionAnswers(page, this.pageSize, this.selectedLevel, this.qaSearchQuery)
       .pipe(apiFallback(fallback, 'Error loading question answers'), takeUntil(this.destroy$))
       .subscribe((res: any) => {
         const content = (res?.content as any[]) ?? [];

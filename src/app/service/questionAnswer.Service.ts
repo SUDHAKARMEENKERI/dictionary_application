@@ -49,8 +49,11 @@ export class QuestionAnswerService {
         return this.http.delete<any>(url);
     }
 
-    getPagedQuestionAnswers(page: number, size: number): Observable<any> {
-        const url = `${this.apiUrl}/qa/list?page=${page}&size=${size}`;
+    getPagedQuestionAnswers(page: number, size: number, level?: string, searchQuery?: string): Observable<any> {
+        const levelParam = level ? `&level=${encodeURIComponent(level)}` : '';
+        const q = (searchQuery ?? '').toString().trim();
+        const searchParam = q ? `&search=${encodeURIComponent(q)}` : '';
+        const url = `${this.apiUrl}/qa/list?page=${page}&size=${size}${levelParam}${searchParam}`;
         return this.http.get<any>(url);
     }
 

@@ -12,6 +12,7 @@ export class ContactService {
 
     saveContactForm(formData: any) {
         const url = `${this.apiUrl}/contact`;
-        return this.http.post(url, formData);
+        // Some backends return empty body / plain text; avoid JSON parse errors.
+        return this.http.post(url, formData, { responseType: 'text' });
     }
 }
