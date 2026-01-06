@@ -24,16 +24,16 @@
         </div>
 
         <div *ngFor="let tech of filteredTechnologies" class="mb-4">
-            <button type="button" class="category-title category-link" (click)="onOpenCategory(tech)">
+            <a class="category-title category-link" [routerLink]="['/tutorial', (tech.slug || tech.name), (tech.items.length ? tech.items[0].name : '')]">
                 {{ tech.name }}
                 <span class="chev">›</span>
-            </button>
+            </a>
             <div class="tech-grid">
-                <button type="button" class="tech-card" *ngFor="let item of tech.items" (click)="onLoadQA(tech, item)">
+                <a class="tech-card" *ngFor="let item of tech.items" [routerLink]="['/tutorial', (tech.slug || tech.name), item.name]">
                     <img [src]="getIconSrc(item.icon)" alt="{{ item.name }}">
                     <h5 class="mb-1">{{ item.name }}</h5>
                     <p class="mb-0">{{ item.questionCount }} Questions</p>
-                </button>
+                </a>
             </div>
         </div>
     </div>

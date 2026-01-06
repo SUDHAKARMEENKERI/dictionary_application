@@ -5,15 +5,16 @@ import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { QaListComponent } from '../qa-list/qa-list.component';
 import { TutorialComponent } from '../tutorial/tutorial.component';
 import { QuizComponent } from '../quiz/quiz.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { from, of, Subject, takeUntil } from 'rxjs';
 import { QuestionAnswer, Technology, TechnologyItem } from '../../models/Technology';
 import { TechnologyService } from '../../service/technology.service';
 import { catchError, concatMap, defaultIfEmpty, filter, map, take } from 'rxjs/operators';
+import { Meta, Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-qa-page',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './qa-page.component.html',
   styleUrl: './qa-page.component.scss',
   standalone: true,
@@ -24,7 +25,9 @@ export class QaPageComponent implements OnInit, OnDestroy {
     private activeRouter: ActivatedRoute,
     private questionAnswerService: QuestionAnswerService,
     private technologyService: TechnologyService,
-    private router: Router
+    private router: Router,
+    private title: Title,
+    private meta: Meta
   ) { }
 
   private destroy$ = new Subject<void>();
@@ -35,6 +38,8 @@ export class QaPageComponent implements OnInit, OnDestroy {
 
   category = '';
   categoryTitle = '';
+
+  categorySegment = '';
 
   questionAnswers: QuestionAnswer[] = [];
   topic: string = '';
@@ -56,11 +61,15 @@ export class QaPageComponent implements OnInit, OnDestroy {
         }
       });
 
+    // Support both legacy query-param URLs (/tutorial?category=...&topic=...)
+    // and crawlable path URLs (/tutorial/:category/:topic).
     this.activeRouter.queryParams
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.applySelectionFromUrl();
-      });
+      .subscribe(() => this.applySelectionFromUrl());
+
+    this.activeRouter.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.applySelectionFromUrl());
   }
 
   private normalize(value: string | null | undefined): string {
@@ -99,9 +108,16 @@ export class QaPageComponent implements OnInit, OnDestroy {
   }
 
   private applySelectionFromUrl(): void {
-    const params = this.activeRouter.snapshot.queryParams;
-    this.category = params['category'] || '';
-    const urlTopic = params['topic'] || '';
+    const query = this.activeRouter.snapshot.queryParams;
+    const pm = this.activeRouter.snapshot.paramMap;
+
+    const categoryFromPath = pm.get('category') || '';
+    const topicFromPath = pm.get('topic') || '';
+
+    this.category = categoryFromPath || query['category'] || '';
+    const urlTopic = topicFromPath || query['topic'] || '';
+
+    this.categorySegment = this.category;
 
     if (!this.technologies?.length) {
       this.categoryTitle = this.category || 'Tutorial';
@@ -130,6 +146,9 @@ export class QaPageComponent implements OnInit, OnDestroy {
     this.categoryTitle = selectedCategory?.name || (this.category || 'Tutorial');
     this.topics = selectedCategory?.items || [];
 
+    // Prefer a stable segment for URLs (slug if available).
+    this.categorySegment = selectedCategory?.slug || this.category || selectedCategory?.name || this.categoryTitle;
+
     const nextTopic = urlTopic || this.topics?.[0]?.name || '';
     if (nextTopic && nextTopic !== this.topic) {
       this.setTopic(nextTopic);
@@ -140,6 +159,23 @@ export class QaPageComponent implements OnInit, OnDestroy {
     this.topic = nextTopic;
     this.qaSearchQuery = '';
     this.loadQuestions();
+    this.applyDynamicSeo();
+  }
+
+  private applyDynamicSeo(): void {
+    const topic = (this.topic ?? '').toString().trim();
+    const category = (this.categoryTitle ?? '').toString().trim();
+    if (!topic) return;
+
+    const pageTitle = `${topic} Interview Questions | CareerPrepBook`;
+    const description = `Practice ${topic} interview questions with clear, interview-ready answers${category ? ` for ${category}` : ''}.`;
+
+    this.title.setTitle(pageTitle);
+    this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ property: 'og:title', content: pageTitle });
+    this.meta.updateTag({ property: 'og:description', content: description });
+    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.meta.updateTag({ name: 'twitter:description', content: description });
   }
 
   private matchesQaSearch(qa: any, queryLower: string): boolean {
@@ -158,11 +194,7 @@ export class QaPageComponent implements OnInit, OnDestroy {
   }
 
   onSelectTopic(topicName: string): void {
-    this.router.navigate([], {
-      relativeTo: this.activeRouter,
-      queryParams: { category: this.category || this.categoryTitle, topic: topicName },
-      queryParamsHandling: 'merge'
-    });
+    this.router.navigate(['/tutorial', this.categorySegment || (this.category || this.categoryTitle), topicName]);
   }
 
   setLevel(level: (typeof this.levels)[number]): void {

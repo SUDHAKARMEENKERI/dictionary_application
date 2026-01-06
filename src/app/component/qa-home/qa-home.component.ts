@@ -4,13 +4,13 @@ import { OnDestroy, OnInit } from '@angular/core';
 import { TechnologyService } from '../../service/technology.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Technology } from '../../models/Technology';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { apiFallback } from '../../util/apiRx';
 
 @Component({
   selector: 'app-qa-home',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './qa-home.component.html',
   styleUrl: './qa-home.component.scss'
 })
@@ -54,15 +54,11 @@ export class QaHomeComponent implements OnInit, OnDestroy {
 
   onOpenCategory(tech: Technology) {
     const firstTopic = tech.items?.[0]?.name;
-    this.router.navigate(['/tutorial'], {
-      queryParams: { category: tech.slug || tech.name, topic: firstTopic }
-    });
+    this.router.navigate(['/tutorial', tech.slug || tech.name, firstTopic || '']);
   }
 
   onLoadQA(tech: Technology, item: { name: string }) {
-    this.router.navigate(['/tutorial'], {
-      queryParams: { category: tech.slug || tech.name, topic: item.name }
-    });
+    this.router.navigate(['/tutorial', tech.slug || tech.name, item.name]);
   }
 
   private normalize(value: unknown): string {

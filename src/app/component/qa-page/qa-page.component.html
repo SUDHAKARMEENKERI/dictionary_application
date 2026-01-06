@@ -44,16 +44,15 @@
                     </div>
 
                     <div class="list-group topics-list" *ngIf="topics.length; else noTopics">
-                        <button
-                            type="button"
+                        <a
                             class="list-group-item list-group-item-action"
                             *ngFor="let t of filteredTopics; trackBy: trackByTopicName"
                             [class.active]="t.name === topic"
-                            (click)="onSelectTopic(t.name)"
+                            [routerLink]="['/tutorial', (categorySegment || (category || categoryTitle)), t.name]"
                         >
                             <span class="topic-name">{{ t.name }}</span>
                             <span class="topic-count" *ngIf="t.questionCount">{{ t.questionCount }}</span>
-                        </button>
+                        </a>
                     </div>
 
                     <div class="text-muted small p-3" *ngIf="topics.length && filteredTopics.length === 0">

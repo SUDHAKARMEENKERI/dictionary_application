@@ -9,10 +9,70 @@ import { QaHomeComponent } from './component/qa-home/qa-home.component';
 import { QaPageComponent } from './component/qa-page/qa-page.component';
 import { QuizComponent } from './component/quiz/quiz.component';
 import { TutorialComponent } from './component/tutorial/tutorial.component';
+import { SeoCategoryLandingComponent } from './component/seo-category-landing/seo-category-landing.component';
+import { SeoTopicLandingComponent } from './component/seo-topic-landing/seo-topic-landing.component';
 
 export const routes: Routes = [
   // Default
   { path: '', redirectTo: '/interview-prep', pathMatch: 'full' },
+
+  // SEO landing pages (indexable, keyword-focused)
+  {
+    path: 'java-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'Java Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'Java interview questions and answers: practice by topic with clear explanations.', category: 'java' }
+  },
+  {
+    path: 'javascript-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'JavaScript Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'JavaScript interview questions and answers: practice by topic with clear explanations.', category: 'javascript' }
+  },
+  {
+    path: 'angular-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'Angular Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'Angular interview questions and answers: practice by topic with clear explanations.', category: 'angular' }
+  },
+  {
+    path: 'react-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'React Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'React interview questions and answers: practice by topic with clear explanations.', category: 'react' }
+  },
+  {
+    path: 'html-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'HTML Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'HTML interview questions and answers: practice by topic with clear explanations.', category: 'html' }
+  },
+  {
+    path: 'css-interview-questions-and-answers',
+    component: SeoCategoryLandingComponent,
+    title: 'CSS Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'CSS interview questions and answers: practice by topic with clear explanations.', category: 'css' }
+  },
+
+  // Java sub-topics (SEO)
+  {
+    path: 'java-exception-interview-questions-and-answers',
+    component: SeoTopicLandingComponent,
+    title: 'Java Exception Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'Java exception interview questions and answers with clear explanations.', category: 'java', topic: 'Exception' }
+  },
+  {
+    path: 'java-collections-interview-questions-and-answers',
+    component: SeoTopicLandingComponent,
+    title: 'Java Collections Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'Java collections interview questions and answers with clear explanations.', category: 'java', topic: 'Collections' }
+  },
+  {
+    path: 'java-multithreading-interview-questions-and-answers',
+    component: SeoTopicLandingComponent,
+    title: 'Java Multithreading Interview Questions and Answers | CareerPrepBook',
+    data: { description: 'Java multithreading interview questions and answers with clear explanations.', category: 'java', topic: 'Multithreading' }
+  },
 
   // Auth
   { path: 'login', component: LoginComponent, title: 'CareerPrepBook | Login', data: { description: 'Log in to CareerPrepBook to access your dashboard and learning tools.', robots: 'noindex, nofollow' } },
@@ -38,6 +98,7 @@ export const routes: Routes = [
   { path: 'interview-prep', component: QaHomeComponent, title: 'CareerPrepBook | Interview Prep', data: { description: 'Choose a topic and practice interview Q&A, quizzes, and tutorials.' } },
 
   // Learning & Practice
+  { path: 'tutorial/:category/:topic', component: QaPageComponent, title: 'CareerPrepBook | Topic Tutorial', data: { description: 'Topic-based interview learning with guided explanations and practice.' } },
   { path: 'tutorial', component: QaPageComponent, title: 'CareerPrepBook | Topic Tutorial', data: { description: 'Topic-based interview learning with guided explanations and practice.' } },
   { path: 'quiz', loadComponent: () => import('./component/quiz-landing/quiz-landing.component').then(m => m.QuizLandingComponent), title: 'CareerPrepBook | Quiz Topics', data: { description: 'Choose a technology/topic and start a quiz.' } },
   { path: 'quiz/play', component: QuizComponent, title: 'CareerPrepBook | Quiz', data: { description: 'Take curated quizzes and see your score with correct/wrong/unattempted breakdown.' } },
