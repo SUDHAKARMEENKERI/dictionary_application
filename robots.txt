@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sudhakarmeenkeri.github.io/dictionary_application/sitemap.xml
+Sitemap: https://careerprepbook.com/sitemap.xml
