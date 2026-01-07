@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { Subject } from 'rxjs';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -14,7 +14,7 @@ import { apiFallback } from '../../util/apiRx';
 
 @Component({
   selector: 'app-add-question-answer',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalComponent, RouterModule],
   templateUrl: './add-question-answer.component.html',
   styleUrl: './add-question-answer.component.scss'
 })
@@ -353,7 +353,9 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         pipe(takeUntil(this.destroy$)).subscribe({
           next: (res) => {
             this.questionAnswerForm.reset();
+            this.modalMessage("Question Answer added Successfully.");
           }, error: (error) => {
+             this.modalMessage("Opps!, Something went wrong.");
             console.log(error);
           }
         });
@@ -380,7 +382,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.questionAnswerForm.reset();
             this.removeImage();
-            this.modalMessage("Question Answer added Successfully.");
+            this.modalMessage("Question Answer changed Successfully.");
           },
           error: (error) => {
             console.error('Error submitting Question-Answer:', error);
@@ -392,7 +394,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.questionAnswerForm.reset();
             this.removeImage();
-            this.modalMessage("Word added successfully.");
+            this.modalMessage("Question Answer added Successfully.");
           },
           error: (error) => {
             console.error('Error submitting Question-Answer:', error);

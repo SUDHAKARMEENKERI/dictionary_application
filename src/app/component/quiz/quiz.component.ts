@@ -45,7 +45,12 @@ export class QuizComponent implements OnInit, OnDestroy {
   quizPlans = [
     { title: 'Quick Set', description: 'Test yourself with 5 questions', count: 5 },
     { title: 'Challenge Set', description: 'Go deeper with 10 questions', count: 10 },
-    { title: 'Ultimate Set', description: 'Full challenge with 15 questions', count: 15 }
+    { title: 'Ultimate Set', description: 'Full challenge with 15 questions', count: 15 },
+    { title: 'Pro Set', description: 'Advanced practice with 25 questions', count: 25 },
+    { title: 'Expert Set', description: 'Master level with 35 questions', count: 35 },
+    { title: 'Champion Set', description: 'Challenge yourself with 50 questions', count: 50 },
+    { title: 'Elite Set', description: 'Elite preparation with 75 questions', count: 75 },
+    { title: 'Master Set', description: 'Complete mastery with 100 questions', count: 100 }
   ];
   selectedPlan: any = null;
   careerPrepBookInfo = {

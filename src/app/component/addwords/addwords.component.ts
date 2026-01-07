@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { getWordById, submitWord, submitWordSuccess, submitWordFailure, updateWordById, updateWordByIdSuccess, updateWordByIdFailure } from '../../store/words/action';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { selectWords, selectWordsError } from '../../store/words/selector';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { LoaderService } from '../../service/loader.service';
@@ -19,7 +19,7 @@ import { readLoginMobile, readLoginStorage } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-addwords',
-  imports: [ReactiveFormsModule, CommonModule, ModalComponent],
+  imports: [ReactiveFormsModule, CommonModule, ModalComponent, RouterModule],
   templateUrl: './addwords.component.html',
   styleUrls: ['./addwords.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

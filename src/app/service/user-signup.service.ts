@@ -31,6 +31,11 @@ export class UserSignUpService {
         return this.http.put(url, user);
     }
 
+    patchUser(user: any): Observable<any> {
+        const url = `${this.apiUrl}/user/${user.id}`;
+        return this.http.patch(url, user);
+    }
+
     deleteUser(userId: number): Observable<any> {
         const url = `${this.apiUrl}/user/${userId}`;
         return this.http.delete(url);

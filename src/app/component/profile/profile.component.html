@@ -6,6 +6,13 @@
 
   <!-- Main Profile Section -->
   <div class="container profile-main">
+    <!-- Back Button -->
+    <div class="mb-3">
+      <a routerLink="/dashboard" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+      </a>
+    </div>
+    
     <!-- Profile Header -->
     <div class="profile-header">
       <div class="profile-avatar-wrapper">
@@ -27,6 +34,9 @@
       <div class="profile-actions">
         <button class="btn btn-primary" (click)="toggleEditMode()">
           <i class="bi bi-pencil me-2"></i>{{ isEditMode ? 'Cancel' : 'Edit Profile' }}
+        </button>
+        <button class="btn btn-outline-secondary" (click)="navigateToChangePassword()">
+          <i class="bi bi-key me-2"></i>Change Password
         </button>
         <!-- <button class="btn btn-outline-secondary" (click)="toggleSettings()">
           <i class="bi bi-gear me-2"></i>Settings
@@ -66,8 +76,21 @@
               <label class="form-label">Bio</label>
               <textarea class="form-control" formControlName="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
             </div>
-            <button type="submit" class="btn btn-success">
-              <i class="bi bi-check-circle me-2"></i>Save Changes
+            
+            <!-- Success Message -->
+            <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" *ngIf="saveSuccess">
+              <i class="bi bi-check-circle-fill me-2"></i>Profile updated successfully!
+            </div>
+            
+            <!-- Error Message -->
+            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" *ngIf="saveError">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError }}
+            </div>
+            
+            <button type="submit" class="btn btn-success" [disabled]="isLoading || !editProfileForm.valid">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <i *ngIf="!isLoading" class="bi bi-check-circle me-2"></i>
+              {{ isLoading ? 'Saving...' : 'Save Changes' }}
             </button>
           </form>
         </div>
@@ -223,10 +246,10 @@
             <h5 class="mb-0"><i class="bi bi-lock me-2"></i>Account</h5>
           </div>
           <div class="card-body">
-            <button class="btn btn-sm btn-outline-primary w-100 mb-2">
+            <button class="btn btn-sm btn-outline-primary w-100 mb-2" (click)="navigateToChangePassword()">
               <i class="bi bi-key me-2"></i>Change Password
             </button>
-            <button class="btn btn-sm btn-outline-danger w-100">
+            <button class="btn btn-sm btn-outline-danger w-100" (click)="logout()">
               <i class="bi bi-box-arrow-right me-2"></i>Logout
             </button>
           </div>
@@ -291,3 +314,5 @@
     </div>
   </div>
 </div>
+<!-- Modal Component -->
+<app-modal [openModalDetails]="openModalDetails"></app-modal>

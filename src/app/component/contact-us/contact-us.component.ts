@@ -5,10 +5,11 @@ import { ContactService } from '../../service/contact.service';
 import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { apiEmpty } from '../../util/apiRx';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-contact-us',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule],
   templateUrl: './contact-us.component.html',
   styleUrls: ['./contact-us.component.scss']
 })

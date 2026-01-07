@@ -2,6 +2,11 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
+                <div class="mb-3">
+                    <a routerLink="/dashboard" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
                 <div class="mb-4 message-alert" *ngIf="messageShow">
                      <h3 class="mb-0"><i class="bi bi-check-circle-fill me-2"></i>{{ messageShow }}</h3>
                 </div>

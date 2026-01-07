@@ -4,10 +4,12 @@ import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, map, startWith } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { apiEmpty } from '../util/apiRx';
+import { readLoginMobile } from '../util/loginStorage';
 
 export type PageViewIncrementPayload = {
   pageName: string;
   viewCount: number;
+  mobile: string;
 };
 
 @Injectable({
@@ -46,9 +48,13 @@ export class PageViewCounterService {
     const endpointBase = this.joinUrl(this.baseUrl, this.incrementPath);
     const endpoint = `${endpointBase}?pageName=${encodeURIComponent(pageName)}`;
 
+    // Get mobile number if user is logged in, otherwise empty string
+    const mobile = readLoginMobile() || '';
+
     const payload: PageViewIncrementPayload = {
       pageName,
-      viewCount: 1
+      viewCount: 1,
+      mobile
     };
 
     this.http

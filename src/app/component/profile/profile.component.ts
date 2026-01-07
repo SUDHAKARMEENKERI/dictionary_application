@@ -1,10 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { UserSignUpService } from '../../service/user-signup.service';
+import { readLoginMobile } from '../../util/loginStorage';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, RouterModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
@@ -13,6 +17,16 @@ export class ProfileComponent implements OnInit {
   showSettings = false;
   coverColor = '#667eea';
   editProfileForm!: FormGroup;
+  userId: any;
+  isLoading = false;
+  saveSuccess = false;
+  saveError = '';
+  openModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'info',
+    title: 'Profile Update'
+  };
 
   userProfile = {
     firstName: 'Sudhakar',
@@ -71,10 +85,15 @@ export class ProfileComponent implements OnInit {
     ]
   };
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private userService: UserSignUpService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.initializeEditForm();
+    this.loadUserProfile();
   }
 
   initializeEditForm(): void {
@@ -98,20 +117,124 @@ export class ProfileComponent implements OnInit {
     this.showSettings = !this.showSettings;
   }
 
+  navigateToChangePassword(): void {
+    this.router.navigate(['/forgot-password']);
+  }
+
+  loadUserProfile(): void {
+    const mobile = readLoginMobile();
+    if (!mobile) {
+      console.error('No mobile number found in login storage');
+      return;
+    }
+
+    this.userService.getUserDetailsByMobile(mobile).subscribe({
+      next: (response: any) => {
+        if (response) {
+          this.userId = response.id;
+          // Update profile data if available from API
+          if (response.firstName) this.userProfile.firstName = response.firstName;
+          if (response.lastName) this.userProfile.lastName = response.lastName;
+          if (response.email) this.userProfile.email = response.email;
+          if (response.mobile) this.userProfile.phone = response.mobile;
+          // Refresh form with loaded data
+          this.initializeEditForm();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading user profile:', error);
+      }
+    });
+  }
+
   saveProfile(): void {
     if (this.editProfileForm.valid) {
+      this.isLoading = true;
+      this.saveSuccess = false;
+      this.saveError = '';
+
       const updatedData = this.editProfileForm.value;
-      this.userProfile = {
-        ...this.userProfile,
-        ...updatedData
+      const userUpdatePayload = {
+        id: this.userId,
+        firstName: updatedData.firstName,
+        lastName: updatedData.lastName,
+        email: updatedData.email,
+        mobile: updatedData.phone,
+        bio: updatedData.bio
       };
-      this.isEditMode = false;
-      alert('Profile updated successfully!');
+
+      this.userService.patchUser(userUpdatePayload).subscribe({
+        next: (response: any) => {
+          this.isLoading = false;
+          this.saveSuccess = true;
+          
+          // Update local profile data
+          this.userProfile = {
+            ...this.userProfile,
+            ...updatedData
+          };
+          
+          // Update localStorage if needed
+          const loginData = localStorage.getItem('login');
+          if (loginData) {
+            const parsed = JSON.parse(loginData);
+            parsed.firstName = updatedData.firstName;
+            parsed.lastName = updatedData.lastName;
+            localStorage.setItem('login', JSON.stringify(parsed));
+          }
+          
+          this.isEditMode = false;
+          
+          // Show success modal
+          this.openModalDetails = {
+            isOpen: true,
+            status: 'success',
+            title: 'Profile Updated',
+            message: 'Your profile has been updated successfully!'
+          };
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.saveSuccess = false;
+          }, 3000);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.saveError = error.error?.message || 'Failed to update profile. Please try again.';
+          console.error('Error updating profile:', error);
+          
+          // Show error modal
+          this.openModalDetails = {
+            isOpen: true,
+            status: 'error',
+            title: 'Update Failed',
+            message: this.saveError
+          };
+        }
+      });
     }
   }
 
   saveSettings(): void {
     alert('Settings saved successfully!');
     this.showSettings = false;
+  }
+
+  logout(): void {
+    // Clear localStorage
+    localStorage.removeItem('login');
+    
+    // Show logout modal
+    this.openModalDetails = {
+      isOpen: true,
+      status: 'success',
+      title: 'Logged Out',
+      message: 'You have been logged out successfully!'
+    };
+
+    // Navigate to login page after a short delay
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 1500);
   }
 }
