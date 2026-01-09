@@ -3,129 +3,219 @@
 <div class="quiz-container">
     <!-- Header -->
     <div class="quiz-header">
-        <h1>CareerPrepBook — {{ topic ? (topic + ' Quiz') : 'Quiz' }}</h1>
-        <p>
-            Choose your plan and test your skills with curated questions.
-            <span *ngIf="topic">Topic: <b>{{ topic }}</b>.</span>
-            Track your progress and see how you rank!
-        </p>
-        <div class="career-prep-info">
-            <h3>{{ careerPrepBookInfo.title }}</h3>
-            <p>{{ careerPrepBookInfo.description }}</p>
+        <div class="header-main">
+            <div class="header-logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">{{ careerPrepBookInfo.title }}</span>
+            </div>
+            <div class="header-topic">
+                <h1>{{ topic ? (topic + ' Quiz') : 'Quiz Challenge' }}</h1>
+                <p class="header-tagline">{{ careerPrepBookInfo.description }}</p>
+            </div>
         </div>
     </div>
 
-    <!-- Quiz Plan Selection -->
-    <div class="plan-selection" *ngIf="!quizStarted">
-        <div class="plan-loading" *ngIf="isLoadingQuestions">
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Loading question bank…</span>
-        </div>
-        <div class="plan-cards">
-            <button type="button" class="plan-card" *ngFor="let plan of quizPlans" (click)="startQuiz(plan)" [class.selected]="selectedPlan === plan">
-                <div class="plan-icon">
-                    <span *ngIf="plan.count === 5">🎯</span>
-                    <span *ngIf="plan.count === 10">🔥</span>
-                    <span *ngIf="plan.count === 15">🏆</span>
-                    <span *ngIf="plan.count === 25">💪</span>
-                    <span *ngIf="plan.count === 35">⭐</span>
-                    <span *ngIf="plan.count === 50">🚀</span>
-                    <span *ngIf="plan.count === 75">👑</span>
-                    <span *ngIf="plan.count === 100">💎</span>
-                </div>
-                <div class="plan-title">{{ plan.title }}</div>
-                <div class="plan-desc">{{ plan.description }}</div>
-                <div class="plan-questions"><b>{{ plan.count }}</b> Questions</div>
-            </button>
-        </div>
-        <div class="plan-note">
-            <span>Each plan is designed to challenge different skill levels. Pick one and start your journey!</span>
-        </div>
-    </div>
-
-    <!-- Quiz Card -->
-    <div class="quiz-card" *ngIf="quizStarted && !showResult">
-        <div class="quiz-layout">
-            <!-- Left: Plans + Tracker -->
-            <aside class="quiz-sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-title">Quiz</div>
-                    <div class="sidebar-actions">
-                        <button type="button" class="ghost-btn" (click)="backToPlans()">← Plans</button>
-                        <button type="button" class="ghost-btn" (click)="reload()">Quit</button>
+    <!-- Main Quiz Layout: Plans on Left, Quiz on Right -->
+    <div class="quiz-main-wrapper" *ngIf="!showResult">
+        <div class="quiz-dual-layout">
+            <!-- Left Section: Plan Selection -->
+            <div class="plans-section">
+                <div class="plans-card">
+                    <div class="plans-header">
+                        <h3 class="plans-title">Choose Your Challenge</h3>
+                        <p class="plans-subtitle">Select a quiz plan to match your skill level</p>
                     </div>
-                </div>
 
-                <div class="sidebar-section">
-                    <div class="plan-pill" *ngIf="selectedPlan">{{ selectedPlan.title }} • {{ selectedPlan.count }}Q</div>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="stats">
-                        <div class="stat">
-                            <div class="stat-label">Attended</div>
-                            <div class="stat-value">{{ attendedCount }}</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-label">Not attended</div>
-                            <div class="stat-value">{{ notAttendedCount }}</div>
-                        </div>
+                    <div class="plan-loading-indicator" *ngIf="isLoadingQuestions">
+                        <span class="loading-spinner" aria-hidden="true"></span>
+                        <span class="loading-text">Loading questions…</span>
                     </div>
-                </div>
 
-                <div class="sidebar-section" *ngIf="questionsToShow.length > 0">
-                    <div class="nav-title">Questions</div>
-                    <div class="qnav">
-                        <button
-                            type="button"
-                            class="qnav-item"
-                            *ngFor="let q of questionsToShow; let i = index"
-                            (click)="goToQuestion(i)"
-                            [class.active]="i === currentIndex"
-                            [class.attended]="answeredOptions[i] !== null"
-                            [class.not-attended]="answeredOptions[i] === null">
-                            {{ i + 1 }}
+                    <div class="plans-grid">
+                        <button 
+                            type="button" 
+                            class="plan-item" 
+                            *ngFor="let plan of quizPlans" 
+                            (click)="startQuiz(plan)" 
+                            [class.selected]="selectedPlan === plan"
+                            [class.active]="selectedPlan === plan && quizStarted">
+                            <div class="plan-badge">
+                                <span *ngIf="plan.count === 5">🎯</span>
+                                <span *ngIf="plan.count === 10">🔥</span>
+                                <span *ngIf="plan.count === 15">🏆</span>
+                                <span *ngIf="plan.count === 25">💪</span>
+                                <span *ngIf="plan.count === 35">⭐</span>
+                                <span *ngIf="plan.count === 50">🚀</span>
+                                <span *ngIf="plan.count === 75">👑</span>
+                                <span *ngIf="plan.count === 100">💎</span>
+                            </div>
+                            <div class="plan-info">
+                                <div class="plan-name">{{ plan.title }}</div>
+                                <div class="plan-description">{{ plan.description }}</div>
+                                <div class="plan-count">
+                                    <strong>{{ plan.count }}</strong> Questions
+                                </div>
+                            </div>
+                            <div class="plan-arrow" *ngIf="selectedPlan === plan && quizStarted">▶</div>
                         </button>
                     </div>
+
+                    <div class="plans-footer">
+                        <p class="plans-note">💡 Start with a smaller plan if you're new to this topic!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section: Quiz Interface -->
+            <div class="quiz-section">
+                <div class="quiz-welcome-card" *ngIf="!quizStarted">
+                    <div class="welcome-icon">📚</div>
+                    <h2 class="welcome-title">Ready to Test Your Knowledge?</h2>
+                    <p class="welcome-text">Select a quiz plan from the right panel to begin your learning journey.</p>
+                    <div class="welcome-features">
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Multiple difficulty levels</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Instant feedback & results</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Track your progress</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Detailed answer review</span>
+                        </div>
+                    </div>
+                    <div class="welcome-arrow">
+                        <span>� Choose a plan to start</span>
+                    </div>
                 </div>
 
-                <div class="sidebar-section no-questions" *ngIf="questionsToShow.length === 0">
-                    <p *ngIf="isLoadingQuestions">Loading questions…</p>
-                    <p *ngIf="!isLoadingQuestions">No questions available for this plan yet.</p>
-                    <p class="no-questions-sub">Go back and choose another plan.</p>
-                </div>
-            </aside>
+                <div class="quiz-active-card" *ngIf="quizStarted">
+                    <!-- Quiz Header with Stats -->
+                    <div class="quiz-header-section">
+                        <div class="quiz-title-area">
+                            <div class="quiz-title-main">
+                                <span class="quiz-icon">📝</span>
+                                <span>{{ selectedPlan?.title || 'Quiz' }}</span>
+                            </div>
+                            <div class="quiz-subtitle">{{ selectedPlan?.count }} Questions Challenge</div>
+                        </div>
+                        <div class="quiz-actions-area">
+                            <button type="button" class="action-btn secondary" (click)="backToPlans()">
+                                <span>← Change Plan</span>
+                            </button>
+                            <button type="button" class="action-btn danger" (click)="reload()">
+                                <span>✕ Quit</span>
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Right: Question + Answers -->
-            <section class="quiz-main" *ngIf="questionsToShow.length > 0">
-                <div class="progress-bar">
-                    <div class="progress-fill" [style.width.%]="((currentIndex+1)/questionsToShow.length)*100"></div>
-                </div>
-                <div class="progress-text">
-                    <span>Question <b>{{ currentIndex + 1 }}</b> of <b>{{ questionsToShow.length }}</b></span>
-                </div>
+                    <!-- Stats Bar -->
+                    <div class="stats-bar" *ngIf="questionsToShow.length > 0">
+                        <div class="stat-item attended">
+                            <div class="stat-icon">✓</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Answered</div>
+                                <div class="stat-value">{{ attendedCount }}</div>
+                            </div>
+                        </div>
+                        <div class="stat-item pending">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Remaining</div>
+                                <div class="stat-value">{{ notAttendedCount }}</div>
+                            </div>
+                        </div>
+                        <div class="stat-item progress">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Progress</div>
+                                <div class="stat-value">{{ ((attendedCount/questionsToShow.length)*100).toFixed(0) }}%</div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="question-card">
-                    <h2 class="question">{{ questionsToShow[currentIndex].question }}</h2>
+                    <!-- Question Navigation Grid -->
+                    <div class="question-nav-section" *ngIf="questionsToShow.length > 0">
+                        <div class="nav-header">
+                            <span class="nav-title">Question Navigator</span>
+                            <span class="nav-subtitle">Click to jump to any question</span>
+                        </div>
+                        <div class="question-nav-grid">
+                            <button
+                                type="button"
+                                class="nav-bubble"
+                                *ngFor="let q of questionsToShow; let i = index"
+                                (click)="goToQuestion(i)"
+                                [class.active]="i === currentIndex"
+                                [class.answered]="answeredOptions[i] !== null"
+                                [class.unanswered]="answeredOptions[i] === null"
+                                [attr.aria-label]="'Question ' + (i + 1)">
+                                <span class="bubble-number">{{ i + 1 }}</span>
+                                <span class="bubble-status" *ngIf="answeredOptions[i] !== null">✓</span>
+                            </button>
+                        </div>
+                    </div>
 
-                    <div class="options" *ngIf="questionsToShow[currentIndex].options.length">
-                        @for (opt of questionsToShow[currentIndex].options; track opt; let i = $index) {
-                        <button type="button" class="option-btn" [class.active]="selectedOption === i" (click)="selectOption(i)">
-                            <span class="opt-badge">{{ optionLabel(i) }}</span>
-                            <span class="opt-text">{{ opt }}</span>
+                    <!-- Current Question Display -->
+                    <div class="question-display-section" *ngIf="questionsToShow.length > 0">
+                        <div class="progress-indicator">
+                            <div class="progress-bar-outer">
+                                <div class="progress-bar-inner" [style.width.%]="((currentIndex+1)/questionsToShow.length)*100"></div>
+                            </div>
+                            <div class="progress-label">
+                                Question <strong>{{ currentIndex + 1 }}</strong> of <strong>{{ questionsToShow.length }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="question-content-card">
+                            <div class="question-text">
+                                <span class="question-number">Q{{ currentIndex + 1 }}.</span>
+                                {{ questionsToShow[currentIndex].question }}
+                            </div>
+
+                            <div class="answer-options" *ngIf="questionsToShow[currentIndex].options.length">
+                                @for (opt of questionsToShow[currentIndex].options; track opt; let i = $index) {
+                                <button 
+                                    type="button" 
+                                    class="answer-option" 
+                                    [class.selected]="selectedOption === i" 
+                                    (click)="selectOption(i)">
+                                    <span class="option-letter">{{ optionLabel(i) }}</span>
+                                    <span class="option-content">{{ opt }}</span>
+                                    <span class="option-check" *ngIf="selectedOption === i">✓</span>
+                                </button>
+                                }
+                            </div>
+
+                            <div class="no-options-message" *ngIf="!questionsToShow[currentIndex].options.length">
+                                <p>⚠️ This question has no options available.</p>
+                            </div>
+                        </div>
+
+                        <button 
+                            class="submit-btn" 
+                            [disabled]="selectedOption === null" 
+                            (click)="nextQuestion()">
+                            <span *ngIf="currentIndex < questionsToShow.length - 1">Next Question →</span>
+                            <span *ngIf="currentIndex === questionsToShow.length - 1">🎉 Finish & See Results</span>
                         </button>
-                        }
                     </div>
 
-                    <div class="no-questions" *ngIf="!questionsToShow[currentIndex].options.length">
-                        <p>This question has no options.</p>
+                    <!-- No Questions State -->
+                    <div class="no-questions-state" *ngIf="questionsToShow.length === 0">
+                        <div class="empty-icon">📭</div>
+                        <p class="empty-title" *ngIf="isLoadingQuestions">Loading questions…</p>
+                        <p class="empty-title" *ngIf="!isLoadingQuestions">No questions available</p>
+                        <p class="empty-subtitle">Please select a different plan from the right panel.</p>
                     </div>
                 </div>
-
-                <button class="next-btn" [disabled]="selectedOption === null" (click)="nextQuestion()">
-                    {{ currentIndex === questionsToShow.length - 1 ? 'Finish & See Result' : 'Next Question' }}
-                </button>
-            </section>
+            </div>
         </div>
     </div>
 

@@ -6,7 +6,7 @@ import { apiFallback, apiEmpty } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
 
-type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string };
+type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string; code?: string };
 
 type ChatMessage = {
   from: 'bot' | 'user';
@@ -77,35 +77,47 @@ export class QuizComponent implements OnInit, OnDestroy {
         const topic = (item?.topic ?? item?.technology ?? item?.category ?? item?.tag ?? item?.subject ?? '').toString().trim();
 
         let correct: number | undefined;
-        if (typeof item?.correct === 'number') correct = item.correct;
-        else if (typeof item?.correct === 'string') {
-          const correctStr = item.correct.toString().trim().toUpperCase();
-          // Check if it's a letter (A, B, C, D, etc.)
-          if (correctStr.length === 1 && correctStr >= 'A' && correctStr <= 'Z') {
-            correct = correctStr.charCodeAt(0) - 'A'.charCodeAt(0);
-          }
-          // Otherwise try finding it in options
-          else {
-            correct = options.findIndex(o => o === item.correct);
+        
+        // Priority 1: Check correctAnswer field (most common in API)
+        if (item?.correctAnswer !== undefined && item?.correctAnswer !== null) {
+          if (typeof item.correctAnswer === 'number') {
+            correct = item.correctAnswer;
+          } else if (typeof item.correctAnswer === 'string') {
+            const correctStr = item.correctAnswer.toString().trim().toUpperCase();
+            // Check if it's a letter (A, B, C, D, etc.)
+            if (correctStr.length === 1 && correctStr >= 'A' && correctStr <= 'Z') {
+              correct = correctStr.charCodeAt(0) - 'A'.charCodeAt(0);
+            }
+            // Otherwise try finding exact match in options
+            else {
+              correct = options.findIndex(o => o === item.correctAnswer);
+            }
           }
         }
-        else if (typeof item?.correctIndex === 'number') correct = item.correctIndex;
-        else if (typeof item?.answerIndex === 'number') correct = item.answerIndex;
-        else if (typeof item?.answer === 'string') correct = options.findIndex(o => o === item.answer);
-        else if (typeof item?.answer === 'number') correct = item.answer;
-        else if (typeof item?.answer === 'object' && item?.answer !== null && typeof item.answer?.value === 'string') {
-          correct = options.findIndex(o => o === item.answer.value);
+        // Priority 2: Check correctIndex field
+        else if (typeof item?.correctIndex === 'number') {
+          correct = item.correctIndex;
         }
-        // Handle correctAnswer field (can be letter like 'A', 'B', 'C', 'D' or index)
-        else if (item?.correctAnswer !== undefined && item?.correctAnswer !== null) {
-          const correctAnswer = item.correctAnswer.toString().trim().toUpperCase();
-          // Check if it's a letter (A, B, C, D, etc.)
-          if (correctAnswer.length === 1 && correctAnswer >= 'A' && correctAnswer <= 'Z') {
-            correct = correctAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
-          }
-          // Otherwise try as numeric
-          else if (!isNaN(Number(correctAnswer))) {
-            correct = Number(correctAnswer);
+        // Priority 3: Check answerIndex field
+        else if (typeof item?.answerIndex === 'number') {
+          correct = item.answerIndex;
+        }
+        // Priority 4: Check answer field
+        else if (item?.answer !== undefined && item?.answer !== null) {
+          if (typeof item.answer === 'number') {
+            correct = item.answer;
+          } else if (typeof item.answer === 'string') {
+            const answerStr = item.answer.toString().trim().toUpperCase();
+            // Check if it's a letter (A, B, C, D, etc.)
+            if (answerStr.length === 1 && answerStr >= 'A' && answerStr <= 'Z') {
+              correct = answerStr.charCodeAt(0) - 'A'.charCodeAt(0);
+            }
+            // Otherwise try finding exact match in options
+            else {
+              correct = options.findIndex(o => o === item.answer);
+            }
+          } else if (typeof item.answer === 'object' && item.answer !== null && typeof item.answer.value === 'string') {
+            correct = options.findIndex(o => o === item.answer.value);
           }
         }
 
