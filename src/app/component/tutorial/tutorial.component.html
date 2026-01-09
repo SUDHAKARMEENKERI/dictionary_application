@@ -1,215 +1,245 @@
 <div class="output-container">
 
-  <!-- Header -->
-  <div class="output-header">
+  <!-- Header Card -->
+  <div class="output-header-card">
     <h1>CareerPrepBook — Output Practice</h1>
-    <p>Analyze the code and predict the output</p>
+    <p>Analyze the code and predict the output. Choose your question set and start practicing!</p>
 
-    <div class="selection-summary" *ngIf="!isLoadingQuestions">
-      <span class="badge-pill">
-        <i class="bi bi-tag me-1"></i>
+    <div class="header-info" *ngIf="!isLoadingQuestions">
+      <span class="info-badge">
+        <i class="bi bi-tag"></i>
         {{ selectedTopic === 'All' ? 'All Topics' : selectedTopic }}
       </span>
-      <span class="badge-pill">
-        <i class="bi bi-collection me-1"></i>
-        Loaded {{ totalQuestions }} question(s)
+      <span class="info-badge">
+        <i class="bi bi-collection"></i>
+        {{ questions.length }} Total Questions
+      </span>
+      <span class="info-badge" *ngIf="isSetSelected">
+        <i class="bi bi-filter"></i>
+        Showing {{ selectedSetCount }} Questions
       </span>
     </div>
-
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="pill" *ngIf="isLoadingQuestions">
-          <span class="spinner" aria-hidden="true"></span>
-          Loading question bank…
-        </div>
-      </div>
-
-      <div class="topbar-stats">
-        <div class="stat">
-          <div class="stat-label">Total</div>
-          <div class="stat-value">{{ totalQuestions }}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Attempted</div>
-          <div class="stat-value">{{ attemptedCount }}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Correct</div>
-          <div class="stat-value good">{{ correctCount }}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Wrong</div>
-          <div class="stat-value bad">{{ wrongCount }}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Unattempted</div>
-          <div class="stat-value">{{ unattemptedCount }}</div>
-        </div>
-      </div>
-
-      <div class="topbar-actions">
-        <button type="button" class="ghost-btn" (click)="goToTopicPicker()">Change Topic</button>
-        <button type="button" class="ghost-btn" (click)="resetAll()">Reset All</button>
-      </div>
-    </div>
-
-    <div class="tabbar" *ngIf="!isLoadingQuestions">
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeSection === 'mcq'"
-        (click)="setActiveSection('mcq')">
-        MCQ (Options)
-      </button>
-      <button
-        type="button"
-        class="tab-btn"
-        [class.active]="activeSection === 'typed'"
-        (click)="setActiveSection('typed')">
-        Type Answer
-      </button>
-    </div>
-
   </div>
 
-  <!-- Sections -->
-  <div class="output-list">
+  <!-- Main Layout -->
+  <div class="main-layout">
 
-    <!-- Section 1: MCQ (4 options) -->
-    <div class="section-header" *ngIf="activeSection === 'mcq'">
-      <h2>Output MCQ (Choose from options)</h2>
-      <p>Select the correct output from the given options.</p>
-    </div>
-
-    @for (q of mcqQuestions; track $index; let i = $index) {
-      <ng-container *ngIf="activeSection === 'mcq'">
-      <div class="output-card">
-
-        <!-- Question -->
-        <div class="question-row">
-          <span class="badge q">Q{{ i + 1 }}</span>
-          <h3>{{ q.question }}</h3>
-        </div>
-
-        <!-- Code -->
-        <div class="code-block">
-          <ng-container *ngIf="q.code && q.code.trim().length > 0">
-            <pre class="code-pre"><code>{{ q.code }}</code></pre>
-          </ng-container>
-
-          <div class="code-options-title">Choose the correct output</div>
-
-          <div class="code-options" *ngIf="q.options?.length">
-            @for (opt of q.options; track opt) {
-              <button
-                type="button"
-                class="option-btn"
-                [class.active]="q.selectedOption === opt"
-                (click)="selectOption(q, opt)">
-                <span class="opt-text">{{ opt }}</span>
-              </button>
-            }
-          </div>
-
-          <div class="code-options-empty" *ngIf="!q.options?.length">
-            No options available for this question.
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="btn-row">
-          <button type="button" class="primary-btn" (click)="checkMcqAnswer(q)" [disabled]="!q.selectedOption">
-            Check
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <!-- Question Type Selection -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Question Type</div>
+        <div class="type-tabs">
+          <button type="button" class="type-tab" [class.active]="activeSection === 'mcq'"
+            (click)="setActiveSection('mcq')">
+            <i class="bi bi-ui-radios"></i>
+            MCQ
           </button>
-          <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
-            {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
+          <button type="button" class="type-tab" [class.active]="activeSection === 'typed'"
+            (click)="setActiveSection('typed')">
+            <i class="bi bi-pencil"></i>
+            Type Answer
           </button>
-          <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
-
-          <span class="result-pill ok" *ngIf="q.mcqChecked && q.mcqIsCorrect === true">Correct</span>
-          <span class="result-pill no" *ngIf="q.mcqChecked && q.mcqIsCorrect === false">Wrong</span>
-          <span class="result-pill" *ngIf="q.mcqChecked && q.mcqIsCorrect === null">Not checked</span>
         </div>
-
-        <!-- Answer -->
-        <div class="answer" *ngIf="q.showAnswer">
-          <span class="badge a">A</span>
-          <p>
-            Correct Output:
-            <strong>{{ q.answer }}</strong>
-          </p>
-        </div>
-
       </div>
-      </ng-container>
-    }
 
-    <!-- Section 2: Typed output -->
-    <div class="section-header" *ngIf="activeSection === 'typed'">
-      <h2>Output Practice (Type the answer)</h2>
-      <p>Type the output and verify your answer.</p>
-    </div>
+      <!-- Question Set Selection -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Question Sets</div>
+        <div class="set-buttons">
+          <button type="button" class="set-btn" *ngFor="let set of questionSets"
+            [class.active]="selectedSetCount === set.count" (click)="selectQuestionSet(set.count)"
+            [disabled]="questions.length < set.count">
+            <span class="set-icon">{{ set.count === 5 ? '🎯' : set.count === 10 ? '🔥' : set.count === 25 ? '🏆' :
+              set.count === 35 ? '💪' : set.count === 50 ? '⭐' : set.count === 75 ? '👑' : '💎' }}</span>
+            <div class="set-title">{{ set.title }}</div>
+            <div class="set-count">{{ set.count }} Qs</div>
+          </button>
+          <button type="button" class="set-btn all-btn" [class.active]="!isSetSelected" (click)="showAllQuestions()">
+            <span class="set-icon">📚</span>
+            <div class="set-title">All Questions</div>
+            <div class="set-count">{{ questions.length }} Qs</div>
+          </button>
+        </div>
+      </div>
 
-    @for (q of typedQuestions; track $index; let i = $index) {
-      <ng-container *ngIf="activeSection === 'typed'">
-      <div class="output-card">
+      <!-- Statistics -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ totalQuestions }}</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ attemptedCount }}</div>
+            <div class="stat-label">Attempted</div>
+          </div>
+          <div class="stat-item correct">
+            <div class="stat-value">{{ correctCount }}</div>
+            <div class="stat-label">Correct</div>
+          </div>
+          <div class="stat-item wrong">
+            <div class="stat-value">{{ wrongCount }}</div>
+            <div class="stat-label">Wrong</div>
+          </div>
+        </div>
+      </div>
 
-        <!-- Question -->
-        <div class="question-row">
-          <span class="badge q">Q{{ i + 1 }}</span>
-          <h3>{{ q.question }}</h3>
+      <!-- Actions -->
+      <div class="sidebar-section">
+        <button type="button" class="action-btn primary" (click)="goToTopicPicker()">
+          <i class="bi bi-arrow-left"></i>
+          Change Topic
+        </button>
+        <button type="button" class="action-btn secondary" (click)="resetAll()">
+          <i class="bi bi-arrow-clockwise"></i>
+          Reset All
+        </button>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div class="sidebar-section" *ngIf="isLoadingQuestions">
+        <div class="loading-indicator">
+          <span class="spinner"></span>
+          <span>Loading questions...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Section 1: MCQ (4 options) -->
+        <div class="section-header" *ngIf="activeSection === 'mcq'">
+          <h2><i class="bi bi-ui-radios"></i> Output MCQ (Choose from options)</h2>
+          <p>Select the correct output from the given options.</p>
         </div>
 
-        <!-- Code -->
-        <ng-container *ngIf="q.code && q.code.trim().length > 0; else noTypedCode">
-          <div class="code-block">
-            <pre class="code-pre"><code>{{ q.code }}</code></pre>
+        @for (q of mcqQuestions; track $index; let i = $index) {
+        <ng-container *ngIf="activeSection === 'mcq'">
+          <div class="output-card">
+
+            <!-- Question -->
+            <div class="question-row">
+              <span class="badge q">Q{{ i + 1 }}</span>
+              <h3>{{ q.question }}</h3>
+            </div>
+
+            <!-- Code -->
+            <div class="code-block">
+              <ng-container *ngIf="q.code && q.code.trim().length > 0">
+                <pre class="code-pre"><code>{{ q.code }}</code></pre>
+              </ng-container>
+
+              <div class="code-options-title">Choose the correct output</div>
+
+              <div class="code-options" *ngIf="q.options?.length">
+                @for (opt of q.options; track opt) {
+                <button type="button" class="option-btn" [class.active]="q.selectedOption === opt"
+                  (click)="selectOption(q, opt)">
+                  <span class="opt-text">{{ opt }}</span>
+                </button>
+                }
+              </div>
+
+              <div class="code-options-empty" *ngIf="!q.options?.length">
+                No options available for this question.
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="btn-row">
+              <button type="button" class="primary-btn" (click)="checkMcqAnswer(q)" [disabled]="!q.selectedOption">
+                Check
+              </button>
+              <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
+                {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
+              </button>
+              <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
+
+              <span class="result-pill ok" *ngIf="q.mcqChecked && q.mcqIsCorrect === true">Correct</span>
+              <span class="result-pill no" *ngIf="q.mcqChecked && q.mcqIsCorrect === false">Wrong</span>
+              <span class="result-pill" *ngIf="q.mcqChecked && q.mcqIsCorrect === null">Not checked</span>
+            </div>
+
+            <!-- Answer -->
+            <div class="answer" *ngIf="q.showAnswer">
+              <span class="badge a">A</span>
+              <p>
+                Correct Output:
+                <strong>{{ q.answer }}</strong>
+              </p>
+            </div>
+
           </div>
         </ng-container>
+        }
 
-        <ng-template #noTypedCode>
-          <div class="code-options-empty">No code available for this question.</div>
-        </ng-template>
-
-        <!-- Input -->
-        <div class="input-row">
-          <label>Enter output</label>
-          <textarea
-            rows="3"
-            [(ngModel)]="q.userAnswer"
-            (ngModelChange)="onTypedAnswerChanged(q)"
-            [class.input-correct]="q.typedChecked && q.typedIsCorrect === true"
-            [class.input-wrong]="q.typedChecked && q.typedIsCorrect === false"
-            placeholder="Type the expected output here..."></textarea>
+        <!-- Section 2: Typed output -->
+        <div class="section-header" *ngIf="activeSection === 'typed'">
+          <h2><i class="bi bi-pencil"></i> Output Practice (Type the answer)</h2>
+          <p>Type the output and verify your answer.</p>
         </div>
 
-        <!-- Actions -->
-        <div class="btn-row">
-          <button type="button" class="primary-btn" (click)="checkTypedAnswer(q)" [disabled]="!q.userAnswer">
-            Verify
-          </button>
-          <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
-            {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
-          </button>
-          <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
+        @for (q of typedQuestions; track $index; let i = $index) {
+        <ng-container *ngIf="activeSection === 'typed'">
+          <div class="output-card">
 
-          <span class="result-pill ok" *ngIf="q.typedChecked && q.typedIsCorrect === true">Correct</span>
-          <span class="result-pill no" *ngIf="q.typedChecked && q.typedIsCorrect === false">Wrong</span>
-          <span class="result-pill" *ngIf="q.typedChecked && q.typedIsCorrect === null">Not checked</span>
-        </div>
+            <!-- Question -->
+            <div class="question-row">
+              <span class="badge q">Q{{ i + 1 }}</span>
+              <h3>{{ q.question }}</h3>
+            </div>
 
-        <!-- Answer -->
-        <div class="answer" *ngIf="q.showAnswer">
-          <span class="badge a">A</span>
-          <p>
-            Correct Output:
-            <strong>{{ q.answer }}</strong>
-          </p>
-        </div>
+            <!-- Code -->
+            <ng-container *ngIf="q.code && q.code.trim().length > 0; else noTypedCode">
+              <div class="code-block">
+                <pre class="code-pre"><code>{{ q.code }}</code></pre>
+              </div>
+            </ng-container>
 
-      </div>
-      </ng-container>
-    }
+            <ng-template #noTypedCode>
+              <div class="code-options-empty">No code available for this question.</div>
+            </ng-template>
 
+            <!-- Input -->
+            <div class="input-row">
+              <label>Enter output</label>
+              <textarea rows="3" [(ngModel)]="q.userAnswer" (ngModelChange)="onTypedAnswerChanged(q)"
+                [class.input-correct]="q.typedChecked && q.typedIsCorrect === true"
+                [class.input-wrong]="q.typedChecked && q.typedIsCorrect === false"
+                placeholder="Type the expected output here..."></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="btn-row">
+              <button type="button" class="primary-btn" (click)="checkTypedAnswer(q)" [disabled]="!q.userAnswer">
+                Verify
+              </button>
+              <button type="button" class="ghost-btn" (click)="toggleAnswer(q)">
+                {{ q.showAnswer ? 'Hide Answer' : 'Show Answer' }}
+              </button>
+              <button type="button" class="ghost-btn" (click)="resetQuestion(q)">Reset</button>
+
+              <span class="result-pill ok" *ngIf="q.typedChecked && q.typedIsCorrect === true">Correct</span>
+              <span class="result-pill no" *ngIf="q.typedChecked && q.typedIsCorrect === false">Wrong</span>
+              <span class="result-pill" *ngIf="q.typedChecked && q.typedIsCorrect === null">Not checked</span>
+            </div>
+
+            <!-- Answer -->
+            <div class="answer" *ngIf="q.showAnswer">
+              <span class="badge a">A</span>
+              <p>
+                Correct Output:
+                <strong>{{ q.answer }}</strong>
+              </p>
+            </div>
+
+          </div>
+        </ng-container>
+        }
+
+    </main>
   </div>
 </div>

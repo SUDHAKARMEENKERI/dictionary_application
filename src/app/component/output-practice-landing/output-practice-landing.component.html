@@ -54,7 +54,7 @@
             (click)="startTopicPractice(tech, item.name)"
           >
             <div class="topic-name">{{ item.name }}</div>
-            <div class="topic-meta" *ngIf="item.questionCount">{{ item.questionCount }} questions</div>
+            <div class="topic-meta" *ngIf="item.outputBasedCount || item.outputBasedMcqCount">{{ (item.outputBasedCount || 0) + (item.outputBasedMcqCount || 0) }} questions</div>
           </button>
         </div>
 

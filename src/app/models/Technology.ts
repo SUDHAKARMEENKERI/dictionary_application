@@ -8,6 +8,9 @@ export interface TechnologyItem {
   name: string;
   icon: string;
   questionCount: number;
+  mcqCount?: number;
+  outputBasedCount?: number;
+  outputBasedMcqCount?: number;
 }
 
 export interface DropdownResponse {

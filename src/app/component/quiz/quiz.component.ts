@@ -2,29 +2,17 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { apiFallback } from '../../util/apiRx';
+import { apiFallback, apiEmpty } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
+import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
 
 type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string };
-type QuizAttempt = {
-  id: string;
-  createdAt: string;
-  topic?: string;
-  planTitle?: string;
-  total: number;
-  correct: number;
-  wrong: number;
-  unattempted: number;
-  percent: number;
-};
 
 type ChatMessage = {
   from: 'bot' | 'user';
   text: string;
   tone?: 'success' | 'warning' | 'danger' | 'neutral';
 };
-
-const QUIZ_ATTEMPTS_KEY = 'cpb_quiz_attempts';
 
 @Component({
   selector: 'app-quiz',
@@ -60,7 +48,8 @@ export class QuizComponent implements OnInit, OnDestroy {
 
   constructor(
     private activeRouter: ActivatedRoute,
-    private mcqQuestionService: MCQQuestionService
+    private mcqQuestionService: MCQQuestionService,
+    private quizAttemptService: QuizAttemptService
   ) { }
   private destroy$ = new Subject<void>();
   topic = '';
@@ -89,12 +78,35 @@ export class QuizComponent implements OnInit, OnDestroy {
 
         let correct: number | undefined;
         if (typeof item?.correct === 'number') correct = item.correct;
+        else if (typeof item?.correct === 'string') {
+          const correctStr = item.correct.toString().trim().toUpperCase();
+          // Check if it's a letter (A, B, C, D, etc.)
+          if (correctStr.length === 1 && correctStr >= 'A' && correctStr <= 'Z') {
+            correct = correctStr.charCodeAt(0) - 'A'.charCodeAt(0);
+          }
+          // Otherwise try finding it in options
+          else {
+            correct = options.findIndex(o => o === item.correct);
+          }
+        }
         else if (typeof item?.correctIndex === 'number') correct = item.correctIndex;
         else if (typeof item?.answerIndex === 'number') correct = item.answerIndex;
         else if (typeof item?.answer === 'string') correct = options.findIndex(o => o === item.answer);
         else if (typeof item?.answer === 'number') correct = item.answer;
         else if (typeof item?.answer === 'object' && item?.answer !== null && typeof item.answer?.value === 'string') {
           correct = options.findIndex(o => o === item.answer.value);
+        }
+        // Handle correctAnswer field (can be letter like 'A', 'B', 'C', 'D' or index)
+        else if (item?.correctAnswer !== undefined && item?.correctAnswer !== null) {
+          const correctAnswer = item.correctAnswer.toString().trim().toUpperCase();
+          // Check if it's a letter (A, B, C, D, etc.)
+          if (correctAnswer.length === 1 && correctAnswer >= 'A' && correctAnswer <= 'Z') {
+            correct = correctAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
+          }
+          // Otherwise try as numeric
+          else if (!isNaN(Number(correctAnswer))) {
+            correct = Number(correctAnswer);
+          }
         }
 
         if (!question || options.length < 2) return null;
@@ -264,7 +276,6 @@ export class QuizComponent implements OnInit, OnDestroy {
     if (!total) return;
 
     const attempt: QuizAttempt = {
-      id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
       createdAt: new Date().toISOString(),
       topic: this.topic || undefined,
       planTitle: this.selectedPlan?.title ?? undefined,
@@ -273,26 +284,15 @@ export class QuizComponent implements OnInit, OnDestroy {
       wrong: this.wrongCount,
       unattempted: this.unattemptedCount,
       percent: Math.round((this.correctCount / total) * 100),
+      showResult: true,
     };
 
-    const current = this.readAttempts();
-    const next = [attempt, ...current].slice(0, 25);
-    try {
-      localStorage.setItem(QUIZ_ATTEMPTS_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors (private mode / quota)
-    }
-  }
-
-  private readAttempts(): QuizAttempt[] {
-    const raw = localStorage.getItem(QUIZ_ATTEMPTS_KEY);
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? (parsed as QuizAttempt[]) : [];
-    } catch {
-      return [];
-    }
+    this.quizAttemptService.saveAttempt(attempt)
+      .pipe(
+        apiEmpty('Error saving quiz attempt'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe();
   }
 
   get totalQuestions(): number {

@@ -58,6 +58,19 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   questions: OutputQuestion[] = [];
 
+  // Question set plans
+  questionSets = [
+    { count: 5, title: 'Quick Set' },
+    { count: 10, title: 'Practice Set' },
+    { count: 25, title: 'Challenge Set' },
+    { count: 35, title: 'Pro Set' },
+    { count: 50, title: 'Expert Set' },
+    { count: 75, title: 'Elite Set' },
+    { count: 100, title: 'Master Set' }
+  ];
+  
+  selectedSetCount: number | null = null;
+
   private readonly typedOutputQuestionType = 'OUTPUTBASED';
 
   private firstNonEmpty(...values: any[]): string {
@@ -215,7 +228,9 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   get displayedQuestions(): OutputQuestion[] {
-    return this.questions;
+    const all = this.questions;
+    if (this.selectedSetCount === null) return all;
+    return all.slice(0, this.selectedSetCount);
   }
 
   get mcqQuestions(): OutputQuestion[] {
@@ -317,6 +332,18 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   resetAll() {
     this.questions.forEach(q => this.resetQuestion(q));
+  }
+
+  selectQuestionSet(count: number) {
+    this.selectedSetCount = count;
+  }
+
+  showAllQuestions() {
+    this.selectedSetCount = null;
+  }
+
+  get isSetSelected(): boolean {
+    return this.selectedSetCount !== null;
   }
 
 }

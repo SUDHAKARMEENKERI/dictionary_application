@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal" *ngIf="openModalDetails.isOpen">
-    <div class="modal-backdrop"></div>
+    <div class="modal-backdrop" [class.clickable]="isConfirmation" (click)="isConfirmation && closeModal()"></div>
 
     <div class="modal-content" [ngClass]="'is-' + status" role="dialog" aria-modal="true">
         <button type="button" class="close close_btn" aria-label="Close" (click)="closeModal()">&times;</button>
@@ -12,7 +12,11 @@
         <p class="action-message" [ngClass]="'is-' + status">{{ openModalDetails.message }}</p>
 
         <div class="modal-footer">
-            <button class="btn btn-primary close_btn" (click)="closeModal()">OK</button>
+            <button *ngIf="!isConfirmation" class="btn btn-primary close_btn" (click)="closeModal()">OK</button>
+            <ng-container *ngIf="isConfirmation">
+                <button class="btn btn-secondary" (click)="closeModal()">{{ cancelText }}</button>
+                <button class="btn btn-danger" (click)="confirm()">{{ confirmText }}</button>
+            </ng-container>
         </div>
     </div>
 </div>

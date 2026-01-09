@@ -54,7 +54,9 @@
             (click)="startTopicQuiz(tech, item.name)"
           >
             <div class="topic-name">{{ item.name }}</div>
-            <div class="topic-meta" *ngIf="item.questionCount">{{ item.questionCount }} questions</div>
+            <div class="topic-meta" *ngIf="item.mcqCount">
+              {{ item.mcqCount }} MCQs
+            </div>
           </button>
         </div>
 

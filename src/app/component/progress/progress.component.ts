@@ -1,33 +1,52 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
-type QuizAttempt = {
-  id: string;
-  createdAt: string;
-  topic?: string;
-  planTitle?: string;
-  total: number;
-  correct: number;
-  wrong: number;
-  unattempted: number;
-  percent: number;
-};
-
-const STORAGE_KEY = 'cpb_quiz_attempts';
+import { Subject, takeUntil } from 'rxjs';
+import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
+import { apiFallback, apiEmpty } from '../../util/apiRx';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 @Component({
   selector: 'app-progress',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ModalComponent],
   templateUrl: './progress.component.html',
   styleUrl: './progress.component.scss'
 })
-export class ProgressComponent implements OnInit {
+export class ProgressComponent implements OnInit, OnDestroy {
   attempts: QuizAttempt[] = [];
+  private destroy$ = new Subject<void>();
+  
+  confirmModalDetails: ModalDetails = {
+    isOpen: false,
+    title: 'Confirm Clear History',
+    message: 'Are you sure you want to clear your quiz history? This action will hide all your quiz attempts.',
+    status: 'warning',
+    isConfirmation: true,
+    confirmText: 'Clear History',
+    cancelText: 'Cancel'
+  };
+
+  constructor(private quizAttemptService: QuizAttemptService) { }
 
   ngOnInit(): void {
-    this.attempts = this.readAttempts();
+    this.loadAttempts();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadAttempts(): void {
+    this.quizAttemptService.getAttempts({ limit: 25 })
+      .pipe(
+        apiFallback<QuizAttempt[]>([], 'Error loading quiz attempts'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((data) => {
+        this.attempts = data || [];
+      });
   }
 
   get totalAttempts(): number {
@@ -45,20 +64,18 @@ export class ProgressComponent implements OnInit {
   }
 
   clearHistory(): void {
-    localStorage.removeItem(STORAGE_KEY);
-    this.attempts = [];
+    this.confirmModalDetails.isOpen = true;
   }
 
-  private readAttempts(): QuizAttempt[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
-      return parsed as QuizAttempt[];
-    } catch {
-      return [];
-    }
+  onConfirmClearHistory(): void {
+    this.quizAttemptService.clearAttempts()
+      .pipe(
+        apiEmpty('Error clearing quiz attempts'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.attempts = [];
+      });
   }
 
   trackById = (_: number, a: QuizAttempt) => a.id;

@@ -46,26 +46,26 @@
           <table class="table mb-0 align-middle">
             <thead>
               <tr>
-                <th class="ps-4">Date</th>
-                <th>Plan</th>
+                <th class="ps-3 ps-md-4">Date</th>
+                <th class="d-none d-md-table-cell">Plan</th>
                 <th>Topic</th>
-                <th class="text-end">Correct</th>
-                <th class="text-end">Wrong</th>
-                <th class="text-end">Unattempted</th>
-                <th class="text-end pe-4">Score</th>
+                <th class="text-end d-none d-lg-table-cell">Correct</th>
+                <th class="text-end d-none d-lg-table-cell">Wrong</th>
+                <th class="text-end d-none d-lg-table-cell">Unattempted</th>
+                <th class="text-end pe-3 pe-md-4">Score</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let a of attempts; trackBy: trackById">
-                <td class="ps-4">
-                  <div class="fw-semibold">{{ a.createdAt | date: 'medium' }}</div>
+                <td class="ps-3 ps-md-4">
+                  <div class="fw-semibold">{{ a.createdAt | date: 'shortDate' }}</div>
                 </td>
-                <td>{{ a.planTitle || '-' }}</td>
-                <td>{{ a.topic || '-' }}</td>
-                <td class="text-end">{{ a.correct }}</td>
-                <td class="text-end">{{ a.wrong }}</td>
-                <td class="text-end">{{ a.unattempted }}</td>
-                <td class="text-end pe-4">
+                <td class="d-none d-md-table-cell">{{ a.planTitle || '-' }}</td>
+                <td class="topic-cell">{{ a.topic || '-' }}</td>
+                <td class="text-end d-none d-lg-table-cell">{{ a.correct }}</td>
+                <td class="text-end d-none d-lg-table-cell">{{ a.wrong }}</td>
+                <td class="text-end d-none d-lg-table-cell">{{ a.unattempted }}</td>
+                <td class="text-end pe-3 pe-md-4">
                   <span class="badge bg-primary-subtle text-primary-emphasis">{{ a.percent }}%</span>
                 </td>
               </tr>
@@ -86,3 +86,5 @@
     </ng-template>
   </div>
 </div>
+
+<app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="onConfirmClearHistory()"></app-modal>

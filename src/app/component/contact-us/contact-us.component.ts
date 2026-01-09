@@ -6,6 +6,7 @@ import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { apiEmpty } from '../../util/apiRx';
 import { RouterModule } from '@angular/router';
+import { readLoginMobile } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-contact-us',
@@ -33,8 +34,14 @@ export class ContactUsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Add mobile number to form data if user is logged in
+    const formData = {
+      ...this.contactForm.value,
+      mobile: readLoginMobile() || ''
+    };
+
     this.contactService
-      .saveContactForm(this.contactForm.value)
+      .saveContactForm(formData)
       .pipe(
         tap(() => {
           this.messageShow = 'Thank you for contacting us! We will get back to you shortly.';

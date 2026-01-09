@@ -1,69 +1,118 @@
 .hero {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  padding: 80px 20px;
+  padding: 100px 20px;
   text-align: center;
   position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
 }
 
 .hero-content {
   max-width: 900px;
   margin: auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero .badge {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 8px 16px;
   border-radius: 999px;
   font-size: 14px;
-  margin-bottom: 15px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .hero h1 {
-  font-size: 44px;
-  font-weight: 800;
-  margin-bottom: 15px;
+  font-size: 48px;
+  font-weight: 900;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  line-height: 1.2;
 }
 
 .hero p {
-  font-size: 18px;
-  line-height: 1.6;
+  font-size: 19px;
+  line-height: 1.7;
   max-width: 700px;
   margin: auto;
   opacity: 0.95;
 }
 
 .hero-actions {
-  margin-top: 30px;
+  margin-top: 35px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .hero-actions .btn {
   display: inline-block;
-  padding: 12px 24px;
-  margin: 8px;
-  border-radius: 8px;
+  padding: 14px 30px;
+  border-radius: 12px;
   text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .btn.primary {
   background: #16a34a;
   color: #fff;
-}
-
-.btn.primary:hover {
-  background: #15803d;
+  border: 2px solid #16a34a;
+  
+  &:hover {
+    background: #15803d;
+    border-color: #15803d;
+  }
 }
 
 .btn.secondary {
   background: #fff;
-  color: #4f46e5;
-}
-
-.btn.secondary:hover {
-  background: #e0e7ff;
+  color: #667eea;
+  border: 2px solid #fff;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
 }
 
 .content {
@@ -74,12 +123,17 @@
 
 .topics-card {
   background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   position: sticky;
-  top: 116px; /* header + subnav spacing */
+  top: 116px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .topics-header {
@@ -87,18 +141,23 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-  padding: 14px 14px;
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
 }
 
 .topics-search {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.015);
+  background: rgba(248, 249, 250, 0.5);
 }
 
 .topics-header .title {
-  font-weight: 800;
+  font-weight: 900;
+  font-size: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .topics-header .hint {
@@ -211,19 +270,40 @@
 /* Match Show Question Answer page: portal-style list */
 .qa-item {
   background: #ffffff;
-  border: 1px solid #e8eaf6;
-  border-radius: 12px;
+  border: 2px solid #e8eaf6;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.5s ease backwards;
+
+  &:nth-child(1) { animation-delay: 0.05s; }
+  &:nth-child(2) { animation-delay: 0.1s; }
+  &:nth-child(3) { animation-delay: 0.15s; }
+  &:nth-child(4) { animation-delay: 0.2s; }
+  &:nth-child(5) { animation-delay: 0.25s; }
 
   &:hover {
-    border-color: #c5cae9;
+    border-color: #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .qa-item-header {
-  padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(243, 246, 255, 0.9), rgba(255, 255, 255, 1));
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(243, 246, 255, 0.95), rgba(255, 255, 255, 1));
 }
 
 .qa-summary-left {
