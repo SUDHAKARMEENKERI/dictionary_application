@@ -1,0 +1,1 @@
+import{i as n,l as b,s as t}from"./chunk-YIOC52ML.js";function s(r,e){return o=>o.pipe(t(p=>(console.error(e,p),b(r))))}function T(r){return e=>e.pipe(t(o=>(console.error(r,o),n)))}export{s as a,T as b};
