@@ -156,6 +156,18 @@ export class QuizComponent implements OnInit, OnDestroy {
 
     this.answeredOptions = new Array(this.displayQuestions.length).fill(null);
     this.visited = new Array(this.displayQuestions.length).fill(false);
+
+    // Scroll to quiz section on mobile after a short delay to let the DOM update
+    setTimeout(() => {
+      if (window.innerWidth < 992) { // Bootstrap's lg breakpoint
+        const quizSection = document.querySelector('.quiz-active-card');
+        if (quizSection) {
+          const yOffset = -180; // Add 20px offset from top
+          const y = quizSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }
+    }, 100);
   }
 
   ngOnInit(): void {

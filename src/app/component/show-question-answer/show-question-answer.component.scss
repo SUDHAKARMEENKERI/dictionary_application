@@ -15,6 +15,9 @@
   @media (min-width: 992px) {
     position: sticky;
     top: 16px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -24,6 +27,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  flex-shrink: 0;
 
   .title {
     font-weight: 700;
@@ -44,12 +48,16 @@
 .tech-panel-search {
   border-bottom: 1px solid #e8eaf6;
   background: rgba(243, 246, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.tech-panel-content {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .tech-list {
-  max-height: 60vh;
-  overflow: auto;
-
   .list-group-item {
     border: 0;
     border-bottom: 1px solid #f0f1fb;
@@ -60,14 +68,6 @@
   .list-group-item.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-color: transparent;
-  }
-}
-
-@media (max-width: 991.98px) {
-  /* Mobile uses the dropdown; avoid reserving tall scroll areas. */
-  .tech-list {
-    max-height: none;
-    overflow: visible;
   }
 }
 
@@ -300,8 +300,6 @@
   font-size: 15px;
   line-height: 1.65;
   word-break: break-word;
-  padding-left: 12px;
-  border-left: 2px solid #e8eaf6;
 }
 
 .qa-answer-text {

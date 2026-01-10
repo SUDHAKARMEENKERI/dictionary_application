@@ -1,7 +1,15 @@
 <div class="pq-container">
   <header class="pq-header">
-    <h1>CareerPrepBook — Programming Interview Questions</h1>
-    <p>Curated list of common coding interview questions (easy → hard). Use these to practice problem solving, data structures, and algorithms.</p>
+    <div class="pq-header-content">
+      <div>
+        <h1>CareerPrepBook — Programming Interview Questions</h1>
+        <p>Curated list of common coding interview questions (easy → hard). Use these to practice problem solving, data structures, and algorithms.</p>
+      </div>
+      <button type="button" class="btn-add-question" (click)="addQuestion()" *ngIf="isAdmin">
+        <i class="bi bi-plus-circle"></i>
+        Add Question
+      </button>
+    </div>
   </header>
 
   <section class="pq-search">
@@ -35,12 +43,23 @@
             <h3>{{ q.title }}</h3>
           </div>
 
-          <span class="pq-diff"
-            [class.easy]="q.difficulty === 'Easy'"
-            [class.medium]="q.difficulty === 'Medium'"
-            [class.hard]="q.difficulty === 'Hard'">
-            {{ q.difficulty }}
-          </span>
+          <div class="pq-top-actions">
+            <span class="pq-diff"
+              [class.easy]="q.difficulty === 'Easy'"
+              [class.medium]="q.difficulty === 'Medium'"
+              [class.hard]="q.difficulty === 'Hard'">
+              {{ q.difficulty }}
+            </span>
+
+            <div class="pq-admin-actions" *ngIf="isAdmin">
+              <button type="button" class="icon-btn edit" (click)="editQuestion(q)" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" class="icon-btn delete" (click)="deleteQuestion(q)" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <p class="pq-prompt">{{ q.prompt }}</p>

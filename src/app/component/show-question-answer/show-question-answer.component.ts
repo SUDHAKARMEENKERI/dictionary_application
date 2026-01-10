@@ -521,11 +521,13 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
 
     if (this.isAllMode) {
       this.loadPage(page);
-      return;
+    } else {
+      this.currentPage = page;
+      this.updateVisibleSlice(this.getTopicSearchList());
     }
 
-    this.currentPage = page;
-    this.updateVisibleSlice(this.getTopicSearchList());
+    // Scroll to top of the page to show the new questions
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   get paginationItems(): Array<number | 'ellipsis'> {

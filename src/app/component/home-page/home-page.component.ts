@@ -53,9 +53,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
     // { label: 'Settings', link: '/settings', icon: 'bi bi-gear' }
   ];
   recentActivities = [
-    'Added new word: "serendipity".',
-    'Updated profile information.',
-    'Exported word list to Excel.'
+    'Added new interview question: "What is the difference between REST and GraphQL?"',
+    'Contributed Q&A on React lifecycle methods.',
+    'Reviewed technical questions on data structures and algorithms.'
   ];
 
   constructor(private userService: UserSignUpService,

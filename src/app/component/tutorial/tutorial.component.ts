@@ -225,6 +225,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   setActiveSection(section: OutputSection) {
     this.activeSection = section;
+    this.scrollToSection('question-sets-section');
   }
 
   get displayedQuestions(): OutputQuestion[] {
@@ -336,10 +337,26 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   selectQuestionSet(count: number) {
     this.selectedSetCount = count;
+    this.scrollToSection('statistics-section');
   }
 
   showAllQuestions() {
     this.selectedSetCount = null;
+    this.scrollToSection('statistics-section');
+  }
+
+  private scrollToSection(sectionId: string): void {
+    // Scroll to specific section on mobile after a short delay to let the DOM update
+    setTimeout(() => {
+      if (window.innerWidth < 992) { // Bootstrap's lg breakpoint
+        const section = document.getElementById(sectionId);
+        if (section) {
+          const yOffset = 130 // Add 20px offset from top
+          const y = section.getBoundingClientRect().top + window.pageYOffset - yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }
+    }, 100);
   }
 
   get isSetSelected(): boolean {

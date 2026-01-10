@@ -22,7 +22,7 @@ export class FooterComponent {
   practiceLinks: Array<{ label: string; path: string }> = [
     { label: 'Quiz', path: '/quiz' },
     { label: 'Output Practice', path: '/output-practice' },
-    { label: 'Topic Tutorial', path: '/tutorial' },
+    // { label: 'Topic Tutorial', path: '/tutorial' },
     { label: 'My Progress', path: '/progress' },
   ];
 

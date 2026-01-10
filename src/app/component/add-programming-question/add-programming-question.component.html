@@ -1,0 +1,132 @@
+<div class="add-pq-container">
+  <div class="add-pq-header">
+    <button type="button" class="btn-back" (click)="cancel()">
+      <i class="bi bi-arrow-left"></i>
+      Back to Questions
+    </button>
+    <h1>{{ isEditMode ? 'Edit' : 'Add' }} Programming Question</h1>
+    <p>{{ isEditMode ? 'Update the programming interview question details below' : 'Create a new programming interview question' }}</p>
+  </div>
+
+  <div class="add-pq-card">
+    <form [formGroup]="questionForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title" class="form-label">
+          Question Title <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          id="title"
+          class="form-control"
+          formControlName="title"
+          placeholder="e.g., Two Sum, Reverse a String"
+          [class.is-invalid]="questionForm.get('title')?.invalid && questionForm.get('title')?.touched"
+        />
+        <div class="invalid-feedback" *ngIf="questionForm.get('title')?.invalid && questionForm.get('title')?.touched">
+          {{ getError('title') }}
+        </div>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="form-group">
+        <label for="difficulty" class="form-label">
+          Difficulty <span class="required">*</span>
+        </label>
+        <select id="difficulty" class="form-control" formControlName="difficulty">
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+
+      <!-- Topics -->
+      <div class="form-group">
+        <label class="form-label">
+          Topics/Tags
+        </label>
+        <div class="topic-input-group">
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="topicInput"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Enter a topic and press Add"
+            (keyup.enter)="addTopic()"
+          />
+          <button type="button" class="btn btn-secondary" (click)="addTopic()">
+            <i class="bi bi-plus-circle"></i>
+            Add
+          </button>
+        </div>
+        
+        <div class="topics-list" *ngIf="topics.length > 0">
+          <span class="topic-chip" *ngFor="let topic of topics.controls; let i = index">
+            {{ topic.value }}
+            <button type="button" class="remove-topic" (click)="removeTopic(i)">
+              <i class="bi bi-x"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Prompt -->
+      <div class="form-group">
+        <label for="prompt" class="form-label">
+          Question Prompt/Description <span class="required">*</span>
+        </label>
+        <textarea
+          id="prompt"
+          class="form-control"
+          formControlName="prompt"
+          rows="5"
+          placeholder="Describe the problem statement clearly..."
+          [class.is-invalid]="questionForm.get('prompt')?.invalid && questionForm.get('prompt')?.touched"
+        ></textarea>
+        <div class="invalid-feedback" *ngIf="questionForm.get('prompt')?.invalid && questionForm.get('prompt')?.touched">
+          {{ getError('prompt') }}
+        </div>
+      </div>
+
+      <!-- Answer/Solution (Optional) -->
+      <div class="form-group">
+        <label for="answer" class="form-label">
+          Answer/Solution Approach (Optional)
+        </label>
+        <textarea
+          id="answer"
+          class="form-control"
+          formControlName="answer"
+          rows="6"
+          placeholder="Provide solution approach, algorithm, or code example..."
+        ></textarea>
+      </div>
+
+      <!-- Hints (Optional) -->
+      <div class="form-group">
+        <label for="hints" class="form-label">
+          Hints (Optional)
+        </label>
+        <textarea
+          id="hints"
+          class="form-control"
+          formControlName="hints"
+          rows="3"
+          placeholder="Provide helpful hints for solving this problem..."
+        ></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="questionForm.invalid">
+          <i class="bi bi-check-circle"></i>
+          {{ isEditMode ? 'Update' : 'Create' }} Question
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

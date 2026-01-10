@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { UserSignUpService } from '../../service/user-signup.service';
+import { WordListService } from '../../service/word-list.service';
+import { QuestionAnswerService } from '../../service/questionAnswer.Service';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, map, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-about-us',
@@ -8,12 +13,14 @@ import { RouterModule } from '@angular/router';
   templateUrl: './about-us.component.html',
   styleUrl: './about-us.component.scss'
 })
-export class AboutUsComponent {
+export class AboutUsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   statistics = [
-    { number: '5,000+', label: 'Active Users', icon: 'bi bi-people-fill' },
-    { number: '10,000+', label: 'Words Added', icon: 'bi bi-book-fill' },
-    { number: '500+', label: 'Q&A Pairs', icon: 'bi bi-chat-dots-fill' },
-    { number: '50+', label: 'Contributors', icon: 'bi bi-star-fill' }
+    { number: '0', label: 'Active Users', icon: 'bi bi-people-fill' },
+    { number: '0', label: 'Words Added', icon: 'bi bi-book-fill' },
+    { number: '0', label: 'Q&A Pairs', icon: 'bi bi-chat-dots-fill' },
+    { number: '0', label: 'Contributors', icon: 'bi bi-star-fill' }
   ];
 
   features = [
@@ -38,7 +45,7 @@ export class AboutUsComponent {
       description: 'Curated and verified content by experienced professionals and subject matter experts.'
     },
     {
-      icon: 'bi bi-globe-fill',
+      icon: 'bi bi-globe2',
       title: 'Always Available',
       description: 'Access your learning materials anytime, anywhere across all your devices.'
     },
@@ -77,7 +84,7 @@ export class AboutUsComponent {
       description: 'We strive for excellence in everything we do, from content quality to user experience.'
     },
     {
-      icon: 'bi bi-handshake',
+      icon: 'bi bi-people-fill',
       title: 'Community',
       description: 'We believe in the power of community collaboration and peer learning.'
     },
@@ -92,4 +99,83 @@ export class AboutUsComponent {
       description: 'Committed to helping every learner achieve their career and personal growth goals.'
     }
   ];
+
+  constructor(
+    private userService: UserSignUpService,
+    private wordService: WordListService,
+    private questionAnswerService: QuestionAnswerService
+  ) { }
+
+  ngOnInit(): void {
+    this.loadStatistics();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadStatistics(): void {
+    const totalUsers$ = this.userService.getUserCount().pipe(
+      map((countData: any) => Number(countData?.totalUserCount ?? 0)),
+      catchError((error) => {
+        console.error('Error fetching user count:', error);
+        return of(0);
+      })
+    );
+
+    const totalWords$ = this.wordService.getWordCount().pipe(
+      map((countData: any) => Number(countData?.totalWordCount ?? 0)),
+      catchError((error) => {
+        console.error('Error fetching word count:', error);
+        return of(0);
+      })
+    );
+
+    const totalQuestionAnswerCount$ = this.questionAnswerService.getQuestionAnswerCount().pipe(
+      map((countData: any) => Number(countData ?? 0)),
+      catchError((error) => {
+        console.error('Error fetching question answer count:', error);
+        return of(0);
+      })
+    );
+
+    forkJoin({
+      totalUsers: totalUsers$,
+      totalWords: totalWords$,
+      totalQuestionAnswerCount: totalQuestionAnswerCount$
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        this.statistics = [
+          { 
+            number: this.formatNumber(result.totalUsers), 
+            label: 'Active Users', 
+            icon: 'bi bi-people-fill' 
+          },
+          { 
+            number: this.formatNumber(result.totalWords), 
+            label: 'Words Added', 
+            icon: 'bi bi-book-fill' 
+          },
+          { 
+            number: this.formatNumber(result.totalQuestionAnswerCount), 
+            label: 'Q&A Pairs', 
+            icon: 'bi bi-chat-dots-fill' 
+          },
+          { 
+            number: this.formatNumber(result.totalUsers), 
+            label: 'Contributors', 
+            icon: 'bi bi-star-fill' 
+          }
+        ];
+      });
+  }
+
+  private formatNumber(num: number): string {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K+';
+    }
+    return num.toString() + (num > 0 ? '+' : '');
+  }
 }
