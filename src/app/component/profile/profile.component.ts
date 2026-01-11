@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { UserSignUpService } from '../../service/user-signup.service';
-import { readLoginMobile } from '../../util/loginStorage';
+import { readLoginMobile, readLoginStorage, updateLoginStorage, clearLoginStorage } from '../../util/loginStorage';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 import { Router, RouterModule } from '@angular/router';
 
@@ -174,14 +174,11 @@ export class ProfileComponent implements OnInit {
             ...updatedData
           };
           
-          // Update localStorage if needed
-          const loginData = localStorage.getItem('login');
-          if (loginData) {
-            const parsed = JSON.parse(loginData);
-            parsed.firstName = updatedData.firstName;
-            parsed.lastName = updatedData.lastName;
-            localStorage.setItem('login', JSON.stringify(parsed));
-          }
+          // Update encrypted localStorage
+          updateLoginStorage({
+            firstName: updatedData.firstName,
+            lastName: updatedData.lastName
+          });
           
           this.isEditMode = false;
           
@@ -221,8 +218,8 @@ export class ProfileComponent implements OnInit {
   }
 
   logout(): void {
-    // Clear localStorage
-    localStorage.removeItem('login');
+    // Clear encrypted localStorage
+    clearLoginStorage();
     
     // Show logout modal
     this.openModalDetails = {

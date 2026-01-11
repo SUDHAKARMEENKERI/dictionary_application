@@ -1,0 +1,163 @@
+<div class="user-list-container">
+  <header class="user-list-header">
+    <div class="header-content">
+      <div>
+        <h1>User Management</h1>
+        <p>View and manage registered users</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading Spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading users...</p>
+  </div>
+
+  <!-- User List -->
+  <section class="user-list-section" *ngIf="!isLoading">
+    <div class="alert alert-info" *ngIf="users.length === 0">
+      No users found.
+    </div>
+
+    <div class="users-grid" *ngIf="users.length > 0">
+      <div class="user-card" *ngFor="let user of users; trackBy: trackByUserId">
+        <div class="user-header">
+          <div class="user-avatar">
+            <i class="bi bi-person-circle"></i>
+          </div>
+          <div class="user-info">
+            <h3>{{ user.firstName || 'N/A' }} {{ user.lastName || '' }}</h3>
+            <span class="user-email">{{ user.email || 'No email' }}</span>
+          </div>
+        </div>
+
+        <div class="user-details">
+          <div class="detail-row" *ngIf="user.id !== undefined">
+            <span class="label">
+              <i class="bi bi-hash"></i>
+              ID
+            </span>
+            <span class="value">{{ user.id }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">
+              <i class="bi bi-phone"></i>
+              Mobile
+            </span>
+            <span class="value">{{ user.mobile || 'N/A' }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.email">
+            <span class="label">
+              <i class="bi bi-envelope"></i>
+              Email
+            </span>
+            <span class="value">{{ user.email }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.admin !== undefined">
+            <span class="label">
+              <i class="bi bi-shield"></i>
+              Admin Status
+            </span>
+            <span class="value role-badge" [class.admin]="user.admin === true">
+              {{ user.admin ? 'Yes' : 'No' }}
+            </span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.role">
+            <span class="label">
+              <i class="bi bi-person-badge"></i>
+              Role
+            </span>
+            <span class="value">{{ user.role }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.bio">
+            <span class="label">
+              <i class="bi bi-info-circle"></i>
+              Bio
+            </span>
+            <span class="value bio-text">{{ user.bio }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.password">
+            <span class="label">
+              <i class="bi bi-key"></i>
+              Password
+            </span>
+            <span class="value password-text">{{ user.password }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.confirmPassword">
+            <span class="label">
+              <i class="bi bi-key-fill"></i>
+              Confirm Password
+            </span>
+            <span class="value password-text">{{ user.confirmPassword }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.isActive !== undefined">
+            <span class="label">
+              <i class="bi bi-activity"></i>
+              Status
+            </span>
+            <span class="value" [class.text-success]="user.isActive" [class.text-danger]="!user.isActive">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.registeredDate || user.createdAt">
+            <span class="label">
+              <i class="bi bi-calendar-plus"></i>
+              Registered
+            </span>
+            <span class="value">{{ (user.registeredDate || user.createdAt) | date: 'MMM d, y, h:mm a' }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.lastLogin">
+            <span class="label">
+              <i class="bi bi-clock-history"></i>
+              Last Login
+            </span>
+            <span class="value">{{ user.lastLogin | date: 'MMM d, y, h:mm a' }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="user.updatedAt">
+            <span class="label">
+              <i class="bi bi-pencil-square"></i>
+              Last Updated
+            </span>
+            <span class="value">{{ user.updatedAt | date: 'MMM d, y, h:mm a' }}</span>
+          </div>
+        </div>
+
+        <div class="user-stats" *ngIf="user.quizzesTaken !== undefined || user.questionsAnswered !== undefined">
+          <div class="stat" *ngIf="user.quizzesTaken !== undefined">
+            <i class="bi bi-journal-check"></i>
+            <div>
+              <span class="stat-value">{{ user.quizzesTaken }}</span>
+              <span class="stat-label">Quizzes</span>
+            </div>
+          </div>
+          <div class="stat" *ngIf="user.questionsAnswered !== undefined">
+            <i class="bi bi-question-circle"></i>
+            <div>
+              <span class="stat-value">{{ user.questionsAnswered }}</span>
+              <span class="stat-label">Questions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-count" *ngIf="users.length > 0">
+      Total Users: <strong>{{ users.length }}</strong>
+    </div>
+  </section>
+</div>
+
+<!-- Modal for messages -->
+<app-modal [openModalDetails]="modalDetails"></app-modal>

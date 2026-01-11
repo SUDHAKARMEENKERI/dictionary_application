@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './auth.guard';
+import { AdminGuard } from './admin.guard';
 import { LoginComponent } from './component/login/login.component';
 import { SignupComponent } from './component/signup/signup.component';
 import { ForgotPasswordComponent } from './component/forgot-password/forgot-password.component';
@@ -84,6 +85,12 @@ export const routes: Routes = [
   { path: 'profile', loadComponent: () => import('./component/profile/profile.component').then(m => m.ProfileComponent), canActivate: [AuthGuard], title: 'CareerPrepBook | Profile', data: { description: 'Manage your CareerPrepBook profile and account details.' } },
   { path: 'settings', loadComponent: () => import('./component/settings/settings.component').then(m => m.SettingsComponent), canActivate: [AuthGuard], title: 'CareerPrepBook | Settings', data: { description: 'Account settings, password reset, and policy links.' } },
   { path: 'progress', loadComponent: () => import('./component/progress/progress.component').then(m => m.ProgressComponent), canActivate: [AuthGuard], title: 'CareerPrepBook | My Progress', data: { description: 'Track your quiz performance over time and review your progress.' } },
+  
+  // Admin Only
+  { path: 'admin/page-view-stats', loadComponent: () => import('./component/page-view-stats/page-view-stats.component').then(m => m.PageViewStatsComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Page View Statistics', data: { description: 'View page statistics and user engagement metrics.', robots: 'noindex, nofollow' } },
+  { path: 'admin/users', loadComponent: () => import('./component/user-list/user-list.component').then(m => m.UserListComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | User Management', data: { description: 'View and manage registered users.', robots: 'noindex, nofollow' } },
+  
+  // Public Pages
   { path: 'about', component: AboutUsComponent, title: 'CareerPrepBook | About', data: { description: 'Learn about CareerPrepBook and our mission to help you succeed in interviews.' } },
   { path: 'contact', component: ContactUsComponent, title: 'CareerPrepBook | Contact', data: { description: 'Contact CareerPrepBook support for help, feedback, or questions.' } },
 
@@ -104,11 +111,12 @@ export const routes: Routes = [
   { path: 'quiz/play', component: QuizComponent, title: 'CareerPrepBook | Quiz', data: { description: 'Take curated quizzes and see your score with correct/wrong/unattempted breakdown.' } },
   { path: 'output-practice', loadComponent: () => import('./component/output-practice-landing/output-practice-landing.component').then(m => m.OutputPracticeLandingComponent), title: 'CareerPrepBook | Output Practice Topics', data: { description: 'Choose a technology/topic and start output practice.' } },
   { path: 'output-practice/play', component: TutorialComponent, title: 'CareerPrepBook | Output Practice', data: { description: 'Practice output-based questions and check your answers instantly.' } },
+  { path: 'programming-qa', loadComponent: () => import('./component/programming-questions-view/programming-questions-view.component').then(m => m.ProgrammingQuestionsViewComponent), title: 'CareerPrepBook | Programming Q&A', data: { description: 'Programming interview questions with answers in multiple languages.' } },
   { path: 'programming-questions', loadComponent: () => import('./component/programming-questions/programming-questions.component').then(m => m.ProgrammingQuestionsComponent), title: 'CareerPrepBook | Programming Questions', data: { description: 'Programming interview questions to improve problem-solving and coding skills.' } },
   { path: 'programming-questions/new', loadComponent: () => import('./component/add-programming-question/add-programming-question.component').then(m => m.AddProgrammingQuestionComponent), canActivate: [AuthGuard], title: 'CareerPrepBook | Add Programming Question', data: { description: 'Add a new programming interview question.' } },
   { path: 'programming-questions/:id/edit', loadComponent: () => import('./component/add-programming-question/add-programming-question.component').then(m => m.AddProgrammingQuestionComponent), canActivate: [AuthGuard], title: 'CareerPrepBook | Edit Programming Question', data: { description: 'Edit programming interview question.' } },
 
-  // Legal & Support
+  // Legal & Supportp
   { path: 'help-center', loadComponent: () => import('./component/help-center/help-center.component').then(m => m.HelpCenterComponent), title: 'CareerPrepBook | Help Center', data: { description: 'Help Center and FAQ for using CareerPrepBook.' } },
   { path: 'faq', loadComponent: () => import('./component/faq/faq.component').then(m => m.FaqComponent), title: 'CareerPrepBook | FAQ', data: { description: 'Frequently asked questions about CareerPrepBook.' } },
   { path: 'privacy-policy', loadComponent: () => import('./component/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent), title: 'CareerPrepBook | Privacy Policy', data: { description: 'Privacy Policy for CareerPrepBook.' } },

@@ -373,8 +373,6 @@
   font-size: 15px;
   line-height: 1.65;
   word-break: break-word;
-  padding-left: 12px;
-  border-left: 2px solid #e8eaf6;
 }
 
 .qa-answer-text {
@@ -465,5 +463,17 @@
   .qa-item-body {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .qa-answer-row {
+    gap: 0;
+
+    .answer-badge {
+      display: none;
+    }
+  }
+
+  .qa-answer {
+    width: 100%;
   }
 }

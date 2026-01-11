@@ -2,13 +2,9 @@
   <header class="pq-header">
     <div class="pq-header-content">
       <div>
-        <h1>CareerPrepBook — Programming Interview Questions</h1>
-        <p>Curated list of common coding interview questions (easy → hard). Use these to practice problem solving, data structures, and algorithms.</p>
+        <h1>Programming Interview Questions & Answers</h1>
+        <p>Master coding interviews with curated questions across different programming languages. Practice problem solving, data structures, and algorithms.</p>
       </div>
-      <button type="button" class="btn-add-question" (click)="addQuestion()" *ngIf="isAdmin">
-        <i class="bi bi-plus-circle"></i>
-        Add Question
-      </button>
     </div>
   </header>
 
@@ -30,7 +26,13 @@
     </div>
   </section>
 
-  <section class="pq-list">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading questions...</p>
+  </div>
+
+  <section class="pq-list" *ngIf="!isLoading">
     <div class="alert alert-info" *ngIf="filteredQuestions.length === 0">
       No questions match your search.
     </div>
@@ -50,15 +52,6 @@
               [class.hard]="q.difficulty === 'Hard'">
               {{ q.difficulty }}
             </span>
-
-            <div class="pq-admin-actions" *ngIf="canEditOrDelete(q)">
-              <button type="button" class="icon-btn edit" (click)="editQuestion(q)" title="Edit">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button type="button" class="icon-btn delete" (click)="deleteQuestion(q)" title="Delete">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -85,7 +78,7 @@
         </div>
 
         <!-- Answer Section -->
-        <div class="pq-section" *ngIf="(q.answer || hasMultipleAnswers(q)) && canViewAnswer(q)">
+        <div class="pq-section" *ngIf="q.answer || hasMultipleAnswers(q)">
           <button 
             type="button" 
             class="pq-toggle-btn answer-btn" 
@@ -103,6 +96,7 @@
                     class="tech-tab"
                     [class.active]="getSelectedTechnology(q.id || q.title, q.answers![0].technology) === techAnswer.technology"
                     (click)="selectTechnology(q.id || q.title, techAnswer.technology)">
+                    <i class="bi bi-code-slash"></i>
                     {{ techAnswer.technology }}
                   </button>
                 }
@@ -122,9 +116,3 @@
     }
   </section>
 </div>
-
-<!-- Modal for messages -->
-<app-modal [openModalDetails]="modalDetails"></app-modal>
-
-<!-- Modal for delete confirmation -->
-<app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>

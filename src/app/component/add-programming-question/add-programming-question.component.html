@@ -91,16 +91,64 @@
 
       <!-- Answer/Solution (Optional) -->
       <div class="form-group">
-        <label for="answer" class="form-label">
-          Answer/Solution Approach (Optional)
-        </label>
-        <textarea
-          id="answer"
-          class="form-control"
-          formControlName="answer"
-          rows="6"
-          placeholder="Provide solution approach, algorithm, or code example..."
-        ></textarea>
+        <div class="answer-mode-toggle">
+          <label class="form-label">
+            Answer/Solution Approach (Optional)
+          </label>
+          <button type="button" class="btn-toggle-mode" (click)="toggleAnswerMode()">
+            <i class="bi" [class.bi-code-slash]="!useMultipleAnswers" [class.bi-list-task]="useMultipleAnswers"></i>
+            {{ useMultipleAnswers ? 'Use Single Answer' : 'Use Multiple Languages' }}
+          </button>
+        </div>
+
+        <!-- Single Answer Mode -->
+        <div *ngIf="!useMultipleAnswers">
+          <textarea
+            id="answer"
+            class="form-control"
+            formControlName="answer"
+            rows="6"
+            placeholder="Provide solution approach, algorithm, or code example..."
+          ></textarea>
+        </div>
+
+        <!-- Multiple Answers by Technology Mode -->
+        <div *ngIf="useMultipleAnswers" class="tech-answers-section">
+          <div class="tech-input-group">
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="technologyInput"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Enter technology (e.g., Java, Python, JavaScript)"
+              (keyup.enter)="addTechnologyAnswer()"
+            />
+            <button type="button" class="btn btn-secondary" (click)="addTechnologyAnswer()">
+              <i class="bi bi-plus-circle"></i>
+              Add Language
+            </button>
+          </div>
+
+          <div class="tech-answers-list" *ngIf="answers.length > 0" formArrayName="answers">
+            <div class="tech-answer-item" *ngFor="let answerGroup of answers.controls; let i = index" [formGroupName]="i">
+              <div class="tech-answer-header">
+                <span class="tech-label">
+                  <i class="bi bi-code-square"></i>
+                  {{ answerGroup.get('technology')?.value }}
+                </span>
+                <button type="button" class="btn-remove" (click)="removeTechnologyAnswer(i)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+              <textarea
+                class="form-control"
+                formControlName="answer"
+                rows="5"
+                [placeholder]="'Enter ' + answerGroup.get('technology')?.value + ' solution...'"
+              ></textarea>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Hints (Optional) -->
@@ -117,6 +165,22 @@
         ></textarea>
       </div>
 
+      <!-- Admin Approval (Admin Only) -->
+      <div class="form-group" *ngIf="isCurrentUserAdmin">
+        <div class="form-check">
+          <input
+            type="checkbox"
+            id="isAdmin"
+            class="form-check-input"
+            formControlName="isAdmin"
+          />
+          <label for="isAdmin" class="form-check-label">
+            <strong>Approve for Public View</strong>
+            <small class="d-block text-muted">Check this box to make the question visible to all users on the public programming Q&A page</small>
+          </label>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="form-actions">
         <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
@@ -130,3 +194,6 @@
     </form>
   </div>
 </div>
+
+<!-- Modal for messages -->
+<app-modal [openModalDetails]="modalDetails"></app-modal>

@@ -9,6 +9,7 @@ import { LoaderService } from '../../service/loader.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
+import { saveLoginStorage } from '../../util/loginStorage';
 
 @Component({
   selector: 'app-login',
@@ -60,12 +61,14 @@ export class LoginComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((response: any) => {
         if (response?.isLogIn) {
-          localStorage.setItem('login', JSON.stringify({
+          saveLoginStorage({
             isLogIn: response.isLogIn,
             mobile: response.mobile,
             firstName: response.firstName,
-            lastName: response.lastName
-          }));
+            lastName: response.lastName,
+            email: response.email,
+            admin: response.admin
+          });
           this.store.dispatch(setMobile({ mobile: response.mobile }));
           this.loaderService.hide();
           this.router.navigate(['/dashboard']);

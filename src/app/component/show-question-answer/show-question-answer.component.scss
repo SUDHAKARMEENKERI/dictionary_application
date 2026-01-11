@@ -586,3 +586,17 @@
   }
 }
 
+// Mobile View Adjustments
+@media (max-width: 576px) {
+  .qa-answer-row {
+    gap: 0;
+
+    .answer-badge {
+      display: none;
+    }
+  }
+
+  .qa-answer {
+    width: 100%;
+  }
+}

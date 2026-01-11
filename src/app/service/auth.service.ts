@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { isUserLoggedIn, isUserAdmin, saveLoginStorage, clearLoginStorage, readLoginStorage } from '../util/loginStorage';
 
 @Injectable({
   providedIn: 'root'
@@ -6,15 +7,29 @@ import { Injectable } from '@angular/core';
 export class AuthService {
 
   isLoggedIn(): boolean {
-    const loginData = localStorage.getItem('login');
-    return !!loginData && JSON.parse(loginData).isLogIn;
+    return isUserLoggedIn();
+  }
+
+  isAdmin(): boolean {
+    return isUserAdmin();
   }
 
   login(token: string) {
-    localStorage.setItem('login', token);
+    try {
+      // If token is a JSON string, parse and save it
+      const data = JSON.parse(token);
+      saveLoginStorage(data);
+    } catch {
+      // If token is not JSON, save as is (backward compatibility)
+      saveLoginStorage({ isLogIn: true, mobile: token });
+    }
   }
 
   logout() {
-    localStorage.removeItem('login');
+    clearLoginStorage();
+  }
+
+  getLoginData() {
+    return readLoginStorage();
   }
 }

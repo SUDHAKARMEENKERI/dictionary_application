@@ -258,6 +258,132 @@ textarea.form-control {
   }
 }
 
+// Technology Answers Styling
+.answer-mode-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  .btn-toggle-mode {
+    appearance: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
+}
+
+.tech-answers-section {
+  margin-top: 16px;
+}
+
+.tech-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .form-control {
+    flex: 1;
+  }
+
+  .btn {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+  }
+}
+
+.tech-answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tech-answer-item {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.tech-answer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .tech-label {
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+
+    i {
+      color: #6366f1;
+      font-size: 18px;
+    }
+  }
+
+  .btn-remove {
+    appearance: none;
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    font-size: 13px;
+
+    &:hover {
+      background: #fecaca;
+      transform: translateY(-2px);
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .add-pq-container {
     padding: 16px;
@@ -271,7 +397,8 @@ textarea.form-control {
     font-size: 24px;
   }
 
-  .topic-input-group {
+  .topic-input-group,
+  .tech-input-group {
     flex-direction: column;
 
     .btn {

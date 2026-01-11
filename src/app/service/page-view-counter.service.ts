@@ -12,6 +12,14 @@ export type PageViewIncrementPayload = {
   mobile: string;
 };
 
+export type PageViewStats = {
+  id: number;
+  pageName: string;
+  viewCount: number;
+  date: string;
+  mobile: string | null;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -106,5 +114,13 @@ export class PageViewCounterService {
     const b = (base ?? '').replace(/\/$/, '');
     const p = (path ?? '').startsWith('/') ? path : `/${path}`;
     return `${b}${p}`;
+  }
+
+  /**
+   * Fetch page view statistics (admin only)
+   */
+  getPageViewStats() {
+    const endpoint = this.joinUrl(this.baseUrl, '/page-view');
+    return this.http.get<PageViewStats[]>(endpoint);
   }
 }

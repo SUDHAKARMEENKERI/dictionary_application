@@ -1,0 +1,119 @@
+<div class="page-view-stats-container">
+  <div class="header">
+    <h1>Page View Statistics</h1>
+    <p class="subtitle">Admin Dashboard - Track user engagement across your application</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading statistics...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <p class="error-message">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Statistics Dashboard -->
+  <div *ngIf="!loading && !errorMessage" class="stats-dashboard">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <h3>Total Pages</h3>
+          <p class="card-value">{{ totalPages }}</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="card-icon">👁️</div>
+        <div class="card-content">
+          <h3>Total Views</h3>
+          <p class="card-value">{{ totalViews }}</p>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="card-icon">📈</div>
+        <div class="card-content">
+          <h3>Avg Views/Page</h3>
+          <p class="card-value">{{ totalPages > 0 ? (totalViews / totalPages).toFixed(1) : 0 }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Statistics Table -->
+    <div class="stats-table-container">
+      <div class="table-header">
+        <h2>Page Details</h2>
+        <div class="table-controls">
+          <label for="pageSize">Show:</label>
+          <select id="pageSize" (change)="onPageSizeChange($event)" [value]="itemsPerPage">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+          <span class="entries-info">entries</span>
+        </div>
+      </div>
+
+      <div *ngIf="stats.length === 0" class="no-data">
+        <p>No page view data available yet.</p>
+      </div>
+
+      <div *ngIf="stats.length > 0" class="table-wrapper">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Page Name</th>
+              <th>View Count</th>
+              <th>Date</th>
+              <th>User Mobile</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stat of paginatedStats">
+              <td class="stat-id" data-label="ID">{{ stat.id }}</td>
+              <td class="page-name" data-label="Page Name">{{ stat.pageName }}</td>
+              <td class="view-count" data-label="View Count">{{ stat.viewCount }}</td>
+              <td class="date" data-label="Date">{{ formatDate(stat.date) }}</td>
+              <td class="mobile" data-label="User Mobile">{{ stat.mobile || 'Anonymous' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div *ngIf="stats.length > 0" class="pagination-container">
+        <div class="pagination-info">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, stats.length) }} of {{ stats.length }} entries
+        </div>
+        <div class="pagination-controls">
+          <button 
+            class="page-btn" 
+            [disabled]="currentPage === 1" 
+            (click)="previousPage()">
+            Previous
+          </button>
+          
+          <button 
+            *ngFor="let page of pageNumbers" 
+            class="page-btn"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === -1"
+            [disabled]="page === -1"
+            (click)="page !== -1 && goToPage(page)">
+            {{ page === -1 ? '...' : page }}
+          </button>
+          
+          <button 
+            class="page-btn" 
+            [disabled]="currentPage === totalPagesCount" 
+            (click)="nextPage()">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

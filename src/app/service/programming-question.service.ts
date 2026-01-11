@@ -5,16 +5,24 @@ import { environment } from '../../environments/environment';
 
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
+export interface TechnologyAnswer {
+  technology: string;
+  answer: string;
+}
+
 export interface ProgrammingQuestion {
-  id?: string;
+  id?: number | string;
   title: string;
   difficulty: Difficulty;
   topics: string[];
   prompt: string;
-  answer?: string;
+  answer?: string; // Deprecated: kept for backward compatibility
+  answers?: TechnologyAnswer[]; // New: multiple answers by technology
   hints?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  mobile?: string; // User's mobile who created the question
+  isAdmin?: boolean; // Whether the question is approved/verified by admin
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 @Injectable({
@@ -30,7 +38,7 @@ export class ProgrammingQuestionService {
     return this.http.get<ProgrammingQuestion[]>(url);
   }
 
-  getQuestionById(id: string): Observable<ProgrammingQuestion> {
+  getQuestionById(id: string | number): Observable<ProgrammingQuestion> {
     const url = `${this.apiUrl}/programming-questions/${id}`;
     return this.http.get<ProgrammingQuestion>(url);
   }
@@ -40,12 +48,12 @@ export class ProgrammingQuestionService {
     return this.http.post<ProgrammingQuestion>(url, question);
   }
 
-  updateQuestion(id: string, question: ProgrammingQuestion): Observable<ProgrammingQuestion> {
+  updateQuestion(id: string | number, question: ProgrammingQuestion): Observable<ProgrammingQuestion> {
     const url = `${this.apiUrl}/programming-questions/${id}`;
     return this.http.put<ProgrammingQuestion>(url, question);
   }
 
-  deleteQuestion(id: string): Observable<any> {
+  deleteQuestion(id: string | number): Observable<any> {
     const url = `${this.apiUrl}/programming-questions/${id}`;
     return this.http.delete<any>(url);
   }
