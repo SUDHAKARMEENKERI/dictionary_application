@@ -189,7 +189,7 @@
                                     </div>
 
                                     <div class="qa-summary-text">
-                                        <div class="qa-question">{{ qa.question }}</div>
+                                        <div class="qa-question">{{ fixEncoding(qa.question) }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -202,8 +202,12 @@
                                     <div class="qa-answer">
                                         <ng-container *ngFor="let part of answerParts(qa.answer)">
                                             <span *ngIf="part.kind === 'text'" class="qa-answer-text">{{ part.text }}</span>
-                                            <div *ngIf="part.kind === 'example'" class="qa-example">
-                                                <div class="qa-example-label">Example</div>
+                                            <div
+                                                *ngIf="part.kind === 'example'"
+                                                class="qa-example"
+                                                [class.qa-example--scenario]="part.label === 'Scenario'"
+                                            >
+                                                <div class="qa-example-label">{{ part.label }}</div>
                                                 <pre class="qa-example-code">{{ part.text }}</pre>
                                             </div>
                                             <div *ngIf="part.kind === 'table'" class="qa-table">
@@ -237,7 +241,7 @@
                                 <div class="qa-item-footer">
                                     <div class="qa-footer-meta">
                                         <span class="badge bg-light text-dark" *ngIf="qa.topic">
-                                            <i class="bi bi-tag me-1"></i>{{ qa.topic }}
+                                            <i class="bi bi-tag me-1"></i>{{ fixEncoding(qa.topic) }}
                                         </span>
                                         <span class="badge bg-light text-dark">{{ levelLabel(qa) }}</span>
                                     </div>

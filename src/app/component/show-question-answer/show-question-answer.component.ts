@@ -176,23 +176,91 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
     return 'Basic';
   }
 
+  fixEncoding(value: unknown): string {
+    // Common UTF-8 -> Windows-1252 mojibake seen in content pasted into non-UTF stores.
+    return (value ?? '')
+      .toString()
+      .replace(/â€™|â€˜/g, "'")
+      .replace(/â€œ|â€/g, '"')
+      .replace(/â€“|â€”/g, '-')
+      .replace(/â€¦/g, '...')
+      .replace(/\u00c2\u00a0/g, ' ')
+      .replace(/\u00a0/g, ' ');
+  }
+
+  private decodeEscapes(value: string): string {
+    // Bulk uploads (CSV/JSON) often store line breaks as literal "\n".
+    // Convert common escaped sequences so UI formatting matches existing content.
+    return (value ?? '')
+      .toString()
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t');
+  }
+
   answerParts(answer: unknown):
     Array<
-      | { kind: 'text' | 'example'; text: string }
+      | { kind: 'text'; text: string }
+      | { kind: 'example'; label: 'Example' | 'Scenario'; text: string }
       | { kind: 'table'; headers: string[]; rows: string[][] }
     > {
-    const raw = (answer ?? '').toString();
+    const raw = this.decodeEscapes(this.fixEncoding(answer));
     if (!raw.trim()) return [];
 
-    const lines = raw.split(/\r?\n/);
+    // If "Example:/Scenario:/e.g." appears mid-line, split it onto a new line
+    // so our block parser can render it as a styled callout.
+    const prepareAnswer = (value: string): string => {
+      const baseLines = (value ?? '').toString().replace(/\r\n/g, '\n').split('\n');
+      const result: string[] = [];
+
+      const findFirstMarker = (line: string): { index: number } | null => {
+        const patterns: RegExp[] = [
+          /\bexamples?\b\s*[:\-]/i,
+          /\bscenarios?\b\s*[:\-]/i,
+          /\b(e\.g\.|eg)\b\s*[:\-–—]/i,
+        ];
+
+        let bestIndex = Number.POSITIVE_INFINITY;
+
+        for (const re of patterns) {
+          const m = re.exec(line);
+          if (!m || typeof m.index !== 'number') continue;
+          if (m.index < bestIndex) bestIndex = m.index;
+        }
+
+        if (!Number.isFinite(bestIndex)) return null;
+        return { index: bestIndex };
+      };
+
+      for (const line of baseLines) {
+        const info = findFirstMarker(line);
+        if (!info || info.index <= 0) {
+          result.push(line);
+          continue;
+        }
+
+        const before = line.slice(0, info.index).trimEnd();
+        const after = line.slice(info.index).trimStart();
+        if (before) result.push(before);
+        result.push(after);
+      }
+
+      return result.join('\n');
+    };
+
+    const prepared = prepareAnswer(raw);
+
+    const lines = prepared.split(/\r?\n/);
     const parts:
       Array<
-        | { kind: 'text' | 'example'; text: string }
+        | { kind: 'text'; text: string }
+        | { kind: 'example'; label: 'Example' | 'Scenario'; text: string }
         | { kind: 'table'; headers: string[]; rows: string[][] }
       > = [];
 
     let textBuffer: string[] = [];
     let exampleBuffer: string[] = [];
+    let exampleLabel: 'Example' | 'Scenario' = 'Example';
     let tableBuffer: string[][] = [];
     let inExample = false;
     let inTable = false;
@@ -233,7 +301,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
 
     const flushExample = () => {
       const text = exampleBuffer.join('\n').trimEnd();
-      if (text) parts.push({ kind: 'example', text });
+      if (text) parts.push({ kind: 'example', label: exampleLabel, text });
       exampleBuffer = [];
     };
 
@@ -265,7 +333,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
       const line = (lines[idx] ?? '').toString();
 
       // Example blocks take priority.
-      const exampleMatch = line.match(/^\s*(examples?|eg|e\.g\.)\s*(?:[:\-]\s*)?(.*)$/i);
+      const exampleMatch = line.match(/^\s*(examples?|scenarios?|scenario|eg|e\.g\.)\s*(?:[:\-]\s*)?(.*)$/i);
       if (exampleMatch) {
         if (inTable) {
           flushTable();
@@ -277,6 +345,10 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
         }
         flushText();
         inExample = true;
+
+        const keyword = (exampleMatch[1] ?? '').toString().trim().toLowerCase();
+        exampleLabel = keyword.startsWith('scen') ? 'Scenario' : 'Example';
+
         const first = (exampleMatch[2] ?? '').toString();
         if (first) exampleBuffer.push(first);
         continue;
@@ -439,7 +511,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   private matchesQaSearch(qa: any, queryLower: string): boolean {
-    const haystack = [qa?.question, qa?.answer, qa?.topic]
+    const haystack = [this.fixEncoding(qa?.question), this.fixEncoding(qa?.answer), this.fixEncoding(qa?.topic)]
       .filter(Boolean)
       .join(' ')
       .toString()
