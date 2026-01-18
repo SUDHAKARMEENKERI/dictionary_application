@@ -90,4 +90,21 @@ export class MCQQuestionService {
             })
         );
     }
+
+    createMcqQuestion(reqBody: any): Observable<any> {
+        const url = `${this.apiUrl}/mcqQuestions/mcq`;
+        return this.http.post<any>(url, reqBody);
+    }
+
+    updateMcqQuestion(id: string | number, reqBody: any): Observable<any> {
+        const safeId = (id ?? '').toString().trim();
+        const url = `${this.apiUrl}/mcqQuestions/update/${encodeURIComponent(safeId)}`;
+        return this.http.put<any>(url, reqBody);
+    }
+
+    deleteMcqQuestion(id: string | number): Observable<any> {
+        const safeId = (id ?? '').toString().trim();
+        const url = `${this.apiUrl}/mcqQuestions/delete/${encodeURIComponent(safeId)}`;
+        return this.http.delete<any>(url);
+    }
 }

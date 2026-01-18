@@ -11,6 +11,7 @@ import { TechnologyService } from '../../service/technology.service';
 import { DropdownResponse, QuestionTypeDropdownOption } from '../../models/Technology';
 import { readLoginMobile } from '../../util/loginStorage';
 import { apiFallback } from '../../util/apiRx';
+import { MCQQuestionService } from '../../service/mcqQuestion.service';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -23,7 +24,8 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     private questionAnswerService: QuestionAnswerService,
     private activeRouter: ActivatedRoute, private sanitizer: DomSanitizer,
     private techService: TechnologyService,
-    private router: Router) { }
+    private router: Router,
+    private mcqQuestionService: MCQQuestionService) { }
 
   questionAnswerForm!: FormGroup;
   imageSrc: string | null = null;
@@ -52,6 +54,51 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   private pendingEditQa: any | null = null;
 
   private readonly adminMobile = '9611675325';
+
+  private isMcqLikeQuestionType(value: unknown): boolean {
+    const t = (value ?? '').toString().trim().toUpperCase();
+    return t === 'MCQ' || t === 'OUTPUTBASEDMCQ' || t === 'OUTPUTBASED';
+  }
+
+  private canManageMcqItem(item: any): boolean {
+    const current = (readLoginMobile() ?? '').toString().trim();
+    if (!current) return false;
+    if (current === this.adminMobile) return true;
+    const owner = (item?.mobile ?? item?.createdByMobile ?? item?.userMobile ?? '').toString().trim();
+    return !!owner && owner === current;
+  }
+
+  private applyEditMcqItem(item: any): void {
+    const normalizedLevel = (item.level ?? item.difficulty ?? item.questionLevel ?? 'BASIC')
+      .toString()
+      .trim()
+      .toUpperCase();
+
+    const qt = this.normalizeQuestionType(item.questionType);
+
+    // Set questionType first so the valueChanges logic sets validators/fields.
+    this.questionAnswerForm.get('questionType')?.setValue(qt);
+
+    const optionsRaw = Array.isArray(item?.options) ? item.options : [];
+    const options = optionsRaw.map((o: any) => (o ?? '').toString());
+
+    this.questionAnswerForm.patchValue({
+      question: item.question,
+      code: item.code ?? '',
+      answer: item.answer ?? '',
+      // Category is reconciled once categories are loaded (id is required for select value).
+      category: '',
+      topic: (item.topic ?? '').toString().trim(),
+      level: normalizedLevel || 'BASIC',
+      optionA: options[0] ?? '',
+      optionB: options[1] ?? '',
+      optionC: options[2] ?? '',
+      optionD: options[3] ?? '',
+      correctAnswer: (item.correctAnswer ?? '').toString().trim(),
+    });
+
+    this.syncCategoryFromPendingEdit(item);
+  }
 
   readonly difficultyLevels = [
     { label: 'Basic', value: 'BASIC' },
@@ -152,22 +199,75 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
     this.activeRouter.queryParams
       .pipe(
-        map((params) => (params?.['id'] ?? '').toString().trim()),
-        tap((id) => {
+        map((params) => {
+          const id = (params?.['id'] ?? '').toString().trim();
+          const questionType = (params?.['questionType'] ?? '').toString().trim();
+          return { id, questionType };
+        }),
+        tap(({ id }) => {
           if (id) {
             this.editMode = { isEditMode: true, id };
           }
         }),
-        filter((id) => !!id),
-        switchMap((id) =>
-          this.questionAnswerService.getAllUserQAById(id).pipe(
+        filter(({ id }) => !!id),
+        switchMap(({ id, questionType }) => {
+          const state = (history.state ?? {}) as any;
+          const mcqEdit = state?.mcqEdit;
+
+          // If coming from quiz/output-practice edit, prefer navigation state.
+          if (this.isMcqLikeQuestionType(questionType) || this.isMcqLikeQuestionType(mcqEdit?.questionType)) {
+            if (mcqEdit) {
+              return [mcqEdit];
+            }
+
+            // Fallback: try to locate the MCQ item by id (may be heavy, but supports reload).
+            return this.mcqQuestionService.getAllMcq({}).pipe(
+              apiFallback<any[]>([], 'Error fetching MCQ list for edit'),
+              map((list: any) => {
+                const arr = Array.isArray(list)
+                  ? list
+                  : (list?.data ?? list?.result ?? list?.items ?? list?.content ?? []);
+                const match = (arr || []).find((x: any) => {
+                  const xid = (x?.id ?? x?._id ?? x?.mcqId ?? x?.questionId ?? '').toString();
+                  return xid && xid === id;
+                });
+                return match ?? null;
+              })
+            );
+          }
+
+          return this.questionAnswerService.getAllUserQAById(id).pipe(
             apiFallback<any | null>(null, 'Error fetching QA by ID')
-          )
-        ),
+          );
+        }),
         takeUntil(this.destroy$)
       )
-      .subscribe((data) => {
+      .subscribe((data: any) => {
         if (!data) return;
+
+        const normalizedType = this.normalizeQuestionType(data?.questionType);
+        const isMcqLike = this.isMcqLikeQuestionType(normalizedType);
+
+        if (isMcqLike) {
+          if (!this.canManageMcqItem(data)) {
+            this.modalMessage('You can edit/delete only your own Q&A.');
+            this.editMode = { isEditMode: false, id: null };
+            this.pendingEditQa = null;
+            this.router.navigate([], {
+              relativeTo: this.activeRouter,
+              queryParams: { id: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true
+            });
+            return;
+          }
+
+          this.pendingEditQa = data;
+          this.applyEditMcqItem(data);
+          this.imageSrc = null;
+          this.imageFile = null;
+          return;
+        }
 
         const qaItem = data;
 
@@ -349,16 +449,35 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
         mobile: readLoginMobile()
       };
 
-      this.questionAnswerService.createMcqQA(reqBoy).
-        pipe(takeUntil(this.destroy$)).subscribe({
-          next: (res) => {
-            this.questionAnswerForm.reset();
-            this.modalMessage("Question Answer added Successfully.");
-          }, error: (error) => {
-             this.modalMessage("Opps!, Something went wrong.");
-            console.log(error);
-          }
-        });
+      if (this.editMode.isEditMode && this.editMode.id) {
+        this.mcqQuestionService
+          .updateMcqQuestion(this.editMode.id, reqBoy)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.modalMessage('Question Answer updated Successfully.');
+              this.questionAnswerForm.reset();
+              this.removeImage();
+            },
+            error: (error) => {
+              this.modalMessage('Opps!, Something went wrong.');
+              console.log(error);
+            }
+          });
+      } else {
+        this.questionAnswerService.createMcqQA(reqBoy)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.questionAnswerForm.reset();
+              this.modalMessage('Question Answer added Successfully.');
+            },
+            error: (error) => {
+              this.modalMessage('Opps!, Something went wrong.');
+              console.log(error);
+            }
+          });
+      }
     } else {
       const formData = new FormData();
       formData.append('question', this.questionAnswerForm.value.question);

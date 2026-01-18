@@ -124,6 +124,10 @@
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
               <h3>{{ q.question }}</h3>
+              <div class="manage-actions" *ngIf="canManageMcq(q)">
+                <button type="button" class="manage-btn" (click)="editQuestion(q)">Edit</button>
+                <button type="button" class="manage-btn danger" (click)="openDeleteConfirm(q)">Delete</button>
+              </div>
             </div>
 
             <!-- Code -->
@@ -190,6 +194,10 @@
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
               <h3>{{ q.question }}</h3>
+              <div class="manage-actions" *ngIf="canManageMcq(q)">
+                <button type="button" class="manage-btn" (click)="editQuestion(q)">Edit</button>
+                <button type="button" class="manage-btn danger" (click)="openDeleteConfirm(q)">Delete</button>
+              </div>
             </div>
 
             <!-- Code -->
@@ -243,3 +251,6 @@
     </main>
   </div>
 </div>
+
+<app-modal [openModalDetails]="modalDetails"></app-modal>
+<app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>

@@ -1,12 +1,27 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { apiFallback, apiEmpty } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
+import { FormsModule } from '@angular/forms';
+import { readLoginMobile } from '../../util/loginStorage';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
-type QuizQuestion = { question: string; options: string[]; correct: number; topic?: string; code?: string };
+type QuizQuestion = {
+  id?: string | number;
+  question: string;
+  options: string[];
+  correct: number;
+  topic?: string;
+  category?: string;
+  questionType?: string;
+  level?: string;
+  code?: string;
+  answer?: string;
+  mobile?: string;
+};
 
 type ChatMessage = {
   from: 'bot' | 'user';
@@ -19,7 +34,7 @@ type ChatMessage = {
   templateUrl: './quiz.component.html',
   styleUrls: ['./quiz.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
 })
 export class QuizComponent implements OnInit, OnDestroy {
   quizStarted = false;
@@ -49,11 +64,123 @@ export class QuizComponent implements OnInit, OnDestroy {
   constructor(
     private activeRouter: ActivatedRoute,
     private mcqQuestionService: MCQQuestionService,
-    private quizAttemptService: QuizAttemptService
+    private quizAttemptService: QuizAttemptService,
+    private router: Router
   ) { }
   private destroy$ = new Subject<void>();
   topic = '';
   category = '';
+
+  private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
+  private readonly adminMobile = '9611675325';
+
+  modalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'info',
+    title: 'Quiz'
+  };
+
+  confirmModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'warning',
+    title: 'Confirm Delete',
+    isConfirmation: true,
+    confirmText: 'Delete',
+    cancelText: 'Cancel'
+  };
+
+  questionToDelete: QuizQuestion | null = null;
+
+  private getOwnerMobile(q: any): string {
+    const candidates = [
+      q?.mobile,
+      q?.userMobile,
+      q?.mobileNo,
+      q?.createdByMobile,
+      q?.createdBy?.mobile,
+      q?.ownerMobile
+    ];
+    for (const c of candidates) {
+      const v = (c ?? '').toString().trim();
+      if (v) return v;
+    }
+    return '';
+  }
+
+  canManageMcq(q: QuizQuestion): boolean {
+    const current = this.currentMobile;
+    if (!current) return false;
+    if (current === this.adminMobile) return true;
+    const owner = this.getOwnerMobile(q);
+    return !!owner && owner === current;
+  }
+
+  editQuestion(q: QuizQuestion): void {
+    if (!q?.id) return;
+    if (!this.canManageMcq(q)) return;
+
+    this.router.navigate(['/interview-qa/editor'], {
+      queryParams: {
+        id: q.id,
+        questionType: q.questionType ?? 'MCQ',
+        source: 'quiz'
+      },
+      state: {
+        mcqEdit: {
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          // Preserve these if present so the editor can pre-fill category/topic/level.
+          topic: q.topic,
+          category: q.category,
+          level: q.level,
+          questionType: q.questionType ?? 'MCQ',
+          code: q.code,
+          answer: q.answer,
+          mobile: q.mobile,
+        }
+      }
+    });
+  }
+
+  openDeleteConfirm(q: QuizQuestion): void {
+    if (!q?.id) return;
+    if (!this.canManageMcq(q)) return;
+    this.questionToDelete = q;
+    this.confirmModalDetails.message = 'Are you sure you want to delete this question? This action cannot be undone.';
+    this.confirmModalDetails.isOpen = true;
+  }
+
+  confirmDelete(): void {
+    const q = this.questionToDelete;
+    if (!q?.id) return;
+
+    this.mcqQuestionService
+      .deleteMcqQuestion(q.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.questionToDelete = null;
+          this.loadQuestionBank();
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'success',
+            message: 'Question deleted successfully.'
+          };
+        },
+        error: () => {
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'error',
+            message: 'Error deleting question.'
+          };
+        }
+      });
+  }
 
   private normalizeKey(value: string): string {
     return (value || '')
@@ -70,11 +197,20 @@ export class QuizComponent implements OnInit, OnDestroy {
 
     const normalized = data
       .map((item: any) => {
+        const id = item?.id ?? item?._id ?? item?.mcqId ?? item?.questionId;
         const question = (item?.question ?? item?.ques ?? item?.title ?? '').toString().trim();
         const optionsRaw = item?.options ?? item?.option ?? item?.choices ?? item?.answers;
-        const options = Array.isArray(optionsRaw) ? optionsRaw.map((o: any) => String(o)) : [];
+        const options = Array.isArray(optionsRaw)
+          ? optionsRaw.map((o: any) => String(o))
+          : [item?.optionA, item?.optionB, item?.optionC, item?.optionD]
+              .map((o: any) => (o ?? '').toString())
+              .filter((v: string) => v.trim().length > 0);
 
         const topic = (item?.topic ?? item?.technology ?? item?.category ?? item?.tag ?? item?.subject ?? '').toString().trim();
+        const category = (item?.category ?? item?.categoryId ?? item?.categoryName ?? '').toString().trim();
+        const level = (item?.level ?? item?.difficulty ?? item?.questionLevel ?? '').toString().trim();
+        const questionType = (item?.questionType ?? item?.type ?? 'MCQ').toString().trim();
+        const mobile = (item?.mobile ?? item?.createdByMobile ?? item?.userMobile ?? '').toString().trim();
 
         let correct: number | undefined;
         
@@ -128,7 +264,17 @@ export class QuizComponent implements OnInit, OnDestroy {
           correct = 0;
         }
 
-        return { question, options, correct, topic: topic || undefined };
+        return {
+          id: id ?? undefined,
+          question,
+          options,
+          correct,
+          topic: topic || undefined,
+          category: category || undefined,
+          level: level || undefined,
+          questionType: questionType || undefined,
+          mobile: mobile || undefined,
+        };
       })
       .filter(Boolean) as QuizQuestion[];
 

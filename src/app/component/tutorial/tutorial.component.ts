@@ -13,17 +13,23 @@ import {
 } from 'rxjs/operators';
 import { apiFallback } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
+import { readLoginMobile } from '../../util/loginStorage';
+import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 type OutputQuestion = {
+  id?: string | number;
   question: string;
   code: string;
   answer: string;
+  correctAnswer?: string;
   options: string[];
   selectedOption: string;
   userAnswer: string;
   topic?: string;
   category?: string;
   questionType?: string;
+  level?: string;
+  mobile?: string;
   showAnswer: boolean;
   mcqChecked: boolean;
   mcqIsCorrect: boolean | null;
@@ -37,7 +43,7 @@ type OutputSection = 'mcq' | 'typed';
   selector: 'app-tutorial',
   templateUrl: './tutorial.component.html',
   styleUrls: ['./tutorial.component.scss'],
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   standalone: true
 })
 export class TutorialComponent implements OnInit, OnDestroy {
@@ -73,6 +79,28 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   private readonly typedOutputQuestionType = 'OUTPUTBASED';
 
+  private readonly adminMobile = '9611675325';
+  private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
+
+  modalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'info',
+    title: 'Output Practice'
+  };
+
+  confirmModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'warning',
+    title: 'Confirm Delete',
+    isConfirmation: true,
+    confirmText: 'Delete',
+    cancelText: 'Cancel'
+  };
+
+  questionToDelete: OutputQuestion | null = null;
+
   private firstNonEmpty(...values: any[]): string {
     for (const v of values) {
       const s = (v ?? '').toString();
@@ -101,6 +129,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
     return list
       .map((item: any) => {
+        const id = item?.id ?? item?._id ?? item?.mcqId ?? item?.questionId;
         const question = this.firstNonEmpty(item?.questionText, item?.prompt, item?.question, item?.ques, item?.title).trim();
         const code = this.firstNonEmpty(
           item?.code,
@@ -116,13 +145,14 @@ export class TutorialComponent implements OnInit, OnDestroy {
           item?.body,
           item?.content
         );
+        const correctAnswerRaw = this.firstNonEmpty(item?.correctAnswer, item?.correct_answer, item?.correct);
         const answer = this.firstNonEmpty(
-          // Some APIs send correctAnswer as empty string for OUTPUTBASED.
-          item?.correctAnswer,
           item?.answer,
           item?.output,
           item?.expectedOutput,
-          item?.expected
+          item?.expected,
+          // Some APIs send correctAnswer as the expected output.
+          item?.correctAnswer
         );
 
         const optionsRaw = item?.options ?? item?.option ?? item?.choices ?? item?.answers;
@@ -132,21 +162,27 @@ export class TutorialComponent implements OnInit, OnDestroy {
         const topic = this.firstNonEmpty(item?.topic, item?.technology, item?.tech).trim();
         const category = this.firstNonEmpty(item?.category).trim();
         const questionType = this.firstNonEmpty(item?.questionType, item?.question_type, item?.type).trim();
+        const level = this.firstNonEmpty(item?.level, item?.difficulty, item?.questionLevel).trim();
+        const mobile = this.firstNonEmpty(item?.mobile, item?.createdByMobile, item?.userMobile).trim();
 
         // For output-practice we need at least a prompt + expected output.
         // Backend may send expected value in `correctAnswer` (OUTPUTBASEDMCQ).
         if (!question || !answer) return null;
 
         return {
+          id: id ?? undefined,
           question,
           code,
           answer,
+          correctAnswer: correctAnswerRaw || undefined,
           options,
           selectedOption: '',
           userAnswer: '',
           topic: topic || undefined,
           category: category || undefined,
           questionType: questionType || undefined,
+          level: level || undefined,
+          mobile: mobile || undefined,
           showAnswer: false,
           mcqChecked: false,
           mcqIsCorrect: null,
@@ -155,6 +191,113 @@ export class TutorialComponent implements OnInit, OnDestroy {
         } as OutputQuestion;
       })
       .filter(Boolean) as OutputQuestion[];
+  }
+
+  private getOwnerMobile(q: any): string {
+    const candidates = [
+      q?.mobile,
+      q?.userMobile,
+      q?.mobileNo,
+      q?.createdByMobile,
+      q?.createdBy?.mobile,
+      q?.ownerMobile
+    ];
+    for (const c of candidates) {
+      const v = (c ?? '').toString().trim();
+      if (v) return v;
+    }
+    return '';
+  }
+
+  canManageMcq(q: OutputQuestion): boolean {
+    const current = this.currentMobile;
+    if (!current) return false;
+    if (current === this.adminMobile) return true;
+    const owner = this.getOwnerMobile(q);
+    return !!owner && owner === current;
+  }
+
+  editQuestion(q: OutputQuestion): void {
+    if (!q?.id) return;
+    if (!this.canManageMcq(q)) return;
+
+    this.router.navigate(['/interview-qa/editor'], {
+      queryParams: {
+        id: q.id,
+        questionType: q.questionType ?? '',
+        source: 'output-practice'
+      },
+      state: {
+        mcqEdit: {
+          id: q.id,
+          question: q.question,
+          code: q.code,
+          answer: q.answer,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          questionType: q.questionType,
+          category: q.category,
+          topic: q.topic,
+          level: q.level,
+          mobile: q.mobile,
+        }
+      }
+    });
+  }
+
+  openDeleteConfirm(q: OutputQuestion): void {
+    if (!q?.id) return;
+    if (!this.canManageMcq(q)) return;
+
+    this.questionToDelete = q;
+    this.confirmModalDetails.message = 'Are you sure you want to delete this question? This action cannot be undone.';
+    this.confirmModalDetails.isOpen = true;
+  }
+
+  confirmDelete(): void {
+    const q = this.questionToDelete;
+    if (!q?.id) return;
+
+    this.mcqQuestionService
+      .deleteMcqQuestion(q.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.questionToDelete = null;
+          this.reloadBank();
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'success',
+            message: 'Question deleted successfully.'
+          };
+        },
+        error: () => {
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'error',
+            message: 'Error deleting output question.'
+          };
+        }
+      });
+  }
+
+  private reloadBank(): void {
+    const topic = this.selectedTopic === 'All' ? '' : this.selectedTopic;
+    const category = this.category;
+    this.isLoadingQuestions = true;
+
+    this.loadQuestionBank$(topic, category)
+      .pipe(
+        finalize(() => {
+          this.isLoadingQuestions = false;
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((qs) => {
+        this.questions = qs || [];
+      });
   }
 
   ngOnInit(): void {
