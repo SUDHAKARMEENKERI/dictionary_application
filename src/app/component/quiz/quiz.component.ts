@@ -14,6 +14,7 @@ type QuizQuestion = {
   question: string;
   options: string[];
   correct: number;
+  correctAnswer?: string;
   topic?: string;
   category?: string;
   questionType?: string;
@@ -21,6 +22,7 @@ type QuizQuestion = {
   code?: string;
   answer?: string;
   mobile?: string;
+  admin?: boolean;
 };
 
 type ChatMessage = {
@@ -74,6 +76,10 @@ export class QuizComponent implements OnInit, OnDestroy {
   private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
   private readonly adminMobile = '9611675325';
 
+  private get isAdminUser(): boolean {
+    return !!this.currentMobile && this.currentMobile === this.adminMobile;
+  }
+
   modalDetails: ModalDetails = {
     isOpen: false,
     message: '',
@@ -109,12 +115,34 @@ export class QuizComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  private isPublicQuestion(q: any): boolean {
+    // Default is private; only admin-approved questions are public.
+    const v = (q?.admin ?? q?.isAdmin ?? q?.is_admin);
+    return v === true;
+  }
+
+  private canSeeQuestion(q: any): boolean {
+    if (this.isAdminUser) return true;
+
+    const current = this.currentMobile;
+    if (current) {
+      const owner = this.getOwnerMobile(q);
+      if (owner && owner === current) return true;
+    }
+
+    return this.isPublicQuestion(q);
+  }
+
   canManageMcq(q: QuizQuestion): boolean {
     const current = this.currentMobile;
     if (!current) return false;
-    if (current === this.adminMobile) return true;
+    if (this.isAdminUser) return true;
     const owner = this.getOwnerMobile(q);
-    return !!owner && owner === current;
+    if (!owner || owner !== current) return false;
+
+    // Once published (admin:true), only admin can modify.
+    const published = (q?.admin ?? (q as any)?.isAdmin ?? (q as any)?.is_admin) === true;
+    return !published;
   }
 
   editQuestion(q: QuizQuestion): void {
@@ -250,6 +278,7 @@ export class QuizComponent implements OnInit, OnDestroy {
         const level = (item?.level ?? item?.difficulty ?? item?.questionLevel ?? '').toString().trim();
         const questionType = (item?.questionType ?? item?.type ?? 'MCQ').toString().trim();
         const mobile = (item?.mobile ?? item?.createdByMobile ?? item?.userMobile ?? '').toString().trim();
+        const admin = (item?.admin ?? item?.isAdmin ?? item?.is_admin);
 
         let correct: number | undefined;
         
@@ -308,11 +337,13 @@ export class QuizComponent implements OnInit, OnDestroy {
           question,
           options,
           correct,
+          correctAnswer: (item?.correctAnswer ?? item?.correct_answer ?? item?.correct ?? '').toString().trim() || undefined,
           topic: topic || undefined,
           category: category || undefined,
           level: level || undefined,
           questionType: questionType || undefined,
           mobile: mobile || undefined,
+          admin: typeof admin === 'boolean' ? admin : undefined,
         };
       })
       .filter(Boolean) as QuizQuestion[];
@@ -388,7 +419,7 @@ export class QuizComponent implements OnInit, OnDestroy {
       )
       .subscribe((data) => {
         const normalized = this.normalizeMcqQuestions(data);
-        this.questions = normalized;
+        this.questions = (normalized ?? []).filter((q) => this.canSeeQuestion(q));
 
         // If user already picked a plan, refresh the sliced questions.
         if (this.quizStarted && this.selectedPlan?.count) {

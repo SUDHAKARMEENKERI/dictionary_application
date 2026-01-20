@@ -139,10 +139,10 @@
               <div class="code-options-title">Choose the correct output</div>
 
               <div class="code-options" *ngIf="q.options?.length">
-                @for (opt of q.options; track opt) {
+                @for (opt of q.options; track opt; let oi = $index) {
                 <button type="button" class="option-btn" [class.active]="q.selectedOption === opt"
                   (click)="selectOption(q, opt)">
-                  <span class="opt-text">{{ opt }}</span>
+                  <span class="opt-text"><strong>{{ getOptionLabel(oi) }}.</strong> {{ opt }}</span>
                 </button>
                 }
               </div>
@@ -172,7 +172,7 @@
               <span class="badge a">A</span>
               <p>
                 Correct Output:
-                <strong>{{ q.answer }}</strong>
+                <strong>{{ getMcqCorrectDisplay(q) }}</strong>
               </p>
             </div>
 

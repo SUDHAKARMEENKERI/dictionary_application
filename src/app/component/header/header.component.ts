@@ -36,6 +36,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     { label: 'Add Interview Q&A', path: '/interview-qa/editor' },
     { label: 'Quiz', path: '/quiz' },
     { label: 'Output Practice', path: '/output-practice' },
+    { label: 'My Questions', path: '/my-questions' },
     { label: 'My Progress', path: '/progress' },
     { label: 'Add Programming Q&A ', path: '/programming-questions' },
     { label: 'Show Programming', path: '/programming-qa' },

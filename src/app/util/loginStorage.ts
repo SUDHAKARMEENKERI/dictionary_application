@@ -73,6 +73,6 @@ export function isUserLoggedIn(): boolean {
 }
 
 export function isUserAdmin(): boolean {
-  const login = readLoginStorage();
-  return !!(login && (login.admin === true || login.mobile === '9611675325'));
+  const mobile = (readLoginStorage()?.mobile ?? '').toString().trim();
+  return mobile === '9611675325';
 }

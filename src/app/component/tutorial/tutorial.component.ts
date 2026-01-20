@@ -30,6 +30,7 @@ type OutputQuestion = {
   questionType?: string;
   level?: string;
   mobile?: string;
+  admin?: boolean;
   showAnswer: boolean;
   mcqChecked: boolean;
   mcqIsCorrect: boolean | null;
@@ -79,8 +80,14 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   private readonly typedOutputQuestionType = 'OUTPUTBASED';
 
+  private readonly optionLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
   private readonly adminMobile = '9611675325';
   private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
+
+  private get isAdminUser(): boolean {
+    return !!this.currentMobile && this.currentMobile === this.adminMobile;
+  }
 
   modalDetails: ModalDetails = {
     isOpen: false,
@@ -164,6 +171,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
         const questionType = this.firstNonEmpty(item?.questionType, item?.question_type, item?.type).trim();
         const level = this.firstNonEmpty(item?.level, item?.difficulty, item?.questionLevel).trim();
         const mobile = this.firstNonEmpty(item?.mobile, item?.createdByMobile, item?.userMobile).trim();
+        const admin = (item?.admin ?? item?.isAdmin ?? item?.is_admin);
 
         // For output-practice we need at least a prompt + expected output.
         // Backend may send expected value in `correctAnswer` (OUTPUTBASEDMCQ).
@@ -183,6 +191,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
           questionType: questionType || undefined,
           level: level || undefined,
           mobile: mobile || undefined,
+          admin: typeof admin === 'boolean' ? admin : undefined,
           showAnswer: false,
           mcqChecked: false,
           mcqIsCorrect: null,
@@ -191,6 +200,66 @@ export class TutorialComponent implements OnInit, OnDestroy {
         } as OutputQuestion;
       })
       .filter(Boolean) as OutputQuestion[];
+  }
+
+  getOptionLabel(index: number): string {
+    return this.optionLabels[index] ?? '';
+  }
+
+  private parseAnswerKeyToIndex(raw: any): number | null {
+    const s = (raw ?? '').toString().trim();
+    if (!s) return null;
+
+    // Letter keys: A, B, C...
+    if (/^[A-Za-z]$/.test(s)) {
+      return s.toUpperCase().charCodeAt(0) - 65;
+    }
+
+    // Numeric keys: 1,2,3... (assume 1-based)
+    if (/^\d+$/.test(s)) {
+      const n = Number.parseInt(s, 10);
+      if (!Number.isNaN(n) && n > 0) return n - 1;
+    }
+
+    return null;
+  }
+
+  private getSelectedOptionIndex(q: OutputQuestion): number | null {
+    const selected = (q?.selectedOption ?? '').toString();
+    if (!selected) return null;
+    const idx = (q?.options ?? []).indexOf(selected);
+    return idx >= 0 ? idx : null;
+  }
+
+  private getCorrectOptionIndex(q: OutputQuestion): number | null {
+    const options = q?.options ?? [];
+    if (!options.length) return null;
+
+    // Prefer explicit correctAnswer when present.
+    const keyFromCorrect = this.parseAnswerKeyToIndex(q.correctAnswer);
+    if (keyFromCorrect !== null && keyFromCorrect >= 0 && keyFromCorrect < options.length) {
+      return keyFromCorrect;
+    }
+
+    // Some payloads store the key in `answer` (e.g., "B").
+    const keyFromAnswer = this.parseAnswerKeyToIndex(q.answer);
+    if (keyFromAnswer !== null && keyFromAnswer >= 0 && keyFromAnswer < options.length) {
+      return keyFromAnswer;
+    }
+
+    // Some payloads store the actual option text as answer/correctAnswer.
+    const target = (q.correctAnswer ?? q.answer ?? '').toString().trim().toLowerCase();
+    if (!target) return null;
+    const textIndex = options.findIndex(o => (o ?? '').toString().trim().toLowerCase() === target);
+    return textIndex >= 0 ? textIndex : null;
+  }
+
+  getMcqCorrectDisplay(q: OutputQuestion): string {
+    const idx = this.getCorrectOptionIndex(q);
+    if (idx === null) return q.answer;
+    const label = this.getOptionLabel(idx);
+    const text = (q.options?.[idx] ?? '').toString();
+    return label ? `${label}. ${text}` : text;
   }
 
   private getOwnerMobile(q: any): string {
@@ -209,12 +278,34 @@ export class TutorialComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  private isPublicQuestion(q: any): boolean {
+    // Default is private; only admin-approved questions are public.
+    const v = (q?.admin ?? q?.isAdmin ?? q?.is_admin);
+    return v === true;
+  }
+
+  private canSeeQuestion(q: any): boolean {
+    if (this.isAdminUser) return true;
+
+    const current = this.currentMobile;
+    if (current) {
+      const owner = this.getOwnerMobile(q);
+      if (owner && owner === current) return true;
+    }
+
+    return this.isPublicQuestion(q);
+  }
+
   canManageMcq(q: OutputQuestion): boolean {
     const current = this.currentMobile;
     if (!current) return false;
-    if (current === this.adminMobile) return true;
+    if (this.isAdminUser) return true;
     const owner = this.getOwnerMobile(q);
-    return !!owner && owner === current;
+    if (!owner || owner !== current) return false;
+
+    // Once published (admin:true), only admin can modify.
+    const published = (q?.admin ?? (q as any)?.isAdmin ?? (q as any)?.is_admin) === true;
+    return !published;
   }
 
   editQuestion(q: OutputQuestion): void {
@@ -296,7 +387,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((qs) => {
-        this.questions = qs || [];
+        this.questions = (qs || []).filter((q) => this.canSeeQuestion(q));
       });
   }
 
@@ -327,7 +418,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((qs) => {
-        this.questions = qs || [];
+        this.questions = (qs || []).filter((q) => this.canSeeQuestion(q));
       });
   }
 
@@ -435,9 +526,20 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   checkMcqAnswer(q: OutputQuestion) {
+    q.mcqChecked = true;
+
+    const correctIndex = this.getCorrectOptionIndex(q);
+    const selectedIndex = this.getSelectedOptionIndex(q);
+
+    // If the backend/admin stored A/B/C/D (or 1/2/3/4), validate by index.
+    if (correctIndex !== null && selectedIndex !== null) {
+      q.mcqIsCorrect = selectedIndex === correctIndex;
+      return;
+    }
+
+    // Fallback: validate by exact text match (legacy behavior).
     const expected = this.normalizeOutput(q.answer);
     const actual = this.normalizeOutput(q.selectedOption);
-    q.mcqChecked = true;
     q.mcqIsCorrect = actual.length > 0 && actual === expected;
   }
 

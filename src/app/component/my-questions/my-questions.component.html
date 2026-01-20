@@ -1,0 +1,119 @@
+<div class="page">
+  <div class="header">
+    <div class="title">
+      <h1>My Questions</h1>
+      <p>Manage your Quiz and Output Practice questions.</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn" (click)="loadAll()" [disabled]="isLoading">Refresh</button>
+
+      <ng-container *ngIf="isAdminUser">
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="showOnlyMine" (change)="loadAll()" />
+          <span>Show only mine</span>
+        </label>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab" [class.active]="activeTab === 'quiz'" (click)="setTab('quiz')">
+      Quiz
+      <span class="count">{{ quizQuestions.length }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="activeTab === 'output'" (click)="setTab('output')">
+      Output Practice
+      <span class="count">{{ outputMcqQuestions.length + outputTypedQuestions.length }}</span>
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">Loading…</div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- QUIZ -->
+    <section *ngIf="activeTab === 'quiz'" class="section">
+      <h2>Quiz (MCQ)</h2>
+
+      <div class="empty" *ngIf="quizQuestions.length === 0">No quiz questions found.</div>
+
+      <div class="cards" *ngIf="quizQuestions.length">
+        <div class="card" *ngFor="let q of quizQuestions">
+          <div class="row">
+            <div class="q">{{ q.question }}</div>
+            <div class="meta">
+              <span class="pill" *ngIf="q.topic">{{ q.topic }}</span>
+              <span class="pill" *ngIf="q.level">{{ q.level }}</span>
+              <span class="pill" *ngIf="q.admin === true">Public</span>
+              <span class="pill warn" *ngIf="q.admin === false">Private</span>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button type="button" class="btn" (click)="editQuestion(q)" [disabled]="!canManage(q)">Edit</button>
+            <button type="button" class="btn danger" (click)="openDeleteConfirm(q)" [disabled]="!canManage(q)">Delete</button>
+            <button type="button" class="btn secondary" *ngIf="isAdminUser" (click)="toggleAdminFlag(q)">
+              {{ q.admin === true ? 'Make Private' : 'Publish' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUTPUT PRACTICE -->
+    <section *ngIf="activeTab === 'output'" class="section">
+      <h2>Output Practice</h2>
+
+      <h3>Output MCQ</h3>
+      <div class="empty" *ngIf="outputMcqQuestions.length === 0">No output MCQ questions found.</div>
+      <div class="cards" *ngIf="outputMcqQuestions.length">
+        <div class="card" *ngFor="let q of outputMcqQuestions">
+          <div class="row">
+            <div class="q">{{ q.question }}</div>
+            <div class="meta">
+              <span class="pill" *ngIf="q.topic">{{ q.topic }}</span>
+              <span class="pill" *ngIf="q.level">{{ q.level }}</span>
+              <span class="pill" *ngIf="q.admin === true">Public</span>
+              <span class="pill warn" *ngIf="q.admin === false">Private</span>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button type="button" class="btn" (click)="editQuestion(q)" [disabled]="!canManage(q)">Edit</button>
+            <button type="button" class="btn danger" (click)="openDeleteConfirm(q)" [disabled]="!canManage(q)">Delete</button>
+            <button type="button" class="btn secondary" *ngIf="isAdminUser" (click)="toggleAdminFlag(q)">
+              {{ q.admin === true ? 'Make Private' : 'Publish' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3>Answer Type (Type Output)</h3>
+      <div class="empty" *ngIf="outputTypedQuestions.length === 0">No answer-type output questions found.</div>
+      <div class="cards" *ngIf="outputTypedQuestions.length">
+        <div class="card" *ngFor="let q of outputTypedQuestions">
+          <div class="row">
+            <div class="q">{{ q.question }}</div>
+            <div class="meta">
+              <span class="pill" *ngIf="q.topic">{{ q.topic }}</span>
+              <span class="pill" *ngIf="q.level">{{ q.level }}</span>
+              <span class="pill" *ngIf="q.admin === true">Public</span>
+              <span class="pill warn" *ngIf="q.admin === false">Private</span>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button type="button" class="btn" (click)="editQuestion(q)" [disabled]="!canManage(q)">Edit</button>
+            <button type="button" class="btn danger" (click)="openDeleteConfirm(q)" [disabled]="!canManage(q)">Delete</button>
+            <button type="button" class="btn secondary" *ngIf="isAdminUser" (click)="toggleAdminFlag(q)">
+              {{ q.admin === true ? 'Make Private' : 'Publish' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>
+
+<app-modal [openModalDetails]="modalDetails"></app-modal>
+<app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>
