@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
-import { distinctUntilChanged, filter, map, startWith } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, of, shareReplay, startWith, take, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { apiEmpty } from '../util/apiRx';
-import { readLoginMobile } from '../util/loginStorage';
+import { isUserAdmin, readLoginMobile, updateLoginStorage } from '../util/loginStorage';
+import { UserSignUpService } from './user-signup.service';
 
 export type PageViewIncrementPayload = {
   pageName: string;
@@ -29,9 +30,13 @@ export class PageViewCounterService {
   private readonly baseUrl = environment.analytics?.baseUrl ?? environment.apiUrl;
   private readonly incrementPath = environment.analytics?.pageViewIncrementPath ?? '/page-view/increment';
 
+  private readonly adminCache = new Map<string, boolean>();
+  private readonly adminRequestCache = new Map<string, ReturnType<PageViewCounterService['fetchAdminStatus$']>>();
+
   constructor(
     private readonly router: Router,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
+    private readonly userService: UserSignUpService
   ) {}
 
   /**
@@ -52,6 +57,10 @@ export class PageViewCounterService {
   }
 
   private track(path: string): void {
+    // Requirement: count only non-admin traffic.
+    // If the logged-in user is admin, do not call the increment API.
+    if (isUserAdmin()) return;
+
     const pageName = this.getCurrentPageName(path);
     const endpointBase = this.joinUrl(this.baseUrl, this.incrementPath);
     const endpoint = `${endpointBase}?pageName=${encodeURIComponent(pageName)}`;
@@ -65,10 +74,58 @@ export class PageViewCounterService {
       mobile
     };
 
-    this.http
-      .post(endpoint, payload)
-      .pipe(apiEmpty('PageViewCounterService.track'))
-      .subscribe();
+    // Anonymous users: track directly.
+    if (!mobile) {
+      this.http
+        .post(endpoint, payload)
+        .pipe(apiEmpty('PageViewCounterService.track'))
+        .subscribe();
+      return;
+    }
+
+    // Logged-in users: confirm admin status from user API once, then decide.
+    this.getIsAdminForMobile$(mobile)
+      .pipe(take(1))
+      .subscribe((isAdminUser) => {
+        if (isAdminUser) return;
+        this.http
+          .post(endpoint, payload)
+          .pipe(apiEmpty('PageViewCounterService.track'))
+          .subscribe();
+      });
+  }
+
+  private fetchAdminStatus$(mobile: string) {
+    const m = (mobile ?? '').toString().trim();
+    return this.userService.getUserDetailsByMobile(m).pipe(
+      map((u: any) => {
+        // Backend may use different naming.
+        return !!(u?.admin === true || u?.is_admin === true || u?.isAdmin === true);
+      }),
+      catchError(() => of(false)),
+      tap((isAdminUser) => {
+        this.adminCache.set(m, isAdminUser);
+        // Keep local storage in sync so other guards can short-circuit too.
+        if (isAdminUser) updateLoginStorage({ admin: true });
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+  }
+
+  private getIsAdminForMobile$(mobile: string) {
+    const m = (mobile ?? '').toString().trim();
+    if (!m) return of(false);
+    const cached = this.adminCache.get(m);
+    if (cached !== undefined) return of(cached);
+
+    const inflight = this.adminRequestCache.get(m);
+    if (inflight) return inflight;
+
+    const req$ = this.fetchAdminStatus$(m).pipe(
+      tap(() => this.adminRequestCache.delete(m))
+    );
+    this.adminRequestCache.set(m, req$);
+    return req$;
   }
 
   private getCurrentPageName(fallbackPath: string): string {

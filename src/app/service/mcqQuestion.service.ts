@@ -96,6 +96,11 @@ export class MCQQuestionService {
         return this.http.post<any>(url, reqBody);
     }
 
+    bulkUploadMcq(formData: FormData): Observable<any> {
+        const url = `${this.apiUrl}/mcqQuestions/bulk-upload`;
+        return this.http.post<any>(url, formData);
+    }
+
     updateMcqQuestion(id: string | number, reqBody: any): Observable<any> {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/update/${encodeURIComponent(safeId)}`;

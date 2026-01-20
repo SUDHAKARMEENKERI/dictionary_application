@@ -5,13 +5,15 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
-import { Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { filter, map, switchMap, takeUntil, tap, catchError, finalize } from 'rxjs/operators';
 import { TechnologyService } from '../../service/technology.service';
 import { DropdownResponse, QuestionTypeDropdownOption } from '../../models/Technology';
 import { readLoginMobile } from '../../util/loginStorage';
 import { apiFallback } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-add-question-answer',
@@ -51,6 +53,10 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   isNonTheoryQuestion: boolean = false;
   isOutputBasedQuestion: boolean = false;
 
+  isBulkUploading: boolean = false;
+
+  bulkTemplateType: string = 'THEORY';
+
   private pendingEditQa: any | null = null;
 
   private readonly adminMobile = '9611675325';
@@ -58,6 +64,94 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   private isMcqLikeQuestionType(value: unknown): boolean {
     const t = (value ?? '').toString().trim().toUpperCase();
     return t === 'MCQ' || t === 'OUTPUTBASEDMCQ' || t === 'OUTPUTBASED';
+  }
+
+  private normalizeHeaderKey(value: unknown): string {
+    return (value ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_\-]+/g, '');
+  }
+
+  private coerceString(value: unknown): string {
+    const v = value ?? '';
+    return typeof v === 'string' ? v.trim() : String(v).trim();
+  }
+
+  private normalizeDifficulty(value: unknown): 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' {
+    const v = this.coerceString(value).toUpperCase();
+    if (v === 'ADVANCED') return 'ADVANCED';
+    if (v === 'INTERMEDIATE') return 'INTERMEDIATE';
+    return 'BASIC';
+  }
+
+  private readExcelRows$(file: File) {
+    return new Promise<any[]>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        try {
+          const bstr: string = e.target.result;
+          const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+          const wsname: string = wb.SheetNames[0];
+          const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+          const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as any[];
+          if (!data?.length) return resolve([]);
+
+          const headers = (data[0] ?? []).map((h: any) => this.coerceString(h));
+          const rows = (data.slice(1) ?? []).map((row: any[]) => {
+            const obj: any = {};
+            headers.forEach((header: string, i: number) => {
+              obj[header] = row?.[i];
+            });
+            return obj;
+          });
+
+          resolve(rows);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsBinaryString(file);
+    });
+  }
+
+  private getNormalizedRow(row: any): Record<string, any> {
+    const out: Record<string, any> = {};
+    Object.keys(row || {}).forEach((k) => {
+      out[this.normalizeHeaderKey(k)] = row[k];
+    });
+    return out;
+  }
+
+  private pick(row: Record<string, any>, keys: string[]): any {
+    for (const key of keys) {
+      const v = row[this.normalizeHeaderKey(key)];
+      if (v !== undefined && v !== null && this.coerceString(v) !== '') return v;
+    }
+    return '';
+  }
+
+  private resolveCategoryIdForBulk(value: unknown): number | null {
+    return this.parseCategoryId(value) ?? this.resolveCategoryIdFromName(value);
+  }
+
+  private detectBulkQuestionType(selected: unknown, rows: any[]): string {
+    const fromSelected = this.normalizeQuestionType(selected);
+    if (fromSelected) return fromSelected;
+
+    // Try to infer from the sheet itself.
+    const types = new Set<string>();
+    for (const r of rows || []) {
+      const nr = this.getNormalizedRow(r);
+      const raw = this.pick(nr, ['questionType', 'type']);
+      const t = this.normalizeQuestionType(raw);
+      if (t) types.add(t);
+    }
+
+    if (types.size === 1) return Array.from(types)[0];
+    return '';
   }
 
   private canManageMcqItem(item: any): boolean {
@@ -348,6 +442,107 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
     return v;
   }
 
+  private getTemplateSpec(questionType: string): { fileName: string; header: string[]; sample: any[] } {
+    const qt = this.normalizeQuestionType(questionType);
+
+    const commonPrefix = ['questionType', 'category', 'topic', 'level', 'question'];
+    const level = 'BASIC';
+    const categoryExample = 'Java'; // can also be numeric id
+    const topicExample = 'Arrays';
+
+    if (qt === 'MCQ') {
+      return {
+        fileName: 'bulk_template_mcq',
+        header: [...commonPrefix, 'optionA', 'optionB', 'optionC', 'optionD', 'correctAnswer'],
+        sample: [
+          'MCQ',
+          categoryExample,
+          topicExample,
+          level,
+          'What is the output of: System.out.println(2 + 3 * 4);',
+          '14',
+          '20',
+          '24',
+          '18',
+          'A'
+        ]
+      };
+    }
+
+    if (qt === 'OUTPUTBASEDMCQ') {
+      return {
+        fileName: 'bulk_template_outputbasedmcq',
+        header: [...commonPrefix, 'code', 'optionA', 'optionB', 'optionC', 'optionD', 'correctAnswer'],
+        sample: [
+          'OUTPUTBASEDMCQ',
+          categoryExample,
+          topicExample,
+          level,
+          'What is the output?',
+          'int x = 10;\nSystem.out.println(x++ + ++x);',
+          '21',
+          '22',
+          '23',
+          '24',
+          'B'
+        ]
+      };
+    }
+
+    if (qt === 'OUTPUTBASED') {
+      return {
+        fileName: 'bulk_template_outputbased_answer',
+        header: [...commonPrefix, 'code', 'answer'],
+        sample: [
+          'OUTPUTBASED',
+          categoryExample,
+          topicExample,
+          level,
+          'Find the output',
+          'int a = 5;\nSystem.out.println(a * 2);',
+          '10'
+        ]
+      };
+    }
+
+    // THEORY (default)
+    return {
+      fileName: 'bulk_template_theory',
+      header: [...commonPrefix, 'code', 'answer'],
+      sample: [
+        'THEORY',
+        categoryExample,
+        topicExample,
+        level,
+        'Explain what an array is in Java.',
+        '',
+        'An array is a fixed-size data structure that stores elements of the same type in contiguous memory.'
+      ]
+    };
+  }
+
+  downloadBulkTemplate(type?: string): void {
+    const qt = this.normalizeQuestionType(type ?? this.bulkTemplateType ?? this.questionAnswerForm?.get('questionType')?.value);
+    const spec = this.getTemplateSpec(qt || 'THEORY');
+
+    const sheet = XLSX.utils.aoa_to_sheet([spec.header, spec.sample]);
+    // Make the header row bold-ish by widening columns (simple UX improvement).
+    const colWidths = spec.header.map((h, i) => {
+      const sample = this.coerceString(spec.sample[i] ?? '');
+      return { wch: Math.max(12, Math.min(60, Math.max(h.length, sample.length))) };
+    });
+    (sheet as any)['!cols'] = colWidths;
+
+    const workbook: XLSX.WorkBook = {
+      Sheets: { Template: sheet },
+      SheetNames: ['Template']
+    };
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, `${spec.fileName}.xlsx`);
+  }
+
   private parseCategoryId(value: unknown): number | null {
     if (typeof value === 'number' && Number.isFinite(value)) return value;
     const raw = (value ?? '').toString().trim();
@@ -562,18 +757,61 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   upload() {
-    const formData = new FormData();
-    formData.append('excel', this.excelFile);
+    if (!this.excelFile) {
+      this.modalMessage('Please choose an Excel file first.');
+      return;
+    }
 
-    this.questionAnswerService.bulkUploadQA(formData).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => {
-        this.modalMessage("Bulk upload successful.");
-      },
-      error: (error) => {
-        console.error('Error during bulk upload:', error);
-        this.modalMessage("Opps!, Something went wrong during bulk upload.");
-      }
-    });
+    const mobile = (readLoginMobile() ?? '').toString().trim();
+    if (!mobile) {
+      this.modalMessage('Please login again to bulk upload.');
+      return;
+    }
+
+    if (this.isBulkUploading) return;
+    this.isBulkUploading = true;
+
+    // Bulk upload endpoint selection is driven by the dropdown.
+    // - MCQ/Output Based MCQ => /api/mcqQuestions/bulk-upload
+    // - Theory/Output Based (answer type) => /api/qa/bulk-upload
+    const selectedType = this.normalizeQuestionType(
+      this.bulkTemplateType || this.questionAnswerForm.get('questionType')?.value
+    );
+
+    if (!selectedType) {
+      this.modalMessage('Please select a bulk upload type.');
+      this.isBulkUploading = false;
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', this.excelFile);
+
+    const isMcqBulk = selectedType === 'MCQ' || selectedType === 'OUTPUTBASEDMCQ' || selectedType === 'OUTPUTBASED';
+
+    const upload$ = isMcqBulk
+      ? this.mcqQuestionService.bulkUploadMcq(formData)
+      : this.questionAnswerService.bulkUploadQA(formData);
+
+    upload$
+      .pipe(
+        map((response: any) => {
+          const message = response?.message ?? response?.result ?? response?.status ?? 'Bulk upload successful.';
+          return { message };
+        }),
+        catchError((error: any) => {
+          console.error('Error during bulk upload:', error);
+          const message = error?.error?.message || 'Opps!, Something went wrong during bulk upload.';
+          return of({ message });
+        }),
+        finalize(() => {
+          this.isBulkUploading = false;
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((result: any) => {
+        if (result?.message) this.modalMessage(result.message);
+      });
   }
 
   // Category/topic and question-type behavior are handled via reactive form valueChanges.

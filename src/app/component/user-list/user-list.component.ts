@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { UserService, UserDetail } from '../../service/user.service';
+import { UserDetail, UserSignUpService } from '../../service/user-signup.service';
 import { readLoginMobile } from '../../util/loginStorage';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
@@ -28,7 +28,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    private userService: UserService,
+    private userService: UserSignUpService,
     private router: Router
   ) {}
 

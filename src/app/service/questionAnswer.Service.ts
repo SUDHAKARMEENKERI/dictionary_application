@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { QuestionAnswer } from '../models/Technology';
 
@@ -58,8 +59,20 @@ export class QuestionAnswerService {
     }
 
     bulkUploadQA(formData: any): Observable<any> {
-        const url = `${this.apiUrl}/qa/bulkUploadQA`;
-        return this.http.post<any>(url, formData);
+        // New endpoint (preferred): /api/qa/bulk-upload
+        // Legacy endpoint (fallback): /api/qa/bulkUploadQA
+        const newUrl = `${this.apiUrl}/qa/bulk-upload`;
+        const legacyUrl = `${this.apiUrl}/qa/bulkUploadQA`;
+
+        return this.http.post<any>(newUrl, formData).pipe(
+            catchError((error: any) => {
+                // Backward compatibility if backend hasn't been updated yet.
+                if (error?.status === 404) {
+                    return this.http.post<any>(legacyUrl, formData);
+                }
+                return throwError(() => error);
+            })
+        );
     }
 
     getQAByTopic(topic: string) {

@@ -155,7 +155,10 @@ export class QuizComponent implements OnInit, OnDestroy {
 
   confirmDelete(): void {
     const q = this.questionToDelete;
-    if (!q?.id) return;
+    if (!q) return;
+    if (q.id === undefined || q.id === null) return;
+
+    const deletedId: string | number = q.id;
 
     this.mcqQuestionService
       .deleteMcqQuestion(q.id)
@@ -163,6 +166,15 @@ export class QuizComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.questionToDelete = null;
+          this.confirmModalDetails = {
+            ...this.confirmModalDetails,
+            isOpen: false,
+          };
+
+          // Update UI immediately (avoid requiring full page refresh).
+          this.removeDeletedFromUi(deletedId);
+
+          // Then sync from backend.
           this.loadQuestionBank();
           this.modalDetails = {
             ...this.modalDetails,
@@ -180,6 +192,33 @@ export class QuizComponent implements OnInit, OnDestroy {
           };
         }
       });
+  }
+
+  private removeDeletedFromUi(deletedId: string | number): void {
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(deletedId);
+
+    // Prefer removing from the current displayed set (active quiz).
+    const usingDisplay = this.displayQuestions.length > 0;
+    const list = usingDisplay ? this.displayQuestions : this.questions;
+    const idx = list.findIndex((item) => key(item?.id) === idKey);
+    if (idx < 0) return;
+
+    if (usingDisplay) {
+      this.displayQuestions = [...this.displayQuestions.slice(0, idx), ...this.displayQuestions.slice(idx + 1)];
+    } else {
+      this.questions = [...this.questions.slice(0, idx), ...this.questions.slice(idx + 1)];
+    }
+
+    if (this.quizStarted) {
+      if (idx >= 0 && idx < this.answeredOptions.length) this.answeredOptions.splice(idx, 1);
+      if (idx >= 0 && idx < this.visited.length) this.visited.splice(idx, 1);
+
+      if (this.currentIndex >= this.questionsToShow.length) {
+        this.currentIndex = Math.max(0, this.questionsToShow.length - 1);
+      }
+      this.selectedOption = this.answeredOptions[this.currentIndex] ?? null;
+    }
   }
 
   private normalizeKey(value: string): string {
@@ -286,7 +325,7 @@ export class QuizComponent implements OnInit, OnDestroy {
     this.quizStarted = true;
 
     // Load only the number of questions for the selected plan.
-    const available = this.questionsToShow;
+    const available = this.topicFilteredQuestions;
     this.displayQuestions = available.slice(0, plan.count);
 
     // If the plan asks for more than we have, still show what we have.
@@ -353,10 +392,50 @@ export class QuizComponent implements OnInit, OnDestroy {
 
         // If user already picked a plan, refresh the sliced questions.
         if (this.quizStarted && this.selectedPlan?.count) {
-          const available = this.questionsToShow;
+          const prevDisplay = this.displayQuestions;
+          const prevAnswered = this.answeredOptions;
+          const prevVisited = this.visited;
+          const prevCurrentId = prevDisplay?.[this.currentIndex]?.id;
+
+          const byId = (id: any) => (id ?? '').toString();
+          const answeredById = new Map<string, number | null>();
+          const visitedById = new Map<string, boolean>();
+          for (let i = 0; i < (prevDisplay?.length ?? 0); i++) {
+            const id = byId(prevDisplay[i]?.id);
+            if (!id) continue;
+            answeredById.set(id, prevAnswered?.[i] ?? null);
+            visitedById.set(id, prevVisited?.[i] ?? false);
+          }
+
+          const available = this.topicFilteredQuestions;
           this.displayQuestions = available.slice(0, this.selectedPlan.count);
-          this.answeredOptions = new Array(this.displayQuestions.length).fill(null);
-          this.visited = new Array(this.displayQuestions.length).fill(false);
+
+          this.answeredOptions = this.displayQuestions.map((qq) => {
+            const id = byId(qq?.id);
+            return id ? (answeredById.get(id) ?? null) : null;
+          });
+          this.visited = this.displayQuestions.map((qq) => {
+            const id = byId(qq?.id);
+            return id ? (visitedById.get(id) ?? false) : false;
+          });
+
+          if (this.displayQuestions.length === 0) {
+            this.currentIndex = 0;
+            this.selectedOption = null;
+          } else {
+            const prevIdKey = byId(prevCurrentId);
+            const nextIndex = prevIdKey
+              ? this.displayQuestions.findIndex((qq) => byId(qq?.id) === prevIdKey)
+              : -1;
+
+            if (nextIndex >= 0) {
+              this.currentIndex = nextIndex;
+            } else if (this.currentIndex >= this.displayQuestions.length) {
+              this.currentIndex = this.displayQuestions.length - 1;
+            }
+
+            this.selectedOption = this.answeredOptions[this.currentIndex] ?? null;
+          }
         }
 
         this.isLoadingQuestions = false;

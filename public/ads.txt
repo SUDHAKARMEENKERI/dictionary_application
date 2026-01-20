@@ -1,0 +1,5 @@
+# ads.txt for this site
+# IMPORTANT: Replace pub-XXXXXXXXXXXXXXXX with your real AdSense Publisher ID (from AdSense > Account > Settings > Account information).
+# Then redeploy and verify https://<your-domain>/ads.txt is publicly reachable.
+
+google.com, pub-8186517750881163, DIRECT, f08c47fec0942fa0

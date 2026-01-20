@@ -76,12 +76,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   getUserDetailsByMobile(): void {
     const mobile = readLoginMobile();
+    if (!mobile) {
+      this.firstName = '';
+      this.lastName = '';
+      return;
+    }
     this.userService.getUserDetailsByMobile(mobile)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user) => {
-          this.firstName = user.firstName; // Assuming the user object has a 'name' property
-          this.lastName = user.lastName;
+          this.firstName = user.firstName ?? '';
+          this.lastName = user.lastName ?? '';
         },
         error: (error) => {
           console.error('Error fetching user details:', error);
