@@ -1,1 +1,0 @@
-var e={production:!0,apiUrl:"https://dictionaryappbackend-production.up.railway.app/api",analytics:{pageViewIncrementPath:"/page-view/increment"},adsenseEnabled:!0,adsenseClient:"ca-pub-8186517750881163",adsenseSlot:""};export{e as a};
