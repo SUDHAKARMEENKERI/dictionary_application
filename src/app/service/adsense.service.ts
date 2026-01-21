@@ -31,6 +31,15 @@ export class AdsenseService {
 
   refresh(): void {
     if (!environment.adsenseEnabled || !environment.adsenseClient) return;
+    // If the script is already on the page (e.g. injected by an older build),
+    // treat it as loaded so we can still refresh on SPA navigations.
+    if (!this.scriptLoaded && typeof document !== 'undefined') {
+      const existing = document.querySelector<HTMLScriptElement>(
+        'script[data-adsense="true"],script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+      );
+      if (existing) this.scriptLoaded = true;
+    }
+
     if (!this.scriptLoaded) return;
 
     try {
@@ -46,7 +55,9 @@ export class AdsenseService {
     if (this.scriptLoaded) return;
     if (typeof document === 'undefined') return;
 
-    const existing = document.querySelector('script[data-adsense="true"]');
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-adsense="true"],script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+    );
     if (existing) {
       this.scriptLoaded = true;
       return;
@@ -60,6 +71,7 @@ export class AdsenseService {
     script.onload = () => {
       this.scriptLoaded = true;
       this.refresh();
+
     };
 
     document.head.appendChild(script);

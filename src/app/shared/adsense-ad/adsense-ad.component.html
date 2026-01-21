@@ -1,5 +1,5 @@
 <ins
-  *ngIf="resolvedSlot"
+  *ngIf="env.adsenseEnabled && resolvedSlot"
   class="adsbygoogle"
   style="display:block"
   [attr.data-ad-client]="adClient || env.adsenseClient || null"

@@ -11,10 +11,11 @@ import { QuestionAnswer, Technology, TechnologyItem } from '../../models/Technol
 import { TechnologyService } from '../../service/technology.service';
 import { catchError, concatMap, defaultIfEmpty, filter, map, take } from 'rxjs/operators';
 import { Meta, Title } from '@angular/platform-browser';
+import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component';
 
 @Component({
   selector: 'app-qa-page',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AdsenseAdComponent],
   templateUrl: './qa-page.component.html',
   styleUrl: './qa-page.component.scss',
   standalone: true,

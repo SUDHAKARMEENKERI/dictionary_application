@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { WordListService } from '../../service/word-list.service';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
@@ -20,7 +21,8 @@ export interface DashboardData {
 
 @Component({
   selector: 'app-home-page',
-  imports: [CommonModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, RouterModule, AdsenseAdComponent],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })

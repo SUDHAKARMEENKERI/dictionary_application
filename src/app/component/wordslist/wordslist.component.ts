@@ -10,6 +10,7 @@ import { LoaderService } from '../../service/loader.service';
 import { ExportDataToExcel } from '../../util/exportData';
 import { UserSignUpService } from '../../service/user-signup.service';
 import { ModalComponent } from '../modal/modal.component';
+import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component';
 import { Actions, ofType } from '@ngrx/effects';
 import * as XLSX from 'xlsx';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +22,7 @@ import { readLoginMobile, readLoginStorage } from '../../util/loginStorage';
 @Component({
   selector: 'app-wordslist',
   standalone: true,
-  imports: [CommonModule, BannerComponent, ModalComponent, FormsModule, NgxPaginationModule],
+  imports: [CommonModule, BannerComponent, ModalComponent, FormsModule, NgxPaginationModule, AdsenseAdComponent],
   templateUrl: './wordslist.component.html',
   styleUrl: './wordslist.component.scss'
 })

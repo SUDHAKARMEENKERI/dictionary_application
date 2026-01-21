@@ -6,11 +6,12 @@ import { readLoginMobile } from '../../util/loginStorage';
 import { ProgrammingQuestionService, ProgrammingQuestion } from '../../service/programming-question.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
+import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component';
 
 @Component({
   selector: 'app-programming-questions',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, AdsenseAdComponent],
   templateUrl: './programming-questions.component.html',
   styleUrls: ['./programming-questions.component.scss'],
 })
