@@ -7,10 +7,11 @@ import { Technology } from '../../models/Technology';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { apiFallback } from '../../util/apiRx';
+import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component';
 
 @Component({
   selector: 'app-qa-home',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AdsenseAdComponent],
   templateUrl: './qa-home.component.html',
   styleUrl: './qa-home.component.scss'
 })
