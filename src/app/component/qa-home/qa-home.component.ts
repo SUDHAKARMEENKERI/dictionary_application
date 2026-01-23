@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { OnDestroy, OnInit } from '@angular/core';
 import { TechnologyService } from '../../service/technology.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -15,7 +15,14 @@ import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component
   templateUrl: './qa-home.component.html',
   styleUrl: './qa-home.component.scss'
 })
-export class QaHomeComponent implements OnInit, OnDestroy {
+export class QaHomeComponent implements OnInit, OnDestroy, AfterViewInit {
+  ngAfterViewInit(): void {
+    try {
+      (window['adsbygoogle'] = window['adsbygoogle'] || []).push({});
+    } catch (e) {
+      // Handle error if needed
+    }
+  }
   private readonly destroyed$ = new Subject<void>();
   technologies: Technology[] = [];
 
