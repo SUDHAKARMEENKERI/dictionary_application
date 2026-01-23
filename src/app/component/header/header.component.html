@@ -57,8 +57,10 @@
                 <a [routerLink]="link.path" (click)="closeMenu()">{{ link.label }}</a>
             </div>
         </div>
-        <button class="btn btn-danger w-100 mt-3" (click)="logout()">
-            Logout
+
+        <button class="btn btn-danger w-100 mt-3">
+            <p *ngIf="isLoggedIn" class="logout" (click)="logout()">Logout</p>
+            <p *ngIf="!isLoggedIn" class="logout" [routerLink]="'/login'">Login</p>
         </button>
     </div>
 </div>

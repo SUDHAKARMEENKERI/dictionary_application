@@ -72,7 +72,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+    this.firstName = '';
+    this.lastName = '';
     this.router.navigate(['/login']);
+    this.showMenu = false;
   }
 
   getUserDetailsByMobile(): void {
