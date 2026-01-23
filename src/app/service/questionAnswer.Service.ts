@@ -59,9 +59,9 @@ export class QuestionAnswerService {
     }
 
     bulkUploadQA(formData: any): Observable<any> {
-        // New endpoint (preferred): /api/qa/bulk-upload
+        // New endpoint (preferred): /api/qa/bulkUpload
         // Legacy endpoint (fallback): /api/qa/bulkUploadQA
-        const newUrl = `${this.apiUrl}/qa/bulk-upload`;
+        const newUrl = `${this.apiUrl}/qa/bulkUpload`;
         const legacyUrl = `${this.apiUrl}/qa/bulkUploadQA`;
 
         return this.http.post<any>(newUrl, formData).pipe(
