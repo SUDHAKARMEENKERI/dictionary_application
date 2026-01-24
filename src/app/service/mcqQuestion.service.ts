@@ -97,7 +97,7 @@ export class MCQQuestionService {
     }
 
     bulkUploadMcq(formData: FormData): Observable<any> {
-        const url = `${this.apiUrl}/mcqQuestions/bulk-upload`;
+        const url = `${this.apiUrl}/mcqQuestions/bulkUpload`;
         return this.http.post<any>(url, formData);
     }
 
