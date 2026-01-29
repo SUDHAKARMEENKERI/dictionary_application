@@ -330,9 +330,11 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
     const contentWidth = pageWidth - margin * 2;
     let y = margin;
 
-    const sectionSpacing = 12;
+    const sectionSpacing = 10;
     const cardGap = 12;
-    const cardPadding = 12;
+    const cardPadding = 14;
+    const cardTopOffset = 6;
+    const footerReserve = 110;
 
     const brand = { r: 29, g: 78, b: 216 };
     const accent = { r: 16, g: 185, b: 129 };
@@ -340,7 +342,13 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
     const questionColor = { r: 30, g: 64, b: 175 };
     const answerColor = { r: 217, g: 119, b: 6 };
 
-    const lineHeightFor = (size: number) => Math.round(size * 1.45);
+    const lineHeightFor = (size: number) => Math.round(size * 1.4);
+
+    const questionFontSize = 11;
+    const codeFontSize = 9;
+    const optionFontSize = 9;
+    const answerFontSize = 10;
+    const scenarioFontSize = 9;
 
     const drawRounded = (x: number, yPos: number, w: number, h: number, radius = 10) => {
       const anyDoc = doc as any;
@@ -386,13 +394,13 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
 
     y += 20;
 
-    const wrapLines = (text: string, fontSize: number, font: string, style: 'normal' | 'bold', width = contentWidth) => {
+    const wrapLines = (text: string, fontSize: number, font: string, style: 'normal' | 'bold' | 'italic', width = contentWidth) => {
       doc.setFont(font, style);
       doc.setFontSize(fontSize);
       return doc.splitTextToSize(text, width) as string[];
     };
 
-    const addLines = (lines: string[], x: number, yPos: number, font: string, style: 'normal' | 'bold', fontSize: number) => {
+    const addLines = (lines: string[], x: number, yPos: number, font: string, style: 'normal' | 'bold' | 'italic', fontSize: number) => {
       doc.setFont(font, style);
       doc.setFontSize(fontSize);
       const lh = lineHeightFor(fontSize);
@@ -404,27 +412,46 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
     };
 
     questions.forEach((q, index) => {
-      const questionLines = wrapLines(`Q${index + 1}. ${q.question}`, 12, 'helvetica', 'bold');
-      const codeLines = q.code ? wrapLines('Code:', 10, 'helvetica', 'bold')
-        .concat(wrapLines(q.code, 9, 'courier', 'normal')) : [];
+      const questionLines = wrapLines(`Q${index + 1}. ${q.question}`, questionFontSize, 'helvetica', 'bold');
+      const codeLines = q.code ? wrapLines('Code:', optionFontSize, 'helvetica', 'bold')
+        .concat(wrapLines(q.code, codeFontSize, 'courier', 'normal')) : [];
       const optionLines = q.options?.length
-        ? wrapLines('Options:', 10, 'helvetica', 'bold')
-            .concat(q.options.flatMap((opt, i) => wrapLines(`${this.getOptionLabel(i)}. ${opt}`, 10, 'helvetica', 'normal')))
+        ? wrapLines('Options:', optionFontSize, 'helvetica', 'bold')
+            .concat(q.options.flatMap((opt, i) => wrapLines(`${this.getOptionLabel(i)}. ${opt}`, optionFontSize, 'helvetica', 'normal')))
         : [];
       const answerLabel = q.options?.length ? 'Correct Answer:' : 'Answer:';
       const answerText = q.options?.length ? this.getMcqCorrectDisplay(q) : (q.answer ?? '');
-      const answerLines = answerText
-        ? wrapLines(`${answerLabel} ${answerText}`, 11, 'helvetica', 'normal')
+      const scenarioMatch = answerText.match(/(^|\n)\s*(scenario|example|examples|use case|use-case)\s*[:\-]\s*/i);
+      const scenarioIndex = scenarioMatch?.index ?? -1;
+      const mainAnswerText = scenarioIndex >= 0 ? answerText.slice(0, scenarioIndex).trim() : answerText.trim();
+      const scenarioTextRaw = scenarioIndex >= 0 ? answerText.slice(scenarioIndex).trim() : '';
+      const scenarioLabel = scenarioMatch?.[2] ? scenarioMatch[2].replace(/\s*[-_]/g, ' ').toUpperCase() : 'SCENARIO';
+      const scenarioText = scenarioTextRaw.replace(/^(scenario|example|examples|use case|use-case)\s*[:\-]\s*/i, '').trim();
+
+      const answerLines = mainAnswerText
+        ? wrapLines(`${answerLabel} ${mainAnswerText}`, answerFontSize, 'helvetica', 'normal')
         : [];
+      const scenarioLines = scenarioText
+        ? wrapLines(`${scenarioLabel}: ${scenarioText}`, scenarioFontSize, 'helvetica', 'italic')
+        : [];
+      const scenarioBoxHeight = scenarioLines.length
+        ? scenarioLines.length * lineHeightFor(scenarioFontSize) + 10
+        : 0;
 
       const blockHeight = [
-        questionLines.length * lineHeightFor(12),
-        codeLines.length * lineHeightFor(9),
-        optionLines.length * lineHeightFor(10),
-        answerLines.length * lineHeightFor(11),
-      ].reduce((a, b) => a + b, 0) + cardPadding * 2 + (codeLines.length ? sectionSpacing : 0) + (optionLines.length ? sectionSpacing : 0) + (answerLines.length ? sectionSpacing : 0);
+        questionLines.length * lineHeightFor(questionFontSize),
+        codeLines.length * lineHeightFor(codeFontSize),
+        optionLines.length * lineHeightFor(optionFontSize),
+        answerLines.length * lineHeightFor(answerFontSize),
+      ].reduce((a, b) => a + b, 0)
+        + cardPadding * 2
+        + cardTopOffset
+        + (codeLines.length ? sectionSpacing : 0)
+        + (optionLines.length ? sectionSpacing : 0)
+        + (answerLines.length ? sectionSpacing : 0)
+        + (scenarioLines.length ? sectionSpacing + scenarioBoxHeight : 0);
 
-      if (y + blockHeight > pageHeight - margin) {
+      if (y + blockHeight > pageHeight - margin - footerReserve) {
         doc.addPage();
         y = margin;
       }
@@ -433,26 +460,36 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
       doc.setFillColor(248, 250, 252);
       drawRounded(margin, y, contentWidth, blockHeight, 12);
 
-      let yCursor = y + cardPadding + 4;
+      let yCursor = y + cardPadding + cardTopOffset;
       doc.setTextColor(questionColor.r, questionColor.g, questionColor.b);
-      yCursor = addLines(questionLines, margin + cardPadding, yCursor, 'helvetica', 'bold', 12);
+      yCursor = addLines(questionLines, margin + cardPadding, yCursor, 'helvetica', 'bold', questionFontSize);
 
       if (codeLines.length) {
         doc.setTextColor(neutral.r, neutral.g, neutral.b);
-        yCursor += 6;
-        yCursor = addLines(codeLines, margin + cardPadding, yCursor, 'courier', 'normal', 9);
+        yCursor += sectionSpacing;
+        yCursor = addLines(codeLines, margin + cardPadding, yCursor, 'courier', 'normal', codeFontSize);
       }
 
       if (optionLines.length) {
         doc.setTextColor(neutral.r, neutral.g, neutral.b);
-        yCursor += 6;
-        yCursor = addLines(optionLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 10);
+        yCursor += sectionSpacing;
+        yCursor = addLines(optionLines, margin + cardPadding, yCursor, 'helvetica', 'normal', optionFontSize);
       }
 
       if (answerLines.length) {
-        yCursor += 6;
+        yCursor += sectionSpacing;
         doc.setTextColor(answerColor.r, answerColor.g, answerColor.b);
-        yCursor = addLines(answerLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 11);
+        yCursor = addLines(answerLines, margin + cardPadding, yCursor, 'helvetica', 'normal', answerFontSize);
+        doc.setTextColor(neutral.r, neutral.g, neutral.b);
+      }
+
+      if (scenarioLines.length) {
+        yCursor += sectionSpacing;
+        doc.setDrawColor(224, 231, 255);
+        doc.setFillColor(238, 242, 255);
+        drawRounded(margin + cardPadding, yCursor - 4, contentWidth - cardPadding * 2, scenarioBoxHeight, 8);
+        doc.setTextColor(71, 85, 105);
+        yCursor = addLines(scenarioLines, margin + cardPadding + 6, yCursor + 6, 'helvetica', 'italic', scenarioFontSize);
         doc.setTextColor(neutral.r, neutral.g, neutral.b);
       }
 
