@@ -1,1 +1,0 @@
-import{D as t,m as n,p as b}from"./chunk-ERIX5NJM.js";function s(r,e){return o=>o.pipe(t(p=>(console.error(e,p),b(r))))}function T(r){return e=>e.pipe(t(o=>(console.error(r,o),n)))}export{s as a,T as b};
