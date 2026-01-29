@@ -1,4 +1,5 @@
 import { setEncryptedItem, getEncryptedJSON, removeEncryptedItem, clearEncryptedStorage } from './encryption';
+import { ADMIN_MOBILE } from './app-constants';
 
 export interface LoginStorageData {
   isLogIn?: boolean;
@@ -74,5 +75,5 @@ export function isUserLoggedIn(): boolean {
 
 export function isUserAdmin(): boolean {
   const mobile = (readLoginStorage()?.mobile ?? '').toString().trim();
-  return mobile === '9611675325';
+  return mobile === ADMIN_MOBILE;
 }

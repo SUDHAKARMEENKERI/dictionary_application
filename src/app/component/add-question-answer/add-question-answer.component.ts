@@ -10,6 +10,7 @@ import { filter, map, switchMap, takeUntil, tap, catchError, finalize } from 'rx
 import { TechnologyService } from '../../service/technology.service';
 import { DropdownResponse, QuestionTypeDropdownOption } from '../../models/Technology';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 import { apiFallback } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import * as XLSX from 'xlsx';
@@ -59,7 +60,7 @@ export class AddQuestionAnswerComponent implements OnInit, OnDestroy {
 
   private pendingEditQa: any | null = null;
 
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
 
   private isMcqLikeQuestionType(value: unknown): boolean {
     const t = (value ?? '').toString().trim().toUpperCase();

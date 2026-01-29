@@ -89,6 +89,7 @@ export const routes: Routes = [
   // Admin Only
   { path: 'admin/page-view-stats', loadComponent: () => import('./component/page-view-stats/page-view-stats.component').then(m => m.PageViewStatsComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Page View Statistics', data: { description: 'View page statistics and user engagement metrics.', robots: 'noindex, nofollow' } },
   { path: 'admin/users', loadComponent: () => import('./component/user-list/user-list.component').then(m => m.UserListComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | User Management', data: { description: 'View and manage registered users.', robots: 'noindex, nofollow' } },
+  { path: 'admin/promo-pdf', loadComponent: () => import('./component/admin-promo-pdf/admin-promo-pdf.component').then(m => m.AdminPromoPdfComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Promo PDF Generator', data: { description: 'Generate promo-ready PDFs for CareerPrepBook.', robots: 'noindex, nofollow' } },
   
   // Public Pages
   { path: 'about', component: AboutUsComponent, title: 'CareerPrepBook | About', data: { description: 'Learn about CareerPrepBook and our mission to help you succeed in interviews.' } },

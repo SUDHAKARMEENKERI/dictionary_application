@@ -7,6 +7,7 @@ import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
 import { FormsModule } from '@angular/forms';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 type QuizQuestion = {
@@ -74,7 +75,7 @@ export class QuizComponent implements OnInit, OnDestroy {
   category = '';
 
   private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
 
   private get isAdminUser(): boolean {
     return !!this.currentMobile && this.currentMobile === this.adminMobile;

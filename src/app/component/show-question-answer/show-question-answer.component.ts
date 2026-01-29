@@ -10,6 +10,7 @@ import { Technology } from '../../models/Technology';
 import { apiEmpty, apiFallback } from '../../util/apiRx';
 import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil } from 'rxjs/operators';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 
 @Component({
   selector: 'app-show-question-answer',
@@ -46,7 +47,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   private readonly currentMobile = readLoginMobile();
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
 
   constructor(private questionAnswerService: QuestionAnswerService,
     private technologyService: TechnologyService,

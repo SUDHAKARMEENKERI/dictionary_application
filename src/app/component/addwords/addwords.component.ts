@@ -15,6 +15,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { readLoginMobile, readLoginStorage } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 
 
 @Component({
@@ -84,7 +85,7 @@ export class AddwordsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.isOwner = readLoginMobile() === '9611675325';
+    this.isOwner = readLoginMobile() === ADMIN_MOBILE;
   }
 
   onSubmit() {

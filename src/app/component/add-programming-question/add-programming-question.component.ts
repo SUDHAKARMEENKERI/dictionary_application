@@ -79,7 +79,7 @@ export class AddProgrammingQuestionComponent implements OnInit, OnDestroy {
 
   get isCurrentUserAdmin(): boolean {
     const user = readLoginStorage();
-    return user?.mobile === '9611675325';
+    return user?.mobile === '961165325';
   }
 
   addTopic(): void {

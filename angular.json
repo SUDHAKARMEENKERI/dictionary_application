@@ -66,7 +66,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -115,6 +115,10 @@
     }
   },
   "cli": {
-    "analytics": "295428cd-de1f-4fbc-a93b-9a5fe441e9ca"
+    "analytics": "295428cd-de1f-4fbc-a93b-9a5fe441e9ca",
+    "cache": {
+      "enabled": true,
+      "path": ".angular/cache"
+    }
   }
 }

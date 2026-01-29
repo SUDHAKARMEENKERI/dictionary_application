@@ -14,6 +14,7 @@ import {
 import { apiFallback } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 type OutputQuestion = {
@@ -82,7 +83,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   private readonly optionLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
   private readonly currentMobile = (readLoginMobile() ?? '').toString().trim();
 
   private get isAdminUser(): boolean {
@@ -116,6 +117,29 @@ export class TutorialComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  private fixEncoding(value: unknown): string {
+    return (value ?? '')
+      .toString()
+      .replace(/â€™|â€˜/g, "'")
+      .replace(/â€œ|â€/g, '"')
+      .replace(/â€“|â€”/g, '-')
+      .replace(/â€¦/g, '...')
+      .replace(/\u00c2\u00a0/g, ' ')
+      .replace(/\u00a0/g, ' ');
+  }
+
+  private decodeEscapes(value: unknown): string {
+    return (value ?? '')
+      .toString()
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t');
+  }
+
+  private normalizeDisplayText(value: unknown): string {
+    return this.decodeEscapes(this.fixEncoding(value));
+  }
+
   private normalizeOutput(text: string): string {
     // Normalizes whitespace/newlines so users can type the same output format in different ways.
     return (text ?? '')
@@ -137,34 +161,44 @@ export class TutorialComponent implements OnInit, OnDestroy {
     return list
       .map((item: any) => {
         const id = item?.id ?? item?._id ?? item?.mcqId ?? item?.questionId;
-        const question = this.firstNonEmpty(item?.questionText, item?.prompt, item?.question, item?.ques, item?.title).trim();
-        const code = this.firstNonEmpty(
-          item?.code,
-          item?.question_code,
-          item?.questionCode,
-          item?.programCode,
-          item?.sourceCode,
-          item?.codeText,
-          item?.codeSnippet,
-          item?.snippet,
-          item?.program,
-          item?.source,
-          item?.body,
-          item?.content
+        const question = this.normalizeDisplayText(
+          this.firstNonEmpty(item?.questionText, item?.prompt, item?.question, item?.ques, item?.title)
+        ).trim();
+        const code = this.normalizeDisplayText(
+          this.firstNonEmpty(
+            item?.code,
+            item?.question_code,
+            item?.questionCode,
+            item?.programCode,
+            item?.sourceCode,
+            item?.codeText,
+            item?.codeSnippet,
+            item?.snippet,
+            item?.program,
+            item?.source,
+            item?.body,
+            item?.content
+          )
         );
-        const correctAnswerRaw = this.firstNonEmpty(item?.correctAnswer, item?.correct_answer, item?.correct);
-        const answer = this.firstNonEmpty(
-          item?.answer,
-          item?.output,
-          item?.expectedOutput,
-          item?.expected,
-          // Some APIs send correctAnswer as the expected output.
-          item?.correctAnswer
+        const correctAnswerRaw = this.normalizeDisplayText(
+          this.firstNonEmpty(item?.correctAnswer, item?.correct_answer, item?.correct)
+        );
+        const answer = this.normalizeDisplayText(
+          this.firstNonEmpty(
+            item?.answer,
+            item?.output,
+            item?.expectedOutput,
+            item?.expected,
+            // Some APIs send correctAnswer as the expected output.
+            item?.correctAnswer
+          )
         );
 
         const optionsRaw = item?.options ?? item?.option ?? item?.choices ?? item?.answers;
         const options = Array.isArray(optionsRaw)
-          ? optionsRaw.map((o: any) => (o ?? '').toString()).filter((v: string) => v.trim().length > 0)
+          ? optionsRaw
+              .map((o: any) => this.normalizeDisplayText(o))
+              .filter((v: string) => v.trim().length > 0)
           : [];
         const topic = this.firstNonEmpty(item?.topic, item?.technology, item?.tech).trim();
         const category = this.firstNonEmpty(item?.category).trim();

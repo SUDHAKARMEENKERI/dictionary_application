@@ -69,11 +69,12 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
+  word-break: break-word;
 }
 
 .topic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -86,6 +87,11 @@
   text-align: left;
   cursor: pointer;
   transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 76px;
+  width: 100%;
 }
 
 .topic-card:hover {
@@ -103,9 +109,22 @@
   font-weight: 800;
   color: #0f172a;
   margin-bottom: 4px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .topic-meta {
   font-size: 13px;
   color: #64748b;
+  margin-top: auto;
+}
+
+@media (max-width: 576px) {
+  .title {
+    font-size: 28px;
+  }
+
+  .topic-grid {
+    grid-template-columns: 1fr;
+  }
 }

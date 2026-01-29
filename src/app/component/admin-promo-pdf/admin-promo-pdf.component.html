@@ -1,0 +1,91 @@
+<div class="promo-container">
+  <div class="promo-card">
+    <div class="promo-hero">
+      <div>
+        <span class="promo-badge">Admin Only</span>
+        <h1>Promo PDF Generator</h1>
+        <p>Create stylish, share-ready PDFs for CareerPrepBook social promotions in seconds.</p>
+        <p class="topic-gap" *ngIf="selectedTopic">
+          Selected topic: <strong>{{ selectedTopic }}</strong>
+        </p>
+      </div>
+      <div class="promo-glow"></div>
+    </div>
+
+    <div class="promo-grid">
+      <div class="promo-form">
+        <div class="form-group">
+          <label for="questionType">Question Type</label>
+          <select
+            id="questionType"
+            class="form-control"
+            [(ngModel)]="selectedQuestionType"
+            (ngModelChange)="onQuestionTypeChange()"
+          >
+            <option *ngFor="let option of questionTypeOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="topicSelect">Topic</label>
+          <select
+            id="topicSelect"
+            class="form-control"
+            [(ngModel)]="selectedTopic"
+          >
+            <option value="">Auto (Random Topic)</option>
+            <option *ngFor="let topic of availableTopics" [value]="topic">
+              {{ topic }}
+            </option>
+          </select>
+          <small class="field-hint" *ngIf="isLoadingTopics">Loading topics…</small>
+        </div>
+
+        <div class="form-group">
+          <label for="questionCount">Question Count (10-15)</label>
+          <input
+            id="questionCount"
+            type="number"
+            class="form-control"
+            min="10"
+            max="15"
+            [ngModel]="questionCount"
+            (ngModelChange)="updateCount($event)"
+          />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn primary" (click)="generatePdf()" [disabled]="isLoading">
+            {{ isLoading ? 'Generating...' : 'Create PDF' }}
+          </button>
+          <span class="hint">Auto-selects random questions for a polished PDF.</span>
+        </div>
+      </div>
+
+      <div class="promo-info">
+        <div class="info-card">
+          <h3>What’s inside</h3>
+          <ul>
+            <li>10–15 curated questions with answers</li>
+            <li>CareerPrepBook branding + CTA copy</li>
+            <li>Optimized layout for Instagram/LinkedIn</li>
+          </ul>
+        </div>
+
+        <div class="info-card accent">
+          <h4>Best results</h4>
+          <p>Use MCQ for quick engagement, Output-based for deeper challenges.</p>
+          <div class="tag-row">
+            <span class="tag">Fast share</span>
+            <span class="tag">High reach</span>
+            <span class="tag">Brand-safe</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-modal [openModalDetails]="modalDetails"></app-modal>

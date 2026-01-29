@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ProgrammingQuestionService, ProgrammingQuestion } from '../../service/programming-question.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
@@ -17,7 +18,7 @@ import { AdsenseAdComponent } from '../../shared/adsense-ad/adsense-ad.component
 })
 export class ProgrammingQuestionsComponent implements OnInit {
   searchQuery = '';
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
   private destroy$ = new Subject<void>();
   questions: ProgrammingQuestion[] = [];
   isLoading = false;

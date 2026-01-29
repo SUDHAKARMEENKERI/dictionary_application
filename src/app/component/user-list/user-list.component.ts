@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { UserDetail, UserSignUpService } from '../../service/user-signup.service';
 import { readLoginMobile } from '../../util/loginStorage';
+import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 
 @Component({
@@ -16,7 +17,7 @@ import { ModalComponent, ModalDetails } from '../modal/modal.component';
 export class UserListComponent implements OnInit, OnDestroy {
   users: UserDetail[] = [];
   isLoading = false;
-  private readonly adminMobile = '9611675325';
+  private readonly adminMobile = ADMIN_MOBILE;
   private destroy$ = new Subject<void>();
 
   // Modal

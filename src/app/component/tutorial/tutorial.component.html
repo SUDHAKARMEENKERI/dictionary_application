@@ -49,7 +49,7 @@
         <div class="set-buttons">
           <button type="button" class="set-btn" *ngFor="let set of questionSets"
             [class.active]="selectedSetCount === set.count" (click)="selectQuestionSet(set.count)"
-            [disabled]="questions.length < set.count">
+            >
             <span class="set-icon">{{ set.count === 5 ? '🎯' : set.count === 10 ? '🔥' : set.count === 25 ? '🏆' :
               set.count === 35 ? '💪' : set.count === 50 ? '⭐' : set.count === 75 ? '👑' : '💎' }}</span>
             <div class="set-title">{{ set.title }}</div>

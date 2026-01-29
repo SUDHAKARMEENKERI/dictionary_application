@@ -438,6 +438,8 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .question-row h3 {
@@ -446,6 +448,10 @@
   line-height: 1.4;
   color: #1e293b;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1 1 220px;
+  white-space: pre-wrap;
 }
 
 /* Code block */
