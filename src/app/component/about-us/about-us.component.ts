@@ -58,7 +58,7 @@ export class AboutUsComponent implements OnInit, OnDestroy {
 
   teamMembers = [
     {
-      name: 'Suhakar Meenkeri',
+      name: 'Sudhakar Meenkeri',
       role: 'Founder & CEO',
       bio: 'Tech enthusiast with 7+ years in education technology. Passionate about democratizing learning.',
       icon: 'bi bi-person-circle'

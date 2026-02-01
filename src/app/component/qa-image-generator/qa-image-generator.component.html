@@ -1,0 +1,102 @@
+<div class="qa-image-generator-container">
+  <h2>Q&A Image Generator</h2>
+  <p class="subtitle">Generate promotional images for videos</p>
+
+  <div class="form-container">
+    <div class="form-group">
+      <label for="category">Category *</label>
+      <select 
+        id="category" 
+        [(ngModel)]="selectedCategory" 
+        (change)="onCategoryChange()"
+        [disabled]="isGenerating"
+        class="form-control">
+        <option value="">Select Category</option>
+        <option *ngFor="let category of categories" [value]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="topic">Topic *</label>
+      <select 
+        id="topic" 
+        [(ngModel)]="selectedTopic"
+        [disabled]="!selectedCategory || isGenerating"
+        class="form-control">
+        <option value="">Select Topic</option>
+        <option *ngFor="let topic of topics" [value]="topic.name">
+          {{ topic.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="questionType">Question Type *</label>
+      <select 
+        id="questionType" 
+        [(ngModel)]="selectedQuestionType"
+        [disabled]="isGenerating"
+        class="form-control">
+        <option *ngFor="let type of questionTypes" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="numberOfImages">Number of Images *</label>
+      <input 
+        type="number" 
+        id="numberOfImages" 
+        [(ngModel)]="numberOfImages"
+        [disabled]="isGenerating"
+        min="1"
+        max="50"
+        class="form-control">
+    </div>
+
+    <div class="button-group">
+      <button 
+        class="btn btn-primary"
+        (click)="generateImages()"
+        [disabled]="!selectedTopic || isGenerating || numberOfImages < 1">
+        <span *ngIf="!isGenerating">Generate Images</span>
+        <span *ngIf="isGenerating">Generating...</span>
+      </button>
+
+      <button 
+        class="btn btn-secondary"
+        (click)="clearImages()"
+        [disabled]="isGenerating || generatedImages.length === 0">
+        Clear All
+      </button>
+
+      <button 
+        class="btn btn-success"
+        (click)="downloadAllImages()"
+        [disabled]="isGenerating || generatedImages.length === 0">
+        Download All
+      </button>
+    </div>
+  </div>
+
+  <div class="progress-container" *ngIf="isGenerating || statusMessage">
+    <div class="status-message">{{ statusMessage }}</div>
+    <div class="progress-bar" *ngIf="isGenerating">
+      <div class="progress-fill" [style.width.%]="progress">
+        {{ progress }}%
+      </div>
+    </div>
+  </div>
+
+  <div class="images-container" *ngIf="generatedImages.length > 0">
+    <h3>Generated Images ({{ generatedImages.length }})</h3>
+    <div class="images-grid">
+      <div class="image-card" *ngFor="let imageUrl of generatedImages; let i = index">
+        <img [src]="imageUrl" [alt]="'Question ' + (i + 1)">
+      </div>
+    </div>
+  </div>
+</div>

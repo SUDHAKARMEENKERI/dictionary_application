@@ -40,7 +40,7 @@
 <!-- Secondary Navigation (all main pages) -->
 <div class="subnav" aria-label="Primary navigation">
     <div class="subnav-inner">
-        <a class="subnav-link" *ngFor="let link of secondaryLinks; trackBy: trackByPath" [routerLink]="link.path"
+        <a class="subnav-link" *ngFor="let link of allLinks; trackBy: trackByPath" [routerLink]="link.path"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: link.path === '/dashboard' || link.path === '/interview-prep' }">
             {{ link.label }}
@@ -53,7 +53,7 @@
     <div class="menu-card">
         <div class="user-name">
             👤 {{ firstName }}
-            <div class="page-link" *ngFor="let link of secondaryLinks; trackBy: trackByPath">
+            <div class="page-link" *ngFor="let link of allLinks; trackBy: trackByPath">
                 <a [routerLink]="link.path" (click)="closeMenu()">{{ link.label }}</a>
             </div>
         </div>

@@ -50,6 +50,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     //{ label: 'Contact', path: '/contact' },
   ];
 
+  adminLinks: Array<{ label: string; path: string }> = [
+    { label: 'Image Generator', path: '/qa-image-generator' },
+    { label: 'Page View Stats', path: '/admin/page-view-stats' },
+    { label: 'User Management', path: '/admin/users' },
+    { label: 'Promo PDF Generator', path: '/admin/promo-pdf' },
+  ];
+
   trackByPath = (_: number, link: { path: string }) => link.path;
 
   toggleMenu() {
@@ -68,6 +75,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  get allLinks(): Array<{ label: string; path: string }> {
+    if (this.isAdmin) {
+      return [...this.secondaryLinks, ...this.adminLinks];
+    }
+    return this.secondaryLinks;
   }
 
   logout(): void {
