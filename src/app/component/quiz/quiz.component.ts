@@ -1,4 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import html2canvas from 'html2canvas';
+import { ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -41,6 +43,58 @@ type ChatMessage = {
   imports: [CommonModule, FormsModule, ModalComponent],
 })
 export class QuizComponent implements OnInit, OnDestroy {
+  generateImageChecked = false;
+
+  questionSelections: boolean[] = [];
+  answerSelections: boolean[] = [];
+
+  @ViewChild('qnaImageArea', { static: false }) qnaImageArea!: ElementRef;
+
+  async onGenerateImage() {
+    if (!this.generateImageChecked) {
+      this.modalDetails = {
+        isOpen: true,
+        message: 'Please check the box to enable image generation.',
+        status: 'warning',
+        title: 'Image Generation'
+      };
+      return;
+    }
+    const element = this.qnaImageArea?.nativeElement;
+    if (!element) {
+      this.modalDetails = {
+        isOpen: true,
+        message: 'Q&A area not found for image generation.',
+        status: 'error',
+        title: 'Image Generation'
+      };
+      return;
+    }
+    try {
+      const canvas = await html2canvas(element);
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `quiz-qna-${this.currentIndex + 1}.png`;
+      // For some browsers, the link must be added to the DOM
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.modalDetails = {
+        isOpen: true,
+        message: 'Image generated and downloaded successfully.',
+        status: 'success',
+        title: 'Image Generation'
+      };
+    } catch (err) {
+      this.modalDetails = {
+        isOpen: true,
+        message: 'Failed to generate image. Please try again.',
+        status: 'error',
+        title: 'Image Generation'
+      };
+    }
+  }
   quizStarted = false;
   isLoadingQuestions = false;
   displayQuestions: QuizQuestion[] = [];

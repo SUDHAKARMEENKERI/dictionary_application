@@ -195,13 +195,34 @@
 
                     <!-- Questions Container (Portal-style list; always show answer) -->
                     <div class="qa-list" *ngIf="displayQuestionAnswers.length > 0">
-                        <div class="qa-item" *ngFor="let qa of displayQuestionAnswers; let i = index">
-                            <input type="checkbox" 
-                                   *ngIf="isAdmin"
-                                   class="qa-checkbox"
-                                   [checked]="isQuestionSelected(qa)"
-                                   (change)="toggleQuestionSelection(qa, $event)"
-                                   (click)="$event.stopPropagation()">
+                                                <div *ngIf="isAdmin" style="margin-bottom: 16px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
+                                                    <button type="button"
+                                                                    class="admin-image-btn"
+                                                                    (click)="generateImage()"
+                                                                    [disabled]="selectedForImage.length === 0 || isGeneratingImage"
+                                                                    style="padding: 8px 18px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+                                                        <span *ngIf="!isGeneratingImage">Generate Image</span>
+                                                        <span *ngIf="isGeneratingImage">Generating…</span>
+                                                    </button>
+                                                </div>
+                                                <div class="qa-item" *ngFor="let qa of displayQuestionAnswers; let i = index">
+                                                        <ng-container *ngIf="isAdmin">
+                                                            <div style="position: relative; min-height: 32px; padding-left: 40px; padding-right: 40px;">
+                                                                <input type="checkbox"
+                                                                             class="qa-checkbox"
+                                                                             style="position: absolute; left: 8px; top: 4px; z-index: 2; width: 22px; height: 22px; background: #fff; border: 2px solid #888; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);"
+                                                                             [checked]="isQuestionSelected(qa)"
+                                                                             (change)="toggleQuestionSelection(qa, $event)"
+                                                                             (click)="$event.stopPropagation()">
+                                                                <input type="checkbox"
+                                                                             class="image-checkbox"
+                                                                             style="position: absolute; right: 8px; top: 4px; z-index: 2; width: 22px; height: 22px; background: #fff; border: 2px solid #888; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);"
+                                                                             [checked]="isSelectedForImage(qa)"
+                                                                             (change)="toggleImageSelection(qa, $event)"
+                                                                             (click)="$event.stopPropagation()"
+                                                                             aria-label="Select Q&A for Image">
+                                                            </div>
+                                                        </ng-container>
                             <div class="qa-item-header">
                                 <div class="qa-summary-left">
                                     <div class="qa-marker" aria-hidden="true">

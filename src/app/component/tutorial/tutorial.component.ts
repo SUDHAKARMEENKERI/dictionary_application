@@ -17,6 +17,7 @@ import { readLoginMobile } from '../../util/loginStorage';
 import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
 import { jsPDF } from 'jspdf';
+import { ImageGeneratorService } from '../../service/image-generator.service';
 
 type OutputQuestion = {
   id?: string | number;
@@ -50,11 +51,11 @@ type OutputSection = 'mcq' | 'typed';
   standalone: true
 })
 export class TutorialComponent implements OnInit, OnDestroy {
-
   constructor(
     private activeRouter: ActivatedRoute,
     private router: Router,
-    private mcqQuestionService: MCQQuestionService
+    private mcqQuestionService: MCQQuestionService,
+    private imageGeneratorService: ImageGeneratorService
   ) {}
 
   private destroy$ = new Subject<void>();
@@ -96,7 +97,88 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   selectedForPdf: OutputQuestion[] = [];
+  selectedForImage: OutputQuestion[] = [];
   isGeneratingPdf = false;
+  isGeneratingImage = false;
+  isSelectedForImage(q: OutputQuestion): boolean {
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(q?.id);
+    if (idKey) return this.selectedForImage.some((x) => key(x?.id) === idKey);
+    return this.selectedForImage.some((x) => (x?.question ?? '') === (q?.question ?? ''));
+  }
+
+  toggleImageSelection(q: OutputQuestion, event: Event): void {
+    event.stopPropagation();
+    if (!this.isAdminUser) return;
+
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(q?.id);
+    const idx = this.selectedForImage.findIndex((x) => {
+      const xId = key(x?.id);
+      if (idKey && xId) return xId === idKey;
+      return (x?.question ?? '') === (q?.question ?? '');
+    });
+
+    if (idx >= 0) this.selectedForImage.splice(idx, 1);
+    else this.selectedForImage.push(q);
+  }
+
+  clearImageSelection(): void {
+    this.selectedForImage = [];
+  }
+
+  generateImage(): void {
+    if (!this.isAdminUser) return;
+    const selected = [...(this.selectedForImage || [])];
+    if (!selected.length) return;
+
+    this.isGeneratingImage = true;
+    setTimeout(() => {
+      try {
+        this.buildSelectedImages(selected);
+      } finally {
+        this.isGeneratingImage = false;
+      }
+    }, 0);
+  }
+
+  // Use shared ImageGeneratorService for image generation
+  private async buildSelectedImages(questions: OutputQuestion[]): Promise<void> {
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      try {
+        const url = await this.imageGeneratorService.generateQuestionImage(
+          q,
+          q.options && q.options.length ? 'mcq' : 'qa',
+          q.topic || this.selectedTopic || 'Output Practice',
+          i + 1
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `output-q${i + 1}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Failed to generate image for question', q, err);
+        this.modalDetails = {
+          ...this.modalDetails,
+          isOpen: true,
+          status: 'error',
+          message: `Failed to generate image for Q${i + 1}.`
+        };
+      }
+    }
+    this.modalDetails = {
+      ...this.modalDetails,
+      isOpen: true,
+      status: 'success',
+      message: `Generated ${questions.length} image(s). Downloads should start automatically.`
+    };
+  }
+
+  // escapeHtml no longer needed; using service for rendering
 
   modalDetails: ModalDetails = {
     isOpen: false,

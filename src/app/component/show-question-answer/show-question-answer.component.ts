@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ImageGeneratorService } from '../../service/image-generator.service';
 import { QuestionAnswerService } from '../../service/questionAnswer.Service';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -51,13 +52,69 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   private readonly adminMobile = ADMIN_MOBILE;
 
   selectedQuestions: any[] = [];
+  selectedForImage: any[] = [];
+  isGeneratingImage = false;
   isGeneratingPdf = false;
   isAdmin = false;
 
   constructor(private questionAnswerService: QuestionAnswerService,
     private technologyService: TechnologyService,
     private sanitizer: DomSanitizer,
-    private router: Router) { }
+    private router: Router,
+    private imageGeneratorService: ImageGeneratorService) { }
+
+  isSelectedForImage(qa: any): boolean {
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(qa?.id);
+    if (idKey) return this.selectedForImage.some((x) => key(x?.id) === idKey);
+    return this.selectedForImage.some((x) => (x?.question ?? '') === (qa?.question ?? ''));
+  }
+
+  toggleImageSelection(qa: any, event: Event): void {
+    event.stopPropagation();
+    if (!this.isAdmin) return;
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(qa?.id);
+    const idx = this.selectedForImage.findIndex((x) => {
+      const xId = key(x?.id);
+      if (idKey && xId) return xId === idKey;
+      return (x?.question ?? '') === (qa?.question ?? '');
+    });
+    if (idx >= 0) this.selectedForImage.splice(idx, 1);
+    else this.selectedForImage.push(qa);
+  }
+
+  clearImageSelection(): void {
+    this.selectedForImage = [];
+  }
+
+  async generateImage(): Promise<void> {
+    if (!this.isAdmin) return;
+    const selected = [...(this.selectedForImage || [])];
+    if (!selected.length) return;
+    this.isGeneratingImage = true;
+    for (let i = 0; i < selected.length; i++) {
+      const qa = selected[i];
+      try {
+        const url = await this.imageGeneratorService.generateQuestionImage(
+          qa,
+          'qa',
+          qa.technology || qa.topic || 'Interview Q&A',
+          i + 1
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `interview-qa-q${i + 1}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Failed to generate image for Q&A', qa, err);
+      }
+    }
+    this.isGeneratingImage = false;
+  }
 
   canManageQa(qa: any): boolean {
     const current = (this.currentMobile ?? '').toString().trim();

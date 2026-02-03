@@ -178,6 +178,15 @@
 
                     <!-- Current Question Display -->
                     <div class="question-display-section" *ngIf="questionsToShow.length > 0">
+                        <div class="generate-image-checkbox-row">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="generateImageChecked" />
+                                Generate Image for this quiz
+                            </label>
+                            <button type="button" class="generate-image-btn" (click)="onGenerateImage()" [disabled]="!generateImageChecked">
+                                Generate Image
+                            </button>
+                        </div>
                         <div class="progress-indicator">
                             <div class="progress-bar-outer">
                                 <div class="progress-bar-inner" [style.width.%]="((currentIndex+1)/questionsToShow.length)*100"></div>
@@ -187,7 +196,7 @@
                             </div>
                         </div>
 
-                        <div class="question-content-card">
+                        <div class="question-content-card" #qnaImageArea>
                             <input
                                 *ngIf="isAdmin"
                                 type="checkbox"
@@ -247,7 +256,7 @@
     </div>
 
     <!-- Result -->
-    <div class="result-card" *ngIf="showResult">
+    <div class="result-card" *ngIf="showResult" #qnaImageArea>
         <h2>🎉 Congratulations!</h2>
         <p>You completed the quiz.</p>
 
@@ -352,15 +361,10 @@
         <div class="review" *ngIf="questionsToShow.length > 0">
             <h3 class="review-title">Question & Answer Review</h3>
             <div class="review-item" *ngFor="let q of questionsToShow; let i = index">
-                <input
-                    *ngIf="isAdmin"
-                    type="checkbox"
-                    class="pdf-checkbox"
-                    [checked]="isSelectedForPdf(i)"
-                    (change)="togglePdfSelection(i, $event)"
-                    (click)="$event.stopPropagation()"
-                    aria-label="Select question for PDF"
-                />
+                <label>
+                    <input type="checkbox" [(ngModel)]="questionSelections[i]" />
+                    Select Q{{ i + 1 }}
+                </label>
                 <div class="review-q">
                     <b>Q{{ i + 1 }}.</b> {{ q.question }}
                     <span
@@ -371,7 +375,13 @@
                         {{ answerStatus(i) }}
                     </span>
                 </div>
-                <div class="review-a"><b>Your answer:</b> {{ userAnswerText(i) }}</div>
+                <div class="review-a">
+                    <label>
+                        <input type="checkbox" [(ngModel)]="answerSelections[i]" />
+                        Select Answer
+                    </label>
+                    <b>Your answer:</b> {{ userAnswerText(i) }}
+                </div>
                 <div class="review-c"><b>Correct answer:</b> {{ correctAnswerText(i) }}</div>
             </div>
         </div>

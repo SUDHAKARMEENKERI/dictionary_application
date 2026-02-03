@@ -22,15 +22,22 @@
 
     <div class="admin-pdf-panel" *ngIf="isAdmin">
       <div class="admin-pdf-row">
-        <div class="admin-pdf-title"><strong>Admin:</strong> Select questions and generate PDF</div>
+        <div class="admin-pdf-title"><strong>Admin:</strong> Select questions and generate PDF or Image</div>
         <div class="admin-pdf-actions">
-          <span class="admin-pdf-count">{{ selectedForPdf.length }} selected</span>
+          <span class="admin-pdf-count">PDF: {{ selectedForPdf.length }} | Image: {{ selectedForImage.length }}</span>
           <button type="button" class="admin-pdf-btn" (click)="clearPdfSelection()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
-            Clear
+            Clear PDF
+          </button>
+          <button type="button" class="admin-pdf-btn" (click)="clearImageSelection()" [disabled]="selectedForImage.length === 0 || isGeneratingImage">
+            Clear Image
           </button>
           <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
             <span *ngIf="!isGeneratingPdf">Generate PDF</span>
             <span *ngIf="isGeneratingPdf">Generating…</span>
+          </button>  
+          <button type="button" class="admin-pdf-btn primary" (click)="generateImage()" [disabled]="selectedForImage.length === 0 || isGeneratingImage">
+            <span *ngIf="!isGeneratingImage">Generate Image</span>
+            <span *ngIf="isGeneratingImage">Generating…</span>
           </button>
         </div>
       </div>
@@ -136,15 +143,25 @@
         <ng-container *ngIf="activeSection === 'mcq'">
           <div class="output-card mcq" [class.has-pdf-checkbox]="isAdmin">
 
-            <input
-              *ngIf="isAdmin"
-              type="checkbox"
-              class="pdf-checkbox"
-              [checked]="isSelectedForPdf(q)"
-              (change)="togglePdfSelection(q, $event)"
-              (click)="$event.stopPropagation()"
-              aria-label="Select question for PDF"
-            />
+            <ng-container *ngIf="isAdmin">
+              <input
+                type="checkbox"
+                class="pdf-checkbox"
+                [checked]="isSelectedForPdf(q)"
+                (change)="togglePdfSelection(q, $event)"
+                (click)="$event.stopPropagation()"
+                aria-label="Select question for PDF"
+              />
+              <input
+                type="checkbox"
+                class="image-checkbox"
+                [checked]="isSelectedForImage(q)"
+                (change)="toggleImageSelection(q, $event)"
+                (click)="$event.stopPropagation()"
+                aria-label="Select question for Image"
+                style="margin-left:8px"
+              />
+            </ng-container>
 
             <!-- Question -->
             <div class="question-row">
@@ -220,15 +237,25 @@
         <ng-container *ngIf="activeSection === 'typed'">
           <div class="output-card typed" [class.has-pdf-checkbox]="isAdmin">
 
-            <input
-              *ngIf="isAdmin"
-              type="checkbox"
-              class="pdf-checkbox"
-              [checked]="isSelectedForPdf(q)"
-              (change)="togglePdfSelection(q, $event)"
-              (click)="$event.stopPropagation()"
-              aria-label="Select question for PDF"
-            />
+            <ng-container *ngIf="isAdmin">
+              <input
+                type="checkbox"
+                class="pdf-checkbox"
+                [checked]="isSelectedForPdf(q)"
+                (change)="togglePdfSelection(q, $event)"
+                (click)="$event.stopPropagation()"
+                aria-label="Select question for PDF"
+              />
+              <input
+                type="checkbox"
+                class="image-checkbox"
+                [checked]="isSelectedForImage(q)"
+                (change)="toggleImageSelection(q, $event)"
+                (click)="$event.stopPropagation()"
+                aria-label="Select question for Image"
+                style="margin-left:8px"
+              />
+            </ng-container>
 
             <!-- Question -->
             <div class="question-row">
