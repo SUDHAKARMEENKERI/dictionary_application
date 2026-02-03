@@ -175,10 +175,22 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+  position: relative;
 
   &:hover {
     border-color: #c5cae9;
   }
+}
+
+.qa-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #1976d2;
 }
 
 .qa-item-header {
@@ -187,6 +199,11 @@
   align-items: center;
   gap: 12px;
   background: linear-gradient(180deg, rgba(243, 246, 255, 0.9), rgba(255, 255, 255, 1));
+}
+
+// Add extra left padding when admin checkbox is visible
+.qa-item:has(.qa-checkbox) .qa-item-header {
+  padding-left: 40px;
 }
 
 .qa-summary-left {
@@ -601,6 +618,29 @@
     &:hover {
       background: transparent;
       border-color: #e0e0e0;
+    }
+  }
+}
+
+// Admin Panel Styles
+.admin-panel {
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 16px 20px;
+  
+  .btn-primary {
+    background-color: #1976d2;
+    border-color: #1976d2;
+    
+    &:hover:not(:disabled) {
+      background-color: #1565c0;
+      border-color: #1565c0;
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }

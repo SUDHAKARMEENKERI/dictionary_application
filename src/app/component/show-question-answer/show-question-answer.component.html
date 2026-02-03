@@ -103,6 +103,22 @@
 
         <!-- Right: Questions -->
         <div class="col-12 col-lg-9">
+            <!-- Admin Panel for PDF Generation -->
+            <div *ngIf="isAdmin" class="admin-panel alert alert-info mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span><strong>Admin Mode:</strong> Select questions to generate PDF</span>
+                    <div>
+                        <span class="me-3">{{ selectedQuestions.length }} question(s) selected</span>
+                        <button class="btn btn-primary btn-sm" 
+                                [disabled]="selectedQuestions.length === 0 || isGeneratingPdf"
+                                (click)="generatePdf()">
+                            <span *ngIf="!isGeneratingPdf">Generate PDF</span>
+                            <span *ngIf="isGeneratingPdf">Generating...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="qa-panel">
                 <div class="qa-panel-header">
                     <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
@@ -180,6 +196,12 @@
                     <!-- Questions Container (Portal-style list; always show answer) -->
                     <div class="qa-list" *ngIf="displayQuestionAnswers.length > 0">
                         <div class="qa-item" *ngFor="let qa of displayQuestionAnswers; let i = index">
+                            <input type="checkbox" 
+                                   *ngIf="isAdmin"
+                                   class="qa-checkbox"
+                                   [checked]="isQuestionSelected(qa)"
+                                   (change)="toggleQuestionSelection(qa, $event)"
+                                   (click)="$event.stopPropagation()">
                             <div class="qa-item-header">
                                 <div class="qa-summary-left">
                                     <div class="qa-marker" aria-hidden="true">

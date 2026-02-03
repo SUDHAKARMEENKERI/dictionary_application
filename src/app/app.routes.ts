@@ -91,6 +91,7 @@ export const routes: Routes = [
   { path: 'admin/users', loadComponent: () => import('./component/user-list/user-list.component').then(m => m.UserListComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | User Management', data: { description: 'View and manage registered users.', robots: 'noindex, nofollow' } },
   { path: 'admin/promo-pdf', loadComponent: () => import('./component/admin-promo-pdf/admin-promo-pdf.component').then(m => m.AdminPromoPdfComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Promo PDF Generator', data: { description: 'Generate promo-ready PDFs for CareerPrepBook.', robots: 'noindex, nofollow' } },
   { path: 'qa-image-generator', loadComponent: () => import('./component/qa-image-generator/qa-image-generator.component').then(m => m.QaImageGeneratorComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Q&A Image Generator', data: { description: 'Generate Q&A images for promotional videos.', robots: 'noindex, nofollow' } },
+  { path: 'promotion-banner', loadComponent: () => import('./component/promotion-banner/promotion-banner.component').then(m => m.PromotionBannerComponent), canActivate: [AdminGuard], title: 'CareerPrepBook | Promotional Banner Generator', data: { description: 'Generate promotional banners for social media and web.', robots: 'noindex, nofollow' } },
   
   // Public Pages
   { path: 'about', component: AboutUsComponent, title: 'CareerPrepBook | About', data: { description: 'Learn about CareerPrepBook and our mission to help you succeed in interviews.' } },

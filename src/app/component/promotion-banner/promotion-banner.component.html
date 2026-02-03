@@ -1,0 +1,61 @@
+<div class="promo-page">
+  <div class="promo-header">
+    <h1>Promotion Banner Generator</h1>
+    <p>Create social media banners for LinkedIn, Instagram, YouTube, and more.</p>
+  </div>
+
+  <div class="promo-grid">
+    <div class="promo-card">
+      <h2>Banner Settings</h2>
+
+ 
+      <label class="field">
+        <span>Preset Size</span>
+        <select [(ngModel)]="selectedPresetId" (change)="onPresetChange()">
+          <option *ngFor="let preset of presets" [value]="preset.id">
+            {{ preset.label }}
+          </option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Message Theme</span>
+        <select [(ngModel)]="selectedMessageId" (change)="onMessageChange()">
+          <option *ngFor="let message of messageOptions" [value]="message.id">
+            {{ message.label }}
+          </option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Headline</span>
+        <input type="text" [(ngModel)]="customText" />
+      </label>
+
+      <label class="field">
+        <span>CTA</span>
+        <input type="text" [(ngModel)]="ctaText" />
+      </label>
+
+      <button class="primary" type="button" (click)="generateBanner()" [disabled]="isGenerating">
+        {{ isGenerating ? 'Generating...' : 'Generate Banner' }}
+      </button>
+
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+
+    <div class="promo-card preview">
+      <h2>Preview</h2>
+      <div class="preview-area" [class.loading]="isGenerating">
+        <span *ngIf="!bannerUrl && !isGenerating">No banner yet. Generate to preview.</span>
+        <img *ngIf="bannerUrl" [src]="bannerUrl" alt="Promotion banner" />
+      </div>
+
+      <div class="actions">
+        <a *ngIf="bannerUrl" [href]="bannerUrl" download="careerprepbook-promo-banner.jpg">
+          Download Banner
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

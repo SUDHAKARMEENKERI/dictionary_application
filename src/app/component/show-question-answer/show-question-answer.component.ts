@@ -4,13 +4,14 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { from, of, Subject } from 'rxjs';
+import { from, of, Subject, forkJoin } from 'rxjs';
 import { TechnologyService } from '../../service/technology.service';
 import { Technology } from '../../models/Technology';
 import { apiEmpty, apiFallback } from '../../util/apiRx';
-import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil } from 'rxjs/operators';
+import { catchError, concatMap, defaultIfEmpty, filter, map, take, takeUntil, finalize } from 'rxjs/operators';
 import { readLoginMobile } from '../../util/loginStorage';
 import { ADMIN_MOBILE } from '../../util/app-constants';
+import { jsPDF } from 'jspdf';
 
 @Component({
   selector: 'app-show-question-answer',
@@ -49,6 +50,10 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   private readonly currentMobile = readLoginMobile();
   private readonly adminMobile = ADMIN_MOBILE;
 
+  selectedQuestions: any[] = [];
+  isGeneratingPdf = false;
+  isAdmin = false;
+
   constructor(private questionAnswerService: QuestionAnswerService,
     private technologyService: TechnologyService,
     private sanitizer: DomSanitizer,
@@ -82,6 +87,7 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isAdmin = (this.currentMobile ?? '').toString().trim() === this.adminMobile;
     this.loadTechnologies();
     this.selectTechnology('All');
   }
@@ -694,6 +700,244 @@ export class ShowQuestionAnswerComponent implements OnInit, OnDestroy {
         this.updateVisibleSlice(list);
       });
   }
+  isQuestionSelected(qa: any): boolean {
+    return this.selectedQuestions.some((q) => q.id === qa.id);
+  }
+
+  toggleQuestionSelection(qa: any, event: Event): void {
+    event.stopPropagation();
+    const index = this.selectedQuestions.findIndex((q) => q.id === qa.id);
+
+    if (index > -1) {
+      this.selectedQuestions.splice(index, 1);
+    } else {
+      this.selectedQuestions.push(qa);
+    }
+  }
+
+  generatePdf(): void {
+    if (!this.isAdmin || this.selectedQuestions.length === 0) {
+      return;
+    }
+
+    this.isGeneratingPdf = true;
+
+    const allQuestions = this.selectedQuestions.map((qa) => ({
+      ...qa,
+      technology: this.selectedTechnology !== 'All' ? this.selectedTechnology : (qa.topic || 'General'),
+      topic: qa.topic || this.selectedTechnology
+    }));
+
+    // Generate PDF immediately since we already have the data
+    setTimeout(() => {
+      this.buildPdf(allQuestions);
+      this.isGeneratingPdf = false;
+    }, 100);
+  }
+
+  private buildPdf(questions: any[]): void {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 36;
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const cardGap = 12;
+    const cardPadding = 14;
+    const cardTopOffset = 6;
+    const footerReserve = 110;
+    const sectionSpacing = 10;
+
+    const brand = { r: 29, g: 78, b: 216 };
+    const neutral = { r: 15, g: 23, b: 42 };
+    const questionColor = { r: 30, g: 64, b: 175 };
+    const answerColor = { r: 217, g: 119, b: 6 };
+
+    const lineHeightFor = (size: number) => Math.round(size * 1.4);
+
+    const questionFontSize = 11;
+    const answerFontSize = 10;
+    const metaFontSize = 9;
+
+    const drawRounded = (x: number, yPos: number, w: number, h: number, radius = 10) => {
+      const anyDoc = doc as any;
+      if (typeof anyDoc.roundedRect === 'function') {
+        anyDoc.roundedRect(x, yPos, w, h, radius, radius, 'FD');
+      } else {
+        doc.rect(x, yPos, w, h, 'F');
+      }
+    };
+
+    // Header
+    doc.setFillColor(brand.r, brand.g, brand.b);
+    doc.rect(0, 0, pageWidth, 86, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('CareerPrepBook.Com', margin, 36);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text('Interview Questions & Answers', margin, 56);
+
+    y = 108;
+    doc.setTextColor(neutral.r, neutral.g, neutral.b);
+
+    // Topic Badge
+    const topicText = this.selectedTechnology !== 'All' ? this.selectedTechnology : 'Mixed Topics';
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    const badgeWidth = doc.getTextWidth(`Topic: ${topicText}`) + 18;
+    doc.setFillColor(224, 231, 255);
+    doc.setTextColor(30, 64, 175);
+    const drawRoundedBadge = (x: number, yPos: number, w: number, h: number, radius = 11) => {
+      const anyDoc = doc as any;
+      if (typeof anyDoc.roundedRect === 'function') {
+        anyDoc.roundedRect(x, yPos, w, h, radius, radius, 'FD');
+      } else {
+        doc.rect(x, yPos, w, h, 'F');
+      }
+    };
+    drawRoundedBadge(margin, y - 14, badgeWidth, 22, 11);
+    doc.text(`Topic: ${topicText}`, margin + 9, y + 1);
+
+    // Stats
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const statsText = `Questions: ${questions.length} | Level: ${this.selectedLevel}`;
+    doc.setTextColor(71, 85, 105);
+    doc.text(statsText, margin + badgeWidth + 14, y + 1);
+
+    y += 20;
+
+    const wrapLines = (text: string, fontSize: number, font: string, style: 'normal' | 'bold' | 'italic', width = contentWidth) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(text || '', width) as string[];
+    };
+
+    const addLines = (lines: string[], x: number, yPos: number, font: string, style: 'normal' | 'bold' | 'italic', fontSize: number) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      const lh = lineHeightFor(fontSize);
+      lines.forEach(line => {
+        doc.text(line, x, yPos);
+        yPos += lh;
+      });
+      return yPos;
+    };
+
+    questions.forEach((q, index) => {
+      const questionText = this.fixEncoding(q.question) || q.questionText || q.ques || '';
+      const answerText = this.fixEncoding(q.answer) || q.ans || '';
+      const technology = q.technology || '';
+      const topic = q.topic || '';
+
+      const metaLines = wrapLines(`${technology} > ${topic}`, metaFontSize, 'helvetica', 'italic');
+      const questionLines = wrapLines(`Q${index + 1}. ${questionText}`, questionFontSize, 'helvetica', 'bold');
+      const answerLines = answerText ? wrapLines(`Answer: ${answerText}`, answerFontSize, 'helvetica', 'normal') : [];
+
+      const blockHeight = [
+        metaLines.length * lineHeightFor(metaFontSize),
+        questionLines.length * lineHeightFor(questionFontSize),
+        answerLines.length * lineHeightFor(answerFontSize),
+      ].reduce((a, b) => a + b, 0)
+        + cardPadding * 2
+        + cardTopOffset
+        + sectionSpacing * 2;
+
+      if (y + blockHeight > pageHeight - margin - footerReserve) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(248, 250, 252);
+      drawRounded(margin, y, contentWidth, blockHeight, 12);
+
+      let yCursor = y + cardPadding + cardTopOffset;
+      
+      // Meta info
+      doc.setTextColor(100, 116, 139);
+      yCursor = addLines(metaLines, margin + cardPadding, yCursor, 'helvetica', 'italic', metaFontSize);
+      
+      yCursor += sectionSpacing;
+      
+      // Question
+      doc.setTextColor(questionColor.r, questionColor.g, questionColor.b);
+      yCursor = addLines(questionLines, margin + cardPadding, yCursor, 'helvetica', 'bold', questionFontSize);
+
+      // Answer
+      if (answerLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(answerColor.r, answerColor.g, answerColor.b);
+        yCursor = addLines(answerLines, margin + cardPadding, yCursor, 'helvetica', 'normal', answerFontSize);
+      }
+
+      y += blockHeight + cardGap;
+    });
+
+    // Add footer to all pages
+    const addFooter = (pageIndex: number, totalPages: number) => {
+      const footerY = pageHeight - 40;
+      const line1 = 'Practice more questions, quizzes, and interview prep at CareerPrepBook.Com';
+      const line2 = 'Visit https://careerprepbook.com for more resources.';
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, footerY - 16, pageWidth - margin, footerY - 16);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      const maxWidth = contentWidth - 20;
+      const line1Wrapped = doc.splitTextToSize(line1, maxWidth) as string[];
+      const line2Wrapped = doc.splitTextToSize(line2, maxWidth) as string[];
+      const footerLines = [...line1Wrapped, ...line2Wrapped];
+      const footerHeight = footerLines.length * 12 + 10;
+
+      const boxY = footerY - footerHeight + 6;
+      doc.setFillColor(241, 245, 249);
+      drawRounded(margin, boxY, contentWidth, footerHeight, 10);
+
+      let yCursor = boxY + 18;
+      footerLines.forEach((line, idx) => {
+        doc.setTextColor(idx === 0 ? 30 : 71, idx === 0 ? 64 : 85, idx === 0 ? 175 : 105);
+        doc.setFont('helvetica', idx === 0 ? 'bold' : 'normal');
+        const textWidth = doc.getTextWidth(line);
+        const x = margin + (contentWidth - textWidth) / 2;
+        doc.text(line, x, yCursor);
+        yCursor += 12;
+      });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      const pageLabel = `${pageIndex}/${totalPages}`;
+      const pageWidthLabel = doc.getTextWidth(pageLabel);
+      doc.text(pageLabel, margin + contentWidth - pageWidthLabel - 10, boxY + footerHeight - 6);
+    };
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i += 1) {
+      doc.setPage(i);
+      addFooter(i, totalPages);
+
+      const pageLabel = `${i}/${totalPages}`;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      if (i === 1) {
+        doc.setTextColor(255, 255, 255);
+        const textWidth = doc.getTextWidth(pageLabel);
+        doc.text(pageLabel, pageWidth - margin - textWidth, 22);
+      } else {
+        doc.setTextColor(100, 116, 139);
+        const textWidth = doc.getTextWidth(pageLabel);
+        doc.text(pageLabel, pageWidth - margin - textWidth, 22);
+      }
+    }
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    doc.save(`careerprepbook-qa-${timestamp}.pdf`);
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

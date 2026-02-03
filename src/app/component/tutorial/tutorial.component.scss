@@ -87,6 +87,68 @@
   }
 }
 
+/* Admin PDF panel */
+.admin-pdf-panel {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid rgba(59, 130, 246, 0.35);
+  background: linear-gradient(135deg, rgba(224, 242, 254, 0.85), rgba(219, 234, 254, 0.85));
+}
+
+.admin-pdf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-pdf-title {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.admin-pdf-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-pdf-count {
+  color: #334155;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.admin-pdf-btn {
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.85);
+  color: #1e293b;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.14);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border-color: transparent;
+  }
+}
+
 .header-info {
   display: flex;
   align-items: center;
@@ -379,6 +441,7 @@
   display: grid;
   gap: 24px;
   animation: fadeInUp 0.6s ease 0.4s backwards;
+  min-width: 0;
 }
 
 /* Section Headers */
@@ -426,10 +489,87 @@
   border: 2px solid rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  position: relative;
+  min-width: 0;
 
   &:hover {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
+  }
+}
+
+/* MCQ-specific polish */
+.output-card.mcq {
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 12px 34px rgba(99, 102, 241, 0.10), 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.output-card.mcq .question-row {
+  padding: 10px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(238, 242, 255, 0.75), rgba(224, 231, 255, 0.55));
+  border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.output-card.mcq .question-row h3 {
+  color: #0f172a;
+}
+
+.output-card.mcq .code-options-title {
+  letter-spacing: 0.2px;
+}
+
+.output-card.mcq .opt-text {
+  overflow-wrap: anywhere;
+}
+
+/* Typed (answerType) polish */
+.output-card.typed {
+  border-color: rgba(16, 185, 129, 0.22);
+  box-shadow: 0 12px 34px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.output-card.typed .question-row {
+  padding: 10px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.80), rgba(209, 250, 229, 0.55));
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.output-card.typed .question-row h3 {
+  color: #0f172a;
+}
+
+.pdf-checkbox {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #4f46e5;
+  z-index: 2;
+}
+
+.output-card.has-pdf-checkbox {
+  .question-row {
+    padding-right: 34px;
+  }
+
+  .manage-actions {
+    margin-right: 34px;
+  }
+}
+
+@media (max-width: 600px) {
+  .output-card.has-pdf-checkbox {
+    .manage-actions {
+      flex: 1 1 100%;
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      justify-content: flex-end;
+    }
   }
 }
 
@@ -461,19 +601,25 @@
   color: #e5e7eb;
   padding: 16px;
   border-radius: 12px;
-  overflow-x: auto;
+  overflow-x: hidden;
   font-size: 14px;
   line-height: 1.6;
+  max-width: 100%;
 }
 
 .code-pre {
   margin: 0;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .code-pre code {
   display: block;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .code-options-title {
@@ -660,6 +806,16 @@
   color: #065f46;
   font-weight: 600;
   line-height: 1.6;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.answer p strong {
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Badges */
@@ -773,6 +929,20 @@
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.manage-btn.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  line-height: 1;
+}
+
+.manage-btn.icon i {
+  font-size: 14px;
 }
 
 .manage-btn:hover {

@@ -787,6 +787,7 @@
   border: 2px solid #e5e7eb;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
+  position: relative;
 }
 
 .question-text {
@@ -1484,6 +1485,74 @@
   padding: 12px;
   background: #ffffff;
   margin-bottom: 10px;
+  position: relative;
+}
+
+.admin-pdf-panel {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.admin-pdf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-pdf-title {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.admin-pdf-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-pdf-count {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-pdf-btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-pdf-btn.primary {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.admin-pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pdf-checkbox {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  accent-color: #1d4ed8;
+  z-index: 2;
 }
 
 .review-q {

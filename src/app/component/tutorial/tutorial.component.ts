@@ -16,6 +16,7 @@ import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { readLoginMobile } from '../../util/loginStorage';
 import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
+import { jsPDF } from 'jspdf';
 
 type OutputQuestion = {
   id?: string | number;
@@ -89,6 +90,13 @@ export class TutorialComponent implements OnInit, OnDestroy {
   private get isAdminUser(): boolean {
     return !!this.currentMobile && this.currentMobile === this.adminMobile;
   }
+
+  get isAdmin(): boolean {
+    return this.isAdminUser;
+  }
+
+  selectedForPdf: OutputQuestion[] = [];
+  isGeneratingPdf = false;
 
   modalDetails: ModalDetails = {
     isOpen: false,
@@ -496,22 +504,29 @@ export class TutorialComponent implements OnInit, OnDestroy {
     this.scrollToSection('question-sets-section');
   }
 
-  get displayedQuestions(): OutputQuestion[] {
-    const all = this.questions;
-    if (this.selectedSetCount === null) return all;
-    return all.slice(0, this.selectedSetCount);
+  private sliceBySelectedSet(list: OutputQuestion[]): OutputQuestion[] {
+    if (this.selectedSetCount === null) return list;
+    return list.slice(0, this.selectedSetCount);
   }
 
-  get mcqQuestions(): OutputQuestion[] {
-    return this.displayedQuestions.filter(q => (q.options?.length ?? 0) > 0);
+  private get allMcqQuestions(): OutputQuestion[] {
+    return this.questions.filter(q => (q.options?.length ?? 0) > 0);
   }
 
-  get typedQuestions(): OutputQuestion[] {
+  private get allTypedQuestions(): OutputQuestion[] {
     // Typed tab is for OUTPUTBASED questions (answer-type). Code may be missing depending on backend payload.
-    return this.displayedQuestions.filter(q =>
+    return this.questions.filter(q =>
       (q.options?.length ?? 0) === 0 &&
       (q.questionType ?? '').toString().trim().toUpperCase() === this.typedOutputQuestionType
     );
+  }
+
+  get mcqQuestions(): OutputQuestion[] {
+    return this.sliceBySelectedSet(this.allMcqQuestions);
+  }
+
+  get typedQuestions(): OutputQuestion[] {
+    return this.sliceBySelectedSet(this.allTypedQuestions);
   }
 
   private get activeQuestions(): OutputQuestion[] {
@@ -640,6 +655,199 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   get isSetSelected(): boolean {
     return this.selectedSetCount !== null;
+  }
+
+  isSelectedForPdf(q: OutputQuestion): boolean {
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(q?.id);
+    if (idKey) return this.selectedForPdf.some((x) => key(x?.id) === idKey);
+    return this.selectedForPdf.some((x) => (x?.question ?? '') === (q?.question ?? ''));
+  }
+
+  togglePdfSelection(q: OutputQuestion, event: Event): void {
+    event.stopPropagation();
+    if (!this.isAdminUser) return;
+
+    const key = (v: any) => (v ?? '').toString();
+    const idKey = key(q?.id);
+    const idx = this.selectedForPdf.findIndex((x) => {
+      const xId = key(x?.id);
+      if (idKey && xId) return xId === idKey;
+      return (x?.question ?? '') === (q?.question ?? '');
+    });
+
+    if (idx >= 0) this.selectedForPdf.splice(idx, 1);
+    else this.selectedForPdf.push(q);
+  }
+
+  clearPdfSelection(): void {
+    this.selectedForPdf = [];
+  }
+
+  generatePdf(): void {
+    if (!this.isAdminUser) return;
+    const selected = [...(this.selectedForPdf || [])];
+    if (!selected.length) return;
+
+    this.isGeneratingPdf = true;
+    setTimeout(() => {
+      try {
+        this.buildSelectedPdf(selected);
+      } finally {
+        this.isGeneratingPdf = false;
+      }
+    }, 0);
+  }
+
+  private buildSelectedPdf(questions: OutputQuestion[]): void {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 36;
+    const contentWidth = pageWidth - margin * 2;
+
+    const lineHeightFor = (size: number) => Math.round(size * 1.4);
+    const drawRounded = (x: number, yPos: number, w: number, h: number, radius = 10) => {
+      const anyDoc = doc as any;
+      if (typeof anyDoc.roundedRect === 'function') anyDoc.roundedRect(x, yPos, w, h, radius, radius, 'FD');
+      else doc.rect(x, yPos, w, h, 'FD');
+    };
+
+    const brand = { r: 29, g: 78, b: 216 };
+    const neutral = { r: 15, g: 23, b: 42 };
+    const questionColor = { r: 30, g: 64, b: 175 };
+    const answerColor = { r: 217, g: 119, b: 6 };
+
+    // Header
+    doc.setFillColor(brand.r, brand.g, brand.b);
+    doc.rect(0, 0, pageWidth, 86, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('CareerPrepBook.Com', margin, 36);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text('Output Practice — Selected Questions', margin, 56);
+
+    let y = 108;
+    doc.setTextColor(neutral.r, neutral.g, neutral.b);
+
+    // Topic badge + stats
+    const topicText = this.selectedTopic === 'All' ? 'All Topics' : this.selectedTopic;
+    const sectionText = this.activeSection === 'mcq' ? 'MCQ' : 'Type Answer';
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    const badgeText = `Topic: ${topicText}`;
+    const badgeWidth = doc.getTextWidth(badgeText) + 18;
+    doc.setFillColor(224, 231, 255);
+    doc.setTextColor(30, 64, 175);
+    drawRounded(margin, y - 14, badgeWidth, 22, 11);
+    doc.text(badgeText, margin + 9, y + 1);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Section: ${sectionText}`, margin + badgeWidth + 14, y + 1);
+    doc.text(`Selected: ${questions.length}`, pageWidth - margin - 120, y + 1);
+    y += 20;
+
+    const wrapLines = (text: string, fontSize: number, font: string, style: 'normal' | 'bold' | 'italic', width = contentWidth) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(text || '', width) as string[];
+    };
+
+    const addLines = (lines: string[], x: number, yPos: number, font: string, style: 'normal' | 'bold' | 'italic', fontSize: number) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      const lh = lineHeightFor(fontSize);
+      for (const line of lines) {
+        doc.text(line, x, yPos);
+        yPos += lh;
+      }
+      return yPos;
+    };
+
+    const cardGap = 12;
+    const cardPadding = 14;
+    const footerReserve = 110;
+    const sectionSpacing = 10;
+
+    questions.forEach((q, index) => {
+      const questionText = this.normalizeDisplayText(q?.question ?? '');
+      const codeText = this.normalizeDisplayText(q?.code ?? '');
+      const answerText = (q?.options?.length ?? 0) > 0 ? this.getMcqCorrectDisplay(q) : this.normalizeDisplayText(q?.answer ?? '');
+
+      const questionLines = wrapLines(`Q${index + 1}. ${questionText}`, 11, 'helvetica', 'bold');
+      const codeLines = codeText
+        ? wrapLines('Code:', 9, 'helvetica', 'bold').concat(wrapLines(codeText, 9, 'courier', 'normal'))
+        : [];
+      const optionLines = (q?.options?.length ?? 0) > 0
+        ? wrapLines('Options:', 9, 'helvetica', 'bold').concat(
+            (q.options || []).flatMap((opt, i) => wrapLines(`${this.getOptionLabel(i)}. ${this.normalizeDisplayText(opt)}`, 9, 'helvetica', 'normal'))
+          )
+        : [];
+      const answerLines = answerText ? wrapLines(`Correct Output: ${this.normalizeDisplayText(answerText)}`, 10, 'helvetica', 'normal') : [];
+
+      const blockHeight = [
+        questionLines.length * lineHeightFor(11),
+        codeLines.length * lineHeightFor(9),
+        optionLines.length * lineHeightFor(9),
+        answerLines.length * lineHeightFor(10),
+      ].reduce((a, b) => a + b, 0)
+        + cardPadding * 2
+        + (codeLines.length ? sectionSpacing : 0)
+        + (optionLines.length ? sectionSpacing : 0)
+        + (answerLines.length ? sectionSpacing : 0);
+
+      if (y + blockHeight > pageHeight - margin - footerReserve) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(248, 250, 252);
+      drawRounded(margin, y, contentWidth, blockHeight, 12);
+
+      let yCursor = y + cardPadding;
+      doc.setTextColor(questionColor.r, questionColor.g, questionColor.b);
+      yCursor = addLines(questionLines, margin + cardPadding, yCursor, 'helvetica', 'bold', 11);
+
+      if (codeLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(neutral.r, neutral.g, neutral.b);
+        yCursor = addLines(codeLines, margin + cardPadding, yCursor, 'courier', 'normal', 9);
+      }
+
+      if (optionLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(neutral.r, neutral.g, neutral.b);
+        yCursor = addLines(optionLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 9);
+      }
+
+      if (answerLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(answerColor.r, answerColor.g, answerColor.b);
+        yCursor = addLines(answerLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 10);
+      }
+
+      y += blockHeight + cardGap;
+    });
+
+    // Footer with page numbers
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i += 1) {
+      doc.setPage(i);
+      const pageLabel = `${i}/${totalPages}`;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(i === 1 ? 255 : 100, i === 1 ? 255 : 116, i === 1 ? 255 : 139);
+      const textWidth = doc.getTextWidth(pageLabel);
+      doc.text(pageLabel, pageWidth - margin - textWidth, i === 1 ? 22 : pageHeight - 22);
+    }
+
+    const date = new Date().toISOString().split('T')[0];
+    doc.save(`careerprepbook-output-${topicText.replace(/\s+/g, '-').toLowerCase()}-${date}.pdf`);
   }
 
 }

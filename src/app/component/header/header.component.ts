@@ -52,6 +52,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   adminLinks: Array<{ label: string; path: string }> = [
     { label: 'Image Generator', path: '/qa-image-generator' },
+    { label: 'Banner Generator', path: '/promotion-banner' },
     { label: 'Page View Stats', path: '/admin/page-view-stats' },
     { label: 'User Management', path: '/admin/users' },
     { label: 'Promo PDF Generator', path: '/admin/promo-pdf' },

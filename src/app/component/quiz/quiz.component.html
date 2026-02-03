@@ -140,6 +140,20 @@
                         </div>
                     </div>
 
+                    <div class="admin-pdf-panel" *ngIf="isAdmin && questionsToShow.length > 0">
+                        <div class="admin-pdf-row">
+                            <div class="admin-pdf-title"><b>Admin:</b> Select questions and generate PDF</div>
+                            <div class="admin-pdf-actions">
+                                <span class="admin-pdf-count">{{ selectedPdfIndexes.size }} selected</span>
+                                <button type="button" class="admin-pdf-btn" (click)="clearPdfSelection()" [disabled]="selectedPdfIndexes.size === 0 || isGeneratingPdf">Clear</button>
+                                <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="selectedPdfIndexes.size === 0 || isGeneratingPdf">
+                                    <span *ngIf="!isGeneratingPdf">Generate PDF</span>
+                                    <span *ngIf="isGeneratingPdf">Generating…</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Question Navigation Grid -->
                     <div class="question-nav-section" *ngIf="questionsToShow.length > 0">
                         <div class="nav-header">
@@ -174,6 +188,15 @@
                         </div>
 
                         <div class="question-content-card">
+                            <input
+                                *ngIf="isAdmin"
+                                type="checkbox"
+                                class="pdf-checkbox"
+                                [checked]="isSelectedForPdf(currentIndex)"
+                                (change)="togglePdfSelection(currentIndex, $event)"
+                                (click)="$event.stopPropagation()"
+                                aria-label="Select current question for PDF"
+                            />
                             <div class="question-manage" *ngIf="canManageMcq(questionsToShow[currentIndex])">
                                 <button type="button" class="manage-btn" (click)="editQuestion(questionsToShow[currentIndex])">Edit</button>
                                 <button type="button" class="manage-btn danger" (click)="openDeleteConfirm(questionsToShow[currentIndex])">Delete</button>
@@ -227,6 +250,20 @@
     <div class="result-card" *ngIf="showResult">
         <h2>🎉 Congratulations!</h2>
         <p>You completed the quiz.</p>
+
+        <div class="admin-pdf-panel" *ngIf="isAdmin">
+            <div class="admin-pdf-row">
+                <div class="admin-pdf-title"><b>Admin:</b> Select questions and generate PDF</div>
+                <div class="admin-pdf-actions">
+                    <span class="admin-pdf-count">{{ selectedPdfIndexes.size }} selected</span>
+                    <button type="button" class="admin-pdf-btn" (click)="clearPdfSelection()" [disabled]="selectedPdfIndexes.size === 0 || isGeneratingPdf">Clear</button>
+                    <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="selectedPdfIndexes.size === 0 || isGeneratingPdf">
+                        <span *ngIf="!isGeneratingPdf">Generate PDF</span>
+                        <span *ngIf="isGeneratingPdf">Generating…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div class="result-top">
             <div class="result-chart-wrap">
@@ -315,6 +352,15 @@
         <div class="review" *ngIf="questionsToShow.length > 0">
             <h3 class="review-title">Question & Answer Review</h3>
             <div class="review-item" *ngFor="let q of questionsToShow; let i = index">
+                <input
+                    *ngIf="isAdmin"
+                    type="checkbox"
+                    class="pdf-checkbox"
+                    [checked]="isSelectedForPdf(i)"
+                    (change)="togglePdfSelection(i, $event)"
+                    (click)="$event.stopPropagation()"
+                    aria-label="Select question for PDF"
+                />
                 <div class="review-q">
                     <b>Q{{ i + 1 }}.</b> {{ q.question }}
                     <span

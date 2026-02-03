@@ -54,7 +54,7 @@ export class ImageGeneratorService {
     this.drawHeader(topic, questionNumber);
 
     // Question content
-    const contentY = 220;
+    const contentY = 130;
     if (questionType === 'mcq') {
       this.drawMCQContent(question, contentY);
     } else {
@@ -137,7 +137,7 @@ export class ImageGeneratorService {
 
     // Question text background
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    this.roundRect(padding, startY, maxWidth, 450, 15);
+    this.roundRect(padding, startY, maxWidth, 600, 15);
 
     // Question title
     this.ctx.fillStyle = '#2a5298';
@@ -188,7 +188,7 @@ export class ImageGeneratorService {
 
     // Question section
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    this.roundRect(padding, startY, maxWidth, 220, 15);
+    this.roundRect(padding, startY, maxWidth, 280, 15);
 
     this.ctx.fillStyle = '#2a5298';
     this.ctx.font = 'bold 28px Arial, sans-serif';
@@ -201,9 +201,9 @@ export class ImageGeneratorService {
     this.wrapText(questionText, padding + 30, startY + 90, maxWidth - 60, 32);
 
     // Answer section
-    const answerY = startY + 250;
+    const answerY = startY + 300;
     this.ctx.fillStyle = 'rgba(76, 175, 80, 0.15)';
-    this.roundRect(padding, answerY, maxWidth, 200, 15);
+    this.roundRect(padding, answerY, maxWidth, 280, 15);
 
     this.ctx.fillStyle = '#4CAF50';
     this.ctx.font = 'bold 28px Arial, sans-serif';
@@ -216,8 +216,8 @@ export class ImageGeneratorService {
   }
 
   private drawFooter(): void {
-    const footerY = this.canvas.height - 50;
-    const footerLineY = this.canvas.height - 70;
+    const footerY = this.canvas.height - 25;
+    const footerLineY = this.canvas.height - 42;
     
     // Separator line
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';

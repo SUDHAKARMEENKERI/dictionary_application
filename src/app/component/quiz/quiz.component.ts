@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { readLoginMobile } from '../../util/loginStorage';
 import { ADMIN_MOBILE } from '../../util/app-constants';
 import { ModalComponent, ModalDetails } from '../modal/modal.component';
+import { jsPDF } from 'jspdf';
 
 type QuizQuestion = {
   id?: string | number;
@@ -80,6 +81,13 @@ export class QuizComponent implements OnInit, OnDestroy {
   private get isAdminUser(): boolean {
     return !!this.currentMobile && this.currentMobile === this.adminMobile;
   }
+
+  get isAdmin(): boolean {
+    return this.isAdminUser;
+  }
+
+  selectedPdfIndexes = new Set<number>();
+  isGeneratingPdf = false;
 
   modalDetails: ModalDetails = {
     isOpen: false,
@@ -355,6 +363,7 @@ export class QuizComponent implements OnInit, OnDestroy {
   startQuiz(plan: any) {
     this.selectedPlan = plan;
     this.quizStarted = true;
+    this.selectedPdfIndexes.clear();
 
     // Load only the number of questions for the selected plan.
     const available = this.topicFilteredQuestions;
@@ -689,9 +698,184 @@ export class QuizComponent implements OnInit, OnDestroy {
     this.correctCount = 0;
     this.wrongCount = 0;
     this.unattemptedCount = 0;
+    this.selectedPdfIndexes.clear();
+    this.isGeneratingPdf = false;
   }
 
   backToPlans() {
     this.reload();
+  }
+
+  isSelectedForPdf(index: number): boolean {
+    return this.selectedPdfIndexes.has(index);
+  }
+
+  togglePdfSelection(index: number, event: Event): void {
+    event.stopPropagation();
+    if (!this.isAdminUser) return;
+    if (this.selectedPdfIndexes.has(index)) this.selectedPdfIndexes.delete(index);
+    else this.selectedPdfIndexes.add(index);
+  }
+
+  clearPdfSelection(): void {
+    this.selectedPdfIndexes.clear();
+  }
+
+  generatePdf(): void {
+    if (!this.isAdminUser) return;
+    const indices = Array.from(this.selectedPdfIndexes.values()).sort((a, b) => a - b);
+    if (!indices.length) return;
+
+    const selected = indices
+      .map((i) => ({ index: i, q: this.questionsToShow[i] }))
+      .filter((x) => !!x.q);
+
+    if (!selected.length) return;
+
+    this.isGeneratingPdf = true;
+    setTimeout(() => {
+      try {
+        this.buildSelectedPdf(selected);
+      } finally {
+        this.isGeneratingPdf = false;
+      }
+    }, 0);
+  }
+
+  private buildSelectedPdf(selected: Array<{ index: number; q: QuizQuestion }>): void {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 36;
+    const contentWidth = pageWidth - margin * 2;
+
+    const brand = { r: 29, g: 78, b: 216 };
+    const neutral = { r: 15, g: 23, b: 42 };
+    const questionColor = { r: 30, g: 64, b: 175 };
+    const answerColor = { r: 217, g: 119, b: 6 };
+    const lineHeightFor = (size: number) => Math.round(size * 1.4);
+
+    const drawRounded = (x: number, yPos: number, w: number, h: number, radius = 10) => {
+      const anyDoc = doc as any;
+      if (typeof anyDoc.roundedRect === 'function') anyDoc.roundedRect(x, yPos, w, h, radius, radius, 'FD');
+      else doc.rect(x, yPos, w, h, 'FD');
+    };
+
+    // Header
+    doc.setFillColor(brand.r, brand.g, brand.b);
+    doc.rect(0, 0, pageWidth, 86, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('CareerPrepBook.Com', margin, 36);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text('Quiz — Selected Questions', margin, 56);
+
+    let y = 108;
+    doc.setTextColor(neutral.r, neutral.g, neutral.b);
+
+    // Topic badge + stats
+    const topicText = (this.topic || '').toString().trim() || 'Mixed Topics';
+    const badgeText = `Topic: ${topicText}`;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    const badgeWidth = doc.getTextWidth(badgeText) + 18;
+    doc.setFillColor(224, 231, 255);
+    doc.setTextColor(30, 64, 175);
+    drawRounded(margin, y - 14, badgeWidth, 22, 11);
+    doc.text(badgeText, margin + 9, y + 1);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    const planLabel = this.selectedPlan?.title ? `Plan: ${this.selectedPlan.title}` : 'Plan: N/A';
+    doc.text(planLabel, margin + badgeWidth + 14, y + 1);
+    doc.text(`Selected: ${selected.length}`, pageWidth - margin - 120, y + 1);
+    y += 20;
+
+    const wrapLines = (text: string, fontSize: number, font: string, style: 'normal' | 'bold' | 'italic', width = contentWidth) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(text || '', width) as string[];
+    };
+
+    const addLines = (lines: string[], x: number, yPos: number, font: string, style: 'normal' | 'bold' | 'italic', fontSize: number) => {
+      doc.setFont(font, style);
+      doc.setFontSize(fontSize);
+      const lh = lineHeightFor(fontSize);
+      for (const line of lines) {
+        doc.text(line, x, yPos);
+        yPos += lh;
+      }
+      return yPos;
+    };
+
+    const cardGap = 12;
+    const cardPadding = 14;
+    const footerReserve = 110;
+    const sectionSpacing = 10;
+
+    selected.forEach(({ index, q }, outIndex) => {
+      const questionLines = wrapLines(`Q${outIndex + 1}. ${q.question}`, 11, 'helvetica', 'bold');
+      const optionLines = (q.options?.length ?? 0) > 0
+        ? wrapLines('Options:', 9, 'helvetica', 'bold').concat(
+            (q.options || []).flatMap((opt, i) => wrapLines(`${this.optionLabel(i)}. ${opt}`, 9, 'helvetica', 'normal'))
+          )
+        : [];
+
+      const correctText = this.correctAnswerText(index);
+      const answerLines = correctText ? wrapLines(`Correct Answer: ${this.optionLabel(q.correct)}. ${correctText}`, 10, 'helvetica', 'normal') : [];
+
+      const blockHeight = [
+        questionLines.length * lineHeightFor(11),
+        optionLines.length * lineHeightFor(9),
+        answerLines.length * lineHeightFor(10),
+      ].reduce((a, b) => a + b, 0)
+        + cardPadding * 2
+        + (optionLines.length ? sectionSpacing : 0)
+        + (answerLines.length ? sectionSpacing : 0);
+
+      if (y + blockHeight > pageHeight - margin - footerReserve) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(248, 250, 252);
+      drawRounded(margin, y, contentWidth, blockHeight, 12);
+
+      let yCursor = y + cardPadding;
+      doc.setTextColor(questionColor.r, questionColor.g, questionColor.b);
+      yCursor = addLines(questionLines, margin + cardPadding, yCursor, 'helvetica', 'bold', 11);
+
+      if (optionLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(neutral.r, neutral.g, neutral.b);
+        yCursor = addLines(optionLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 9);
+      }
+
+      if (answerLines.length) {
+        yCursor += sectionSpacing;
+        doc.setTextColor(answerColor.r, answerColor.g, answerColor.b);
+        yCursor = addLines(answerLines, margin + cardPadding, yCursor, 'helvetica', 'normal', 10);
+      }
+
+      y += blockHeight + cardGap;
+    });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i += 1) {
+      doc.setPage(i);
+      const pageLabel = `${i}/${totalPages}`;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(i === 1 ? 255 : 100, i === 1 ? 255 : 116, i === 1 ? 255 : 139);
+      const textWidth = doc.getTextWidth(pageLabel);
+      doc.text(pageLabel, pageWidth - margin - textWidth, i === 1 ? 22 : pageHeight - 22);
+    }
+
+    const date = new Date().toISOString().split('T')[0];
+    doc.save(`careerprepbook-quiz-${topicText.replace(/\s+/g, '-').toLowerCase()}-${date}.pdf`);
   }
 }

@@ -16,8 +16,24 @@
       </span>
       <span class="info-badge" *ngIf="isSetSelected">
         <i class="bi bi-filter"></i>
-        Showing {{ selectedSetCount }} Questions
+        Showing {{ totalQuestions }} Questions
       </span>
+    </div>
+
+    <div class="admin-pdf-panel" *ngIf="isAdmin">
+      <div class="admin-pdf-row">
+        <div class="admin-pdf-title"><strong>Admin:</strong> Select questions and generate PDF</div>
+        <div class="admin-pdf-actions">
+          <span class="admin-pdf-count">{{ selectedForPdf.length }} selected</span>
+          <button type="button" class="admin-pdf-btn" (click)="clearPdfSelection()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
+            Clear
+          </button>
+          <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
+            <span *ngIf="!isGeneratingPdf">Generate PDF</span>
+            <span *ngIf="isGeneratingPdf">Generating…</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -116,17 +132,31 @@
           <p>Select the correct output from the given options.</p>
         </div>
 
-        @for (q of mcqQuestions; track $index; let i = $index) {
+        @for (q of mcqQuestions; track (q.id ?? q.question); let i = $index) {
         <ng-container *ngIf="activeSection === 'mcq'">
-          <div class="output-card">
+          <div class="output-card mcq" [class.has-pdf-checkbox]="isAdmin">
+
+            <input
+              *ngIf="isAdmin"
+              type="checkbox"
+              class="pdf-checkbox"
+              [checked]="isSelectedForPdf(q)"
+              (change)="togglePdfSelection(q, $event)"
+              (click)="$event.stopPropagation()"
+              aria-label="Select question for PDF"
+            />
 
             <!-- Question -->
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
               <h3>{{ q.question }}</h3>
               <div class="manage-actions" *ngIf="canManageMcq(q)">
-                <button type="button" class="manage-btn" (click)="editQuestion(q)">Edit</button>
-                <button type="button" class="manage-btn danger" (click)="openDeleteConfirm(q)">Delete</button>
+                <button type="button" class="manage-btn icon" (click)="editQuestion(q)" aria-label="Edit" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="manage-btn danger icon" (click)="openDeleteConfirm(q)" aria-label="Delete" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
               </div>
             </div>
 
@@ -186,17 +216,31 @@
           <p>Type the output and verify your answer.</p>
         </div>
 
-        @for (q of typedQuestions; track $index; let i = $index) {
+        @for (q of typedQuestions; track (q.id ?? q.question); let i = $index) {
         <ng-container *ngIf="activeSection === 'typed'">
-          <div class="output-card">
+          <div class="output-card typed" [class.has-pdf-checkbox]="isAdmin">
+
+            <input
+              *ngIf="isAdmin"
+              type="checkbox"
+              class="pdf-checkbox"
+              [checked]="isSelectedForPdf(q)"
+              (change)="togglePdfSelection(q, $event)"
+              (click)="$event.stopPropagation()"
+              aria-label="Select question for PDF"
+            />
 
             <!-- Question -->
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
               <h3>{{ q.question }}</h3>
               <div class="manage-actions" *ngIf="canManageMcq(q)">
-                <button type="button" class="manage-btn" (click)="editQuestion(q)">Edit</button>
-                <button type="button" class="manage-btn danger" (click)="openDeleteConfirm(q)">Delete</button>
+                <button type="button" class="manage-btn icon" (click)="editQuestion(q)" aria-label="Edit" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="manage-btn danger icon" (click)="openDeleteConfirm(q)" aria-label="Delete" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
               </div>
             </div>
 
