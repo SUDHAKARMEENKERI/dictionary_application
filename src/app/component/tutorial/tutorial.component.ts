@@ -43,6 +43,12 @@ type OutputQuestion = {
 
 type OutputSection = 'mcq' | 'typed';
 
+type ImagePreset = {
+  label: string;
+  width: number;
+  height: number;
+};
+
 @Component({
   selector: 'app-tutorial',
   templateUrl: './tutorial.component.html',
@@ -100,6 +106,17 @@ export class TutorialComponent implements OnInit, OnDestroy {
   selectedForImage: OutputQuestion[] = [];
   isGeneratingPdf = false;
   isGeneratingImage = false;
+  pendingImageSelection: OutputQuestion[] = [];
+
+  imagePresets: ImagePreset[] = [
+    { label: 'LinkedIn Post (1.91:1 • 1200×627)', width: 1200, height: 627 },
+    { label: 'Facebook Post (1.91:1 • 1200×630)', width: 1200, height: 630 },
+    { label: 'Instagram Square (1:1 • 1080×1080)', width: 1080, height: 1080 },
+    { label: 'Instagram Story (9:16 • 1080×1920)', width: 1080, height: 1920 },
+    { label: 'YouTube Shorts (9:16 • 1080×1920)', width: 1080, height: 1920 },
+    { label: 'YouTube Video (16:9 • 1920×1080)', width: 1920, height: 1080 }
+  ];
+  selectedImagePreset: ImagePreset = this.imagePresets[0];
   isSelectedForImage(q: OutputQuestion): boolean {
     const key = (v: any) => (v ?? '').toString();
     const idKey = key(q?.id);
@@ -132,18 +149,34 @@ export class TutorialComponent implements OnInit, OnDestroy {
     const selected = [...(this.selectedForImage || [])];
     if (!selected.length) return;
 
+    const preset = this.selectedImagePreset ?? this.imagePresets[0];
+    this.pendingImageSelection = selected;
+    this.confirmImageModalDetails.message = `Generate ${selected.length} image(s) at ${preset.label} (${preset.width}×${preset.height})?`;
+    this.confirmImageModalDetails.isOpen = true;
+  }
+
+  confirmGenerateImage(): void {
+    if (!this.isAdminUser) return;
+    const selected = this.pendingImageSelection.length
+      ? [...this.pendingImageSelection]
+      : [...(this.selectedForImage || [])];
+
+    if (!selected.length) return;
+
     this.isGeneratingImage = true;
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        this.buildSelectedImages(selected);
+        await this.buildSelectedImages(selected);
       } finally {
         this.isGeneratingImage = false;
+        this.pendingImageSelection = [];
       }
     }, 0);
   }
 
   // Use shared ImageGeneratorService for image generation
   private async buildSelectedImages(questions: OutputQuestion[]): Promise<void> {
+    const preset = this.selectedImagePreset ?? this.imagePresets[0];
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       try {
@@ -151,7 +184,8 @@ export class TutorialComponent implements OnInit, OnDestroy {
           q,
           q.options && q.options.length ? 'mcq' : 'qa',
           q.topic || this.selectedTopic || 'Output Practice',
-          i + 1
+          i + 1,
+          { width: preset.width, height: preset.height }
         );
         const link = document.createElement('a');
         link.href = url;
@@ -185,6 +219,16 @@ export class TutorialComponent implements OnInit, OnDestroy {
     message: '',
     status: 'info',
     title: 'Output Practice'
+  };
+
+  confirmImageModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'warning',
+    title: 'Confirm Image Generation',
+    isConfirmation: true,
+    confirmText: 'Generate',
+    cancelText: 'Cancel'
   };
 
   confirmModalDetails: ModalDetails = {

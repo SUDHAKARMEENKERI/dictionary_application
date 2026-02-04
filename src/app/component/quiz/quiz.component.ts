@@ -35,6 +35,12 @@ type ChatMessage = {
   tone?: 'success' | 'warning' | 'danger' | 'neutral';
 };
 
+type ImagePreset = {
+  label: string;
+  width: number;
+  height: number;
+};
+
 @Component({
   selector: 'app-quiz',
   templateUrl: './quiz.component.html',
@@ -45,12 +51,22 @@ type ChatMessage = {
 export class QuizComponent implements OnInit, OnDestroy {
   generateImageChecked = false;
 
+  imagePresets: ImagePreset[] = [
+    { label: 'LinkedIn Post (1.91:1 • 1200×627)', width: 1200, height: 627 },
+    { label: 'Facebook Post (1.91:1 • 1200×630)', width: 1200, height: 630 },
+    { label: 'Instagram Square (1:1 • 1080×1080)', width: 1080, height: 1080 },
+    { label: 'Instagram Story (9:16 • 1080×1920)', width: 1080, height: 1920 },
+    { label: 'YouTube Shorts (9:16 • 1080×1920)', width: 1080, height: 1920 },
+    { label: 'YouTube Video (16:9 • 1920×1080)', width: 1920, height: 1080 }
+  ];
+  selectedImagePreset: ImagePreset = this.imagePresets[0];
+
   questionSelections: boolean[] = [];
   answerSelections: boolean[] = [];
 
   @ViewChild('qnaImageArea', { static: false }) qnaImageArea!: ElementRef;
 
-  async onGenerateImage() {
+  onGenerateImage(): void {
     if (!this.generateImageChecked) {
       this.modalDetails = {
         isOpen: true,
@@ -70,8 +86,22 @@ export class QuizComponent implements OnInit, OnDestroy {
       };
       return;
     }
+
+    const preset = this.selectedImagePreset ?? this.imagePresets[0];
+    this.confirmImageModalDetails.message = `Generate image for Question ${this.currentIndex + 1} at ${preset.label} (${preset.width}×${preset.height})?`;
+    this.confirmImageModalDetails.isOpen = true;
+  }
+
+  async confirmGenerateImage(): Promise<void> {
+    const element = this.qnaImageArea?.nativeElement;
+    if (!element) return;
+
+    const preset = this.selectedImagePreset ?? this.imagePresets[0];
+    const elementWidth = element.offsetWidth || element.clientWidth || preset.width;
+    const scale = Math.max(1, preset.width / elementWidth);
+
     try {
-      const canvas = await html2canvas(element);
+      const canvas = await html2canvas(element, { scale });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
@@ -148,6 +178,16 @@ export class QuizComponent implements OnInit, OnDestroy {
     message: '',
     status: 'info',
     title: 'Quiz'
+  };
+
+  confirmImageModalDetails: ModalDetails = {
+    isOpen: false,
+    message: '',
+    status: 'warning',
+    title: 'Confirm Image Generation',
+    isConfirmation: true,
+    confirmText: 'Generate',
+    cancelText: 'Cancel'
   };
 
   confirmModalDetails: ModalDetails = {

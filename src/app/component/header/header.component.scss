@@ -135,6 +135,13 @@
   .header_username {
     text-align: center;
   }
+
+  .menu-card {
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
 }
 
 .mobile-menu {

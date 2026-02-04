@@ -25,6 +25,14 @@
         <div class="admin-pdf-title"><strong>Admin:</strong> Select questions and generate PDF or Image</div>
         <div class="admin-pdf-actions">
           <span class="admin-pdf-count">PDF: {{ selectedForPdf.length }} | Image: {{ selectedForImage.length }}</span>
+          <label class="admin-image-size">
+            <span>Preset size</span>
+            <select [(ngModel)]="selectedImagePreset">
+              <option *ngFor="let preset of imagePresets" [ngValue]="preset">
+                {{ preset.label }}
+              </option>
+            </select>
+          </label>
           <button type="button" class="admin-pdf-btn" (click)="clearPdfSelection()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
             Clear PDF
           </button>
@@ -325,3 +333,4 @@
 
 <app-modal [openModalDetails]="modalDetails"></app-modal>
 <app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>
+<app-modal [openModalDetails]="confirmImageModalDetails" (onConfirm)="confirmGenerateImage()"></app-modal>

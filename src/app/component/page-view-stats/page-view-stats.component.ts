@@ -53,7 +53,7 @@ export class PageViewStatsComponent implements OnInit {
 
     this.pageViewService.getPageViewStats().subscribe({
       next: (response: PageViewStats[]) => {
-        this.stats = response || [];
+        this.stats = (response || []).sort((a, b) => b.viewCount - a.viewCount);
         this.totalViews = this.stats.reduce((sum, stat) => sum + stat.viewCount, 0);
         this.totalPages = this.stats.length;
         this.loading = false;

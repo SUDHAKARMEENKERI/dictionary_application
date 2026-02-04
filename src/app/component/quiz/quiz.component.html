@@ -178,10 +178,18 @@
 
                     <!-- Current Question Display -->
                     <div class="question-display-section" *ngIf="questionsToShow.length > 0">
-                        <div class="generate-image-checkbox-row">
+                        <div class="generate-image-checkbox-row" *ngIf="isAdmin">
                             <label>
                                 <input type="checkbox" [(ngModel)]="generateImageChecked" />
                                 Generate Image for this quiz
+                            </label>
+                            <label class="image-size-control">
+                                <span>Preset size</span>
+                                <select [(ngModel)]="selectedImagePreset">
+                                    <option *ngFor="let preset of imagePresets" [ngValue]="preset">
+                                        {{ preset.label }}
+                                    </option>
+                                </select>
                             </label>
                             <button type="button" class="generate-image-btn" (click)="onGenerateImage()" [disabled]="!generateImageChecked">
                                 Generate Image
@@ -392,3 +400,4 @@
 
 <app-modal [openModalDetails]="modalDetails"></app-modal>
 <app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>
+<app-modal [openModalDetails]="confirmImageModalDetails" (onConfirm)="confirmGenerateImage()"></app-modal>

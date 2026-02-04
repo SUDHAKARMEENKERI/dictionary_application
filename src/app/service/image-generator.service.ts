@@ -4,21 +4,44 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ImageGeneratorService {
+  private readonly baseWidth = 1200;
+  private readonly baseHeight = 800;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private layoutWidth = this.baseWidth;
+  private layoutHeight = this.baseHeight;
 
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.canvas.width = 1200;
-    this.canvas.height = 800;
+    this.canvas.width = this.baseWidth;
+    this.canvas.height = this.baseHeight;
     this.ctx = this.canvas.getContext('2d')!;
+  }
+
+  private applyPresetSize(size?: { width: number; height: number }): void {
+    const width = size?.width ?? this.baseWidth;
+    const height = size?.height ?? this.baseHeight;
+
+    if (this.canvas.width !== width || this.canvas.height !== height) {
+      this.canvas.width = width;
+      this.canvas.height = height;
+    }
+
+    const scaleX = width / this.baseWidth;
+    const scaleY = height / this.baseHeight;
+    const scale = Math.min(scaleX, scaleY);
+    this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+    this.layoutWidth = this.baseWidth;
+    this.layoutHeight = this.baseHeight;
   }
 
   async generateQuestionImage(
     question: any,
     questionType: 'mcq' | 'qa',
     topic: string,
-    questionNumber: number
+    questionNumber: number,
+    size?: { width: number; height: number }
   ): Promise<string> {
    try {
      // Validate inputs
@@ -31,8 +54,10 @@ export class ImageGeneratorService {
 
      console.log('Generating image for question:', { questionType, topic, questionNumber, question });
 
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    this.applyPresetSize(size);
+
+    const width = this.layoutWidth;
+    const height = this.layoutHeight;
 
     // Clear canvas
     this.ctx.clearRect(0, 0, width, height);
@@ -111,7 +136,7 @@ export class ImageGeneratorService {
     this.ctx.fillStyle = 'rgba(255, 215, 0, 0.95)';
     this.ctx.font = 'bold 16px Arial, sans-serif';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText('careerprepbook.com', this.canvas.width - 50, topY + 20);
+    this.ctx.fillText('careerprepbook.com', this.layoutWidth - 50, topY + 20);
   }
 
   private drawHeader(topic: string, questionNumber: number): void {
@@ -128,12 +153,12 @@ export class ImageGeneratorService {
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     this.ctx.font = 'bold 60px Arial, sans-serif';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText(`#${questionNumber}`, 1150, 110);
+    this.ctx.fillText(`#${questionNumber}`, this.layoutWidth - 50, 110);
   }
 
   private drawMCQContent(question: any, startY: number): void {
     const padding = 60;
-    const maxWidth = this.canvas.width - (padding * 2);
+    const maxWidth = this.layoutWidth - (padding * 2);
 
     // Question text background
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -184,7 +209,7 @@ export class ImageGeneratorService {
 
   private drawQAContent(question: any, startY: number): void {
     const padding = 60;
-    const maxWidth = this.canvas.width - (padding * 2);
+    const maxWidth = this.layoutWidth - (padding * 2);
 
     // Question section
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -216,15 +241,15 @@ export class ImageGeneratorService {
   }
 
   private drawFooter(): void {
-    const footerY = this.canvas.height - 25;
-    const footerLineY = this.canvas.height - 42;
+    const footerY = this.layoutHeight - 25;
+    const footerLineY = this.layoutHeight - 42;
     
     // Separator line
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     this.ctx.lineWidth = 1;
     this.ctx.beginPath();
     this.ctx.moveTo(60, footerLineY);
-    this.ctx.lineTo(this.canvas.width - 60, footerLineY);
+    this.ctx.lineTo(this.layoutWidth - 60, footerLineY);
     this.ctx.stroke();
     
     // App name on left
@@ -237,7 +262,7 @@ export class ImageGeneratorService {
     this.ctx.fillStyle = 'rgba(255, 215, 0, 0.95)';
     this.ctx.font = 'bold 14px Arial, sans-serif';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText('Visit: careerprepbook.com', this.canvas.width - 80, footerY);
+    this.ctx.fillText('Visit: careerprepbook.com', this.layoutWidth - 80, footerY);
   }
 
   private wrapText(text: string, x: number, y: number, maxWidth: number, lineHeight: number): void {
