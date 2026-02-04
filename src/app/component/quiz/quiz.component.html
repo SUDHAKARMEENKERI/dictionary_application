@@ -369,12 +369,8 @@
         <div class="review" *ngIf="questionsToShow.length > 0">
             <h3 class="review-title">Question & Answer Review</h3>
             <div class="review-item" *ngFor="let q of questionsToShow; let i = index">
-                <label>
-                    <input type="checkbox" [(ngModel)]="questionSelections[i]" />
-                    Select Q{{ i + 1 }}
-                </label>
+                
                 <div class="review-q">
-                    <b>Q{{ i + 1 }}.</b> {{ q.question }}
                     <span
                         class="review-status"
                         [class.correct]="answerStatus(i) === 'Correct'"
