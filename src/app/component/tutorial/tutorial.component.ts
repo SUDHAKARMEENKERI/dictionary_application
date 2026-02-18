@@ -34,6 +34,8 @@ type OutputQuestion = {
   level?: string;
   mobile?: string;
   admin?: boolean;
+  imageGenerated?: boolean;
+  pdfGenerated?: boolean;
   showAnswer: boolean;
   mcqChecked: boolean;
   mcqIsCorrect: boolean | null;
@@ -120,8 +122,13 @@ export class TutorialComponent implements OnInit, OnDestroy {
   isSelectedForImage(q: OutputQuestion): boolean {
     const key = (v: any) => (v ?? '').toString();
     const idKey = key(q?.id);
-    if (idKey) return this.selectedForImage.some((x) => key(x?.id) === idKey);
-    return this.selectedForImage.some((x) => (x?.question ?? '') === (q?.question ?? ''));
+    const persisted = idKey ? !!q?.imageGenerated : false;
+    const pending = this.selectedForImage.some((x) => {
+      const xId = key(x?.id);
+      if (idKey && xId) return xId === idKey;
+      return (x?.question ?? '') === (q?.question ?? '');
+    });
+    return persisted || pending;
   }
 
   toggleImageSelection(q: OutputQuestion, event: Event): void {
@@ -167,6 +174,13 @@ export class TutorialComponent implements OnInit, OnDestroy {
     setTimeout(async () => {
       try {
         await this.buildSelectedImages(selected);
+        selected.forEach((q) => {
+          const idKey = (q?.id ?? '').toString();
+          if (idKey) {
+            this.markGenerationStatus(q, { imageGenerated: true });
+            q.imageGenerated = true;
+          }
+        });
       } finally {
         this.isGeneratingImage = false;
         this.pendingImageSelection = [];
@@ -340,6 +354,12 @@ export class TutorialComponent implements OnInit, OnDestroy {
         const level = this.firstNonEmpty(item?.level, item?.difficulty, item?.questionLevel).trim();
         const mobile = this.firstNonEmpty(item?.mobile, item?.createdByMobile, item?.userMobile).trim();
         const admin = (item?.admin ?? item?.isAdmin ?? item?.is_admin);
+        const imageGenerated = this.toBoolFlag(
+          item?.imageGenerated ?? item?.image_generated ?? item?.imageStatus ?? item?.image_flag ?? item?.image_done
+        );
+        const pdfGenerated = this.toBoolFlag(
+          item?.pdfGenerated ?? item?.pdf_generated ?? item?.pdfStatus ?? item?.pdf_flag ?? item?.pdf_done
+        );
 
         // For output-practice we need at least a prompt + expected output.
         // Backend may send expected value in `correctAnswer` (OUTPUTBASEDMCQ).
@@ -360,6 +380,8 @@ export class TutorialComponent implements OnInit, OnDestroy {
           level: level || undefined,
           mobile: mobile || undefined,
           admin: typeof admin === 'boolean' ? admin : undefined,
+          imageGenerated,
+          pdfGenerated,
           showAnswer: false,
           mcqChecked: false,
           mcqIsCorrect: null,
@@ -372,6 +394,40 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
   getOptionLabel(index: number): string {
     return this.optionLabels[index] ?? '';
+  }
+
+  private toBoolFlag(value: any): boolean {
+    if (typeof value === 'boolean') return value;
+    if (value === null || value === undefined) return false;
+    const str = value.toString().trim().toLowerCase();
+    if (!str) return false;
+    return ['true', '1', 'yes', 'y', 'generated', 'done', 'completed'].includes(str);
+  }
+
+  private markGenerationStatus(q: OutputQuestion, changes: { imageGenerated?: boolean; pdfGenerated?: boolean }): void {
+    const idKey = (q?.id ?? '').toString().trim();
+    if (!idKey) return;
+    const payload: any = {};
+    const requests = [] as any[];
+    if (changes.imageGenerated !== undefined) {
+      payload.imageGenerated = changes.imageGenerated;
+      requests.push(this.mcqQuestionService.updateImageGenerated(idKey, changes.imageGenerated));
+    }
+    if (changes.pdfGenerated !== undefined) {
+      payload.pdfGenerated = changes.pdfGenerated;
+      requests.push(this.mcqQuestionService.updatePdfGenerated(idKey, changes.pdfGenerated));
+    }
+    if (!requests.length) return;
+
+    forkJoin(requests).subscribe();
+
+    const sync = (list: OutputQuestion[]) => {
+      const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+      if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+    };
+    sync(this.questions);
+    sync(this.selectedForImage);
+    sync(this.selectedForPdf);
   }
 
   private parseAnswerKeyToIndex(raw: any): number | null {
@@ -786,6 +842,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
   isSelectedForPdf(q: OutputQuestion): boolean {
     const key = (v: any) => (v ?? '').toString();
     const idKey = key(q?.id);
+    if (q?.pdfGenerated === true) return true;
     if (idKey) return this.selectedForPdf.some((x) => key(x?.id) === idKey);
     return this.selectedForPdf.some((x) => (x?.question ?? '') === (q?.question ?? ''));
   }
@@ -793,6 +850,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
   togglePdfSelection(q: OutputQuestion, event: Event): void {
     event.stopPropagation();
     if (!this.isAdminUser) return;
+    if (q?.pdfGenerated === true) return;
 
     const key = (v: any) => (v ?? '').toString();
     const idKey = key(q?.id);
@@ -819,6 +877,13 @@ export class TutorialComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       try {
         this.buildSelectedPdf(selected);
+        selected.forEach((q) => {
+          const idKey = (q?.id ?? '').toString();
+          if (idKey) {
+            this.markGenerationStatus(q, { pdfGenerated: true });
+            q.pdfGenerated = true;
+          }
+        });
       } finally {
         this.isGeneratingPdf = false;
       }

@@ -10,9 +10,16 @@
         <div class="hero-hint small mt-3">Tip: Pick a technology and a topic to start learning instantly.</div>
     </div>
 
-    <!-- Technologies -->
-    <div class="section">
-        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+        <!-- Technologies -->
+        <div class="section">
+        <!--
+            On desktop the heading and the hint should appear on
+            separate lines rather than side-by-side.  The previous
+            ``justify-content-between`` layout placed them in a row.
+            Switching to a vertical flex column (with a small gap)
+            ensures the two elements stack regardless of screen width.
+        -->
+        <div class="d-flex flex-column gap-2 mb-2">
             <h2 class="section-title mb-0">Popular Technologies</h2>
             <div class="text-muted small">Select a topic to open the Q&A page</div>
         </div>

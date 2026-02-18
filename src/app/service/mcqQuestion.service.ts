@@ -8,7 +8,6 @@ import { DropdownResponse } from '../models/Technology';
 @Injectable({
     providedIn: 'root'
 })
-
 export class MCQQuestionService {
     private apiUrl = environment.apiUrl;
 
@@ -105,6 +104,18 @@ export class MCQQuestionService {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/update/${encodeURIComponent(safeId)}`;
         return this.http.put<any>(url, reqBody);
+    }
+
+    updateImageGenerated(id: string | number, imageGenerated: boolean): Observable<any> {
+        const safeId = (id ?? '').toString().trim();
+        const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/imageGenerated`;
+        return this.http.patch<any>(url, { imageGenerated });
+    }
+
+    updatePdfGenerated(id: string | number, pdfGenerated: boolean): Observable<any> {
+        const safeId = (id ?? '').toString().trim();
+        const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/pdfGenerated`;
+        return this.http.patch<any>(url, { pdfGenerated });
     }
 
     deleteMcqQuestion(id: string | number): Observable<any> {

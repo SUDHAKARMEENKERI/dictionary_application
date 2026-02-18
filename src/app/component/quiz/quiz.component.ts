@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 import { ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { apiFallback, apiEmpty } from '../../util/apiRx';
 import { MCQQuestionService } from '../../service/mcqQuestion.service';
 import { QuizAttemptService, QuizAttempt } from '../../service/quiz-attempt.service';
@@ -27,6 +27,8 @@ type QuizQuestion = {
   answer?: string;
   mobile?: string;
   admin?: boolean;
+  imageGenerated?: boolean;
+  pdfGenerated?: boolean;
 };
 
 type ChatMessage = {
@@ -110,6 +112,14 @@ export class QuizComponent implements OnInit, OnDestroy {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      // After generating image, ensure this question is selected
+      this.goToQuestion(this.currentIndex);
+      const q = this.questionsToShow?.[this.currentIndex];
+      if (q?.id) {
+        this.markGenerationStatus(q, { imageGenerated: true });
+        q.imageGenerated = true;
+      }
+      this.generateImageChecked = true;
       this.modalDetails = {
         isOpen: true,
         message: 'Image generated and downloaded successfully.',
@@ -125,6 +135,7 @@ export class QuizComponent implements OnInit, OnDestroy {
       };
     }
   }
+    // Removed duplicate ngOnInit
   quizStarted = false;
   isLoadingQuestions = false;
   displayQuestions: QuizQuestion[] = [];
@@ -382,6 +393,12 @@ export class QuizComponent implements OnInit, OnDestroy {
         const questionType = (item?.questionType ?? item?.type ?? 'MCQ').toString().trim();
         const mobile = (item?.mobile ?? item?.createdByMobile ?? item?.userMobile ?? '').toString().trim();
         const admin = (item?.admin ?? item?.isAdmin ?? item?.is_admin);
+        const imageGenerated = this.toBoolFlag(
+          item?.imageGenerated ?? item?.image_generated ?? item?.imageStatus ?? item?.image_flag ?? item?.image_done
+        );
+        const pdfGenerated = this.toBoolFlag(
+          item?.pdfGenerated ?? item?.pdf_generated ?? item?.pdfStatus ?? item?.pdf_flag ?? item?.pdf_done
+        );
 
         let correct: number | undefined;
         
@@ -447,11 +464,46 @@ export class QuizComponent implements OnInit, OnDestroy {
           questionType: questionType || undefined,
           mobile: mobile || undefined,
           admin: typeof admin === 'boolean' ? admin : undefined,
+          imageGenerated,
+          pdfGenerated,
         };
       })
       .filter(Boolean) as QuizQuestion[];
 
     return normalized;
+  }
+
+  private toBoolFlag(value: any): boolean {
+    if (typeof value === 'boolean') return value;
+    if (value === null || value === undefined) return false;
+    const str = value.toString().trim().toLowerCase();
+    if (!str) return false;
+    return ['true', '1', 'yes', 'y', 'generated', 'done', 'completed'].includes(str);
+  }
+
+  private markGenerationStatus(q: QuizQuestion, changes: { imageGenerated?: boolean; pdfGenerated?: boolean }): void {
+    const idKey = (q?.id ?? '').toString().trim();
+    if (!idKey) return;
+    const payload: any = {};
+    const requests = [] as any[];
+    if (changes.imageGenerated !== undefined) {
+      payload.imageGenerated = changes.imageGenerated;
+      requests.push(this.mcqQuestionService.updateImageGenerated(idKey, changes.imageGenerated));
+    }
+    if (changes.pdfGenerated !== undefined) {
+      payload.pdfGenerated = changes.pdfGenerated;
+      requests.push(this.mcqQuestionService.updatePdfGenerated(idKey, changes.pdfGenerated));
+    }
+    if (!requests.length) return;
+
+    forkJoin(requests).subscribe();
+
+    const sync = (list: QuizQuestion[]) => {
+      const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+      if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+    };
+    sync(this.questions);
+    sync(this.displayQuestions);
   }
 
   startQuiz(plan: any) {
@@ -476,6 +528,7 @@ export class QuizComponent implements OnInit, OnDestroy {
 
     this.answeredOptions = new Array(this.displayQuestions.length).fill(null);
     this.visited = new Array(this.displayQuestions.length).fill(false);
+    this.generateImageChecked = !!this.questionsToShow[0]?.imageGenerated;
 
     // Scroll to quiz section on mobile after a short delay to let the DOM update
     setTimeout(() => {
@@ -597,6 +650,7 @@ export class QuizComponent implements OnInit, OnDestroy {
     this.currentIndex = index;
     this.selectedOption = this.answeredOptions[index];
     this.visited[index] = true;
+    this.generateImageChecked = !!this.questionsToShow[index]?.imageGenerated;
   }
 
   get attendedCount(): number {
@@ -826,10 +880,21 @@ export class QuizComponent implements OnInit, OnDestroy {
 
     if (!selected.length) return;
 
+    // After generating PDF, select the first question in the selected set
+    if (selected.length > 0) {
+      this.goToQuestion(selected[0].index);
+    }
+
     this.isGeneratingPdf = true;
     setTimeout(() => {
       try {
         this.buildSelectedPdf(selected);
+        selected.forEach(({ q }) => {
+          if (q?.id) {
+            this.markGenerationStatus(q, { pdfGenerated: true });
+            q.pdfGenerated = true;
+          }
+        });
       } finally {
         this.isGeneratingPdf = false;
       }
