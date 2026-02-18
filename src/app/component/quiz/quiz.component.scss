@@ -1545,6 +1545,32 @@
   cursor: not-allowed;
 }
 
+@media (max-width: 600px) {
+  .admin-pdf-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-pdf-title {
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .admin-pdf-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-pdf-btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 6px);
+    font-size: 12px;
+  }
+}
+
 .pdf-checkbox {
   position: absolute;
   top: 10px;
@@ -1553,6 +1579,65 @@
   height: 18px;
   accent-color: #1d4ed8;
   z-index: 2;
+}
+
+/* Generate Image row (admin) */
+.generate-image-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+
+  > label:first-of-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+  }
+
+  .image-size-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+
+    select {
+      min-width: 0;
+      max-width: 140px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      background: #fff;
+    }
+  }
+
+  .generate-image-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 1px solid #1d4ed8;
+    background: #1d4ed8;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
 }
 
 .review-q {
@@ -1705,6 +1790,32 @@ button:focus-visible {
 
   .header-tagline {
     font-size: 12px;
+  }
+
+  .generate-image-checkbox-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 10px;
+
+    > label:first-of-type {
+      font-size: 13px;
+    }
+
+    .image-size-control {
+      width: 100%;
+      justify-content: space-between;
+
+      select {
+        flex: 1;
+        max-width: 100%;
+      }
+    }
+
+    .generate-image-btn {
+      width: 100%;
+      padding: 10px 14px;
+    }
   }
 
   .quiz-welcome-card {
@@ -1878,6 +1989,24 @@ button:focus-visible {
   .submit-btn {
     padding: 14px 20px;
     font-size: 16px;
+  }
+
+  .generate-image-checkbox-row {
+    padding: 10px 8px;
+    gap: 8px;
+
+    > label:first-of-type {
+      font-size: 12px;
+    }
+
+    .image-size-control {
+      font-size: 12px;
+    }
+
+    .generate-image-btn {
+      font-size: 12px;
+      padding: 10px 12px;
+    }
   }
 
   .plan-item {

@@ -113,6 +113,26 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-image-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+
+  select {
+    min-width: 0;
+    max-width: 140px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    font-size: 13px;
+    background: #fff;
+  }
 }
 
 .admin-pdf-count {
@@ -571,6 +591,26 @@
       justify-content: flex-end;
     }
   }
+
+  /* Admin PDF/Image panel: stack title and actions on small screens */
+  .admin-pdf-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-pdf-title {
+    text-align: center;
+  }
+
+  .admin-pdf-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .admin-image-size select {
+    max-width: 160px;
+  }
 }
 
 /* Question row */
@@ -908,6 +948,54 @@
 
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* Admin PDF/Image panel: stack and wrap for mobile */
+  .admin-pdf-panel {
+    padding: 12px 10px;
+    margin-top: 12px;
+  }
+
+  .admin-pdf-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-pdf-title {
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .admin-pdf-actions {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .admin-pdf-count {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .admin-image-size {
+    width: 100%;
+    justify-content: center;
+
+    select {
+      flex: 1;
+      max-width: 100%;
+    }
+  }
+
+  .admin-pdf-btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 6px);
+    font-size: 12px;
+    padding: 8px 10px;
   }
 }
 

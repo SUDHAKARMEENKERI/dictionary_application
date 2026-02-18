@@ -53,7 +53,8 @@ export class PageViewStatsComponent implements OnInit {
 
     this.pageViewService.getPageViewStats().subscribe({
       next: (response: PageViewStats[]) => {
-        this.stats = (response || []).sort((a, b) => b.viewCount - a.viewCount);
+        // Sort by date/time descending (newest first)
+        this.stats = (response || []).sort((a, b) => this.compareDateDesc(a.date, b.date));
         this.totalViews = this.stats.reduce((sum, stat) => sum + stat.viewCount, 0);
         this.totalPages = this.stats.length;
         this.loading = false;
@@ -66,8 +67,18 @@ export class PageViewStatsComponent implements OnInit {
     });
   }
 
+  /** Returns stats sorted by date/time descending (newest first). */
   getSortedStats(): PageViewStats[] {
-    return [...this.stats].sort((a, b) => b.viewCount - a.viewCount);
+    return [...this.stats].sort((a, b) => this.compareDateDesc(a.date, b.date));
+  }
+
+  /** Compare dates for descending sort (newest first). Missing/invalid dates go last. */
+  private compareDateDesc(dateA?: string, dateB?: string): number {
+    const timeA = dateA ? new Date(dateA).getTime() : 0;
+    const timeB = dateB ? new Date(dateB).getTime() : 0;
+    if (Number.isNaN(timeA)) return Number.isNaN(timeB) ? 0 : 1;
+    if (Number.isNaN(timeB)) return -1;
+    return timeB - timeA;
   }
 
   formatDate(dateString?: string): string {
