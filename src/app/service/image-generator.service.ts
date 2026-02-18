@@ -40,7 +40,7 @@ export class ImageGeneratorService {
     question: any,
     questionType: 'mcq' | 'qa',
     topic: string,
-    questionNumber: number,
+    questionNumber?: number,
     size?: { width: number; height: number }
   ): Promise<string> {
    try {
@@ -76,7 +76,7 @@ export class ImageGeneratorService {
     this.drawTopBranding();
 
     // Header section
-    this.drawHeader(topic, questionNumber);
+    this.drawHeader(topic);
 
     // Question content
     const contentY = 130;
@@ -139,7 +139,7 @@ export class ImageGeneratorService {
     this.ctx.fillText('careerprepbook.com', this.layoutWidth - 50, topY + 20);
   }
 
-  private drawHeader(topic: string, questionNumber: number): void {
+  private drawHeader(topic: string): void {
     // Topic badge
     this.ctx.fillStyle = '#FFD700';
     this.roundRect(50, 50, 300, 60, 10);
@@ -148,12 +148,6 @@ export class ImageGeneratorService {
     this.ctx.font = 'bold 24px Arial, sans-serif';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(topic.toUpperCase(), 70, 88);
-
-    // Question number - reduced size
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    this.ctx.font = 'bold 60px Arial, sans-serif';
-    this.ctx.textAlign = 'right';
-    this.ctx.fillText(`#${questionNumber}`, this.layoutWidth - 50, 110);
   }
 
   private drawMCQContent(question: any, startY: number): void {
