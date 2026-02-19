@@ -39,11 +39,11 @@
           <button type="button" class="admin-pdf-btn" (click)="clearImageSelection()" [disabled]="selectedForImage.length === 0 || isGeneratingImage">
             Clear Image
           </button>
-          <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="selectedForPdf.length === 0 || isGeneratingPdf">
+          <button type="button" class="admin-pdf-btn primary" (click)="generatePdf()" [disabled]="isGeneratingPdf">
             <span *ngIf="!isGeneratingPdf">Generate PDF</span>
             <span *ngIf="isGeneratingPdf">Generating…</span>
           </button>  
-          <button type="button" class="admin-pdf-btn primary" (click)="generateImage()" [disabled]="selectedForImage.length === 0 || isGeneratingImage">
+          <button type="button" class="admin-pdf-btn primary" (click)="generateImage()" [disabled]="isGeneratingImage">
             <span *ngIf="!isGeneratingImage">Generate Image</span>
             <span *ngIf="isGeneratingImage">Generating…</span>
           </button>
@@ -337,4 +337,3 @@
 
 <app-modal [openModalDetails]="modalDetails"></app-modal>
 <app-modal [openModalDetails]="confirmModalDetails" (onConfirm)="confirmDelete()"></app-modal>
-<app-modal [openModalDetails]="confirmImageModalDetails" (onConfirm)="confirmGenerateImage()"></app-modal>

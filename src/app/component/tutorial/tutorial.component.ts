@@ -2,10 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, forkJoin, of } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import {
   distinctUntilChanged,
-  catchError,
   finalize,
   map,
   switchMap,
@@ -153,22 +152,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   generateImage(): void {
-    if (!this.isAdminUser) return;
-    const selected = [...(this.selectedForImage || [])];
-    if (!selected.length) return;
-
-    const preset = this.selectedImagePreset ?? this.imagePresets[0];
-    this.pendingImageSelection = selected;
-    this.confirmImageModalDetails.message = `Generate ${selected.length} image(s) at ${preset.label} (${preset.width}×${preset.height})?`;
-    this.confirmImageModalDetails.isOpen = true;
-  }
-
-  confirmGenerateImage(): void {
-    if (!this.isAdminUser) return;
-    const selected = this.pendingImageSelection.length
-      ? [...this.pendingImageSelection]
-      : [...(this.selectedForImage || [])];
-
+    const selected = [...this.activeQuestions];
     if (!selected.length) return;
 
     this.isGeneratingImage = true;
@@ -177,14 +161,12 @@ export class TutorialComponent implements OnInit, OnDestroy {
         await this.buildSelectedImages(selected);
         selected.forEach((q) => {
           const idKey = (q?.id ?? '').toString();
-          if (idKey) {
-            this.markGenerationStatus(q, { imageGenerated: true });
-            q.imageGenerated = true;
-          }
+          if (idKey) q.imageGenerated = true;
         });
       } finally {
         this.isGeneratingImage = false;
         this.pendingImageSelection = [];
+        this.confirmImageModalDetails.isOpen = false;
       }
     }, 0);
   }
@@ -439,54 +421,21 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   private markGenerationStatus(q: OutputQuestion, changes: { imageGenerated?: boolean; pdfGenerated?: boolean }): void {
+    // API calls removed per request; keep local state in sync only.
     const idKey = (q?.id ?? '').toString().trim();
     if (!idKey) return;
 
     const payload: Partial<OutputQuestion> = {};
-    const requests = [] as any[];
+    if (changes.imageGenerated !== undefined) payload.imageGenerated = changes.imageGenerated;
+    if (changes.pdfGenerated !== undefined) payload.pdfGenerated = changes.pdfGenerated;
 
-    if (changes.imageGenerated !== undefined && q.imageGenerated !== changes.imageGenerated) {
-      payload.imageGenerated = changes.imageGenerated;
-      requests.push(this.mcqQuestionService.updateImageGenerated(idKey, changes.imageGenerated));
-    }
-    if (changes.pdfGenerated !== undefined && q.pdfGenerated !== changes.pdfGenerated) {
-      payload.pdfGenerated = changes.pdfGenerated;
-      requests.push(this.mcqQuestionService.updatePdfGenerated(idKey, changes.pdfGenerated));
-    }
-
-    if (!requests.length) return;
-
-    const primary$ = forkJoin(requests);
-
-    primary$
-      .pipe(
-        catchError((err) => {
-          // Fallback to generic update endpoint if the specific PATCH fails (seen on some mobile/API variants).
-          console.error('Patch failed; attempting fallback update', { idKey, payload, err });
-          return this.mcqQuestionService.updateMcqQuestion(idKey, payload);
-        }),
-        catchError((err) => {
-          // Final catch to surface error but keep UI usable.
-          console.error('Failed to update generation flags after fallback', { idKey, payload, err });
-          this.modalDetails = {
-            ...this.modalDetails,
-            isOpen: true,
-            status: 'error',
-            message: 'Could not save generated status. Please retry.',
-          };
-          return of(null);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        const sync = (list: OutputQuestion[]) => {
-          const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
-          if (idx >= 0) list[idx] = { ...list[idx], ...payload };
-        };
-        sync(this.questions);
-        sync(this.selectedForImage);
-        sync(this.selectedForPdf);
-      });
+    const sync = (list: OutputQuestion[]) => {
+      const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+      if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+    };
+    sync(this.questions);
+    sync(this.selectedForImage);
+    sync(this.selectedForPdf);
   }
 
   private parseAnswerKeyToIndex(raw: any): number | null {
@@ -928,8 +877,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   generatePdf(): void {
-    if (!this.isAdminUser) return;
-    const selected = [...(this.selectedForPdf || [])];
+    const selected = [...this.activeQuestions];
     if (!selected.length) return;
 
     this.isGeneratingPdf = true;
@@ -938,10 +886,7 @@ export class TutorialComponent implements OnInit, OnDestroy {
         this.buildSelectedPdf(selected);
         selected.forEach((q) => {
           const idKey = (q?.id ?? '').toString();
-          if (idKey) {
-            this.markGenerationStatus(q, { pdfGenerated: true });
-            q.pdfGenerated = true;
-          }
+          if (idKey) q.pdfGenerated = true;
         });
       } finally {
         this.isGeneratingPdf = false;
