@@ -2,9 +2,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
 import {
   distinctUntilChanged,
+  catchError,
   finalize,
   map,
   switchMap,
@@ -455,36 +456,36 @@ export class TutorialComponent implements OnInit, OnDestroy {
 
     if (!requests.length) return;
 
-    forkJoin(requests)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          const sync = (list: OutputQuestion[]) => {
-            const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
-            if (idx >= 0) list[idx] = { ...list[idx], ...payload };
-          };
-          sync(this.questions);
-          sync(this.selectedForImage);
-          sync(this.selectedForPdf);
-        },
-        error: (err) => {
-          console.error('Failed to update generation flags', { idKey, payload, err });
+    const primary$ = forkJoin(requests);
+
+    primary$
+      .pipe(
+        catchError((err) => {
+          // Fallback to generic update endpoint if the specific PATCH fails (seen on some mobile/API variants).
+          console.error('Patch failed; attempting fallback update', { idKey, payload, err });
+          return this.mcqQuestionService.updateMcqQuestion(idKey, payload);
+        }),
+        catchError((err) => {
+          // Final catch to surface error but keep UI usable.
+          console.error('Failed to update generation flags after fallback', { idKey, payload, err });
           this.modalDetails = {
             ...this.modalDetails,
             isOpen: true,
             status: 'error',
             message: 'Could not save generated status. Please retry.',
           };
-
-          // Optimistically sync locally on mobile to avoid UX dead-end; backend variance is handled by multi-key payload.
-          const sync = (list: OutputQuestion[]) => {
-            const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
-            if (idx >= 0) list[idx] = { ...list[idx], ...payload };
-          };
-          sync(this.questions);
-          sync(this.selectedForImage);
-          sync(this.selectedForPdf);
-        },
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        const sync = (list: OutputQuestion[]) => {
+          const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+          if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+        };
+        sync(this.questions);
+        sync(this.selectedForImage);
+        sync(this.selectedForPdf);
       });
   }
 
