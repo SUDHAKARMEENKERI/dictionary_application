@@ -109,13 +109,30 @@ export class MCQQuestionService {
     updateImageGenerated(id: string | number, imageGenerated: boolean): Observable<any> {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/imageGenerated`;
-        return this.http.patch<any>(url, { imageGenerated });
+
+        // Send multiple key variants to satisfy differing backend expectations.
+        const body = {
+            imageGenerated: !!imageGenerated,
+            imagegenerated: !!imageGenerated,
+            imagegeneratedd: !!imageGenerated,
+            image_status: !!imageGenerated,
+        } as any;
+
+        return this.http.patch<any>(url, body);
     }
 
     updatePdfGenerated(id: string | number, pdfGenerated: boolean): Observable<any> {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/pdfGenerated`;
-        return this.http.patch<any>(url, { pdfGenerated });
+
+        const body = {
+            pdfGenerated: !!pdfGenerated,
+            pdfgenerated: !!pdfGenerated,
+            pdfgeneratedd: !!pdfGenerated,
+            pdf_status: !!pdfGenerated,
+        } as any;
+
+        return this.http.patch<any>(url, body);
     }
 
     deleteMcqQuestion(id: string | number): Observable<any> {

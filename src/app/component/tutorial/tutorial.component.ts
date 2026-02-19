@@ -475,6 +475,15 @@ export class TutorialComponent implements OnInit, OnDestroy {
             status: 'error',
             message: 'Could not save generated status. Please retry.',
           };
+
+          // Optimistically sync locally on mobile to avoid UX dead-end; backend variance is handled by multi-key payload.
+          const sync = (list: OutputQuestion[]) => {
+            const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+            if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+          };
+          sync(this.questions);
+          sync(this.selectedForImage);
+          sync(this.selectedForPdf);
         },
       });
   }
