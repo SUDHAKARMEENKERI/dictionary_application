@@ -440,27 +440,43 @@ export class TutorialComponent implements OnInit, OnDestroy {
   private markGenerationStatus(q: OutputQuestion, changes: { imageGenerated?: boolean; pdfGenerated?: boolean }): void {
     const idKey = (q?.id ?? '').toString().trim();
     if (!idKey) return;
-    const payload: any = {};
+
+    const payload: Partial<OutputQuestion> = {};
     const requests = [] as any[];
-    if (changes.imageGenerated !== undefined) {
+
+    if (changes.imageGenerated !== undefined && q.imageGenerated !== changes.imageGenerated) {
       payload.imageGenerated = changes.imageGenerated;
       requests.push(this.mcqQuestionService.updateImageGenerated(idKey, changes.imageGenerated));
     }
-    if (changes.pdfGenerated !== undefined) {
+    if (changes.pdfGenerated !== undefined && q.pdfGenerated !== changes.pdfGenerated) {
       payload.pdfGenerated = changes.pdfGenerated;
       requests.push(this.mcqQuestionService.updatePdfGenerated(idKey, changes.pdfGenerated));
     }
+
     if (!requests.length) return;
 
-    forkJoin(requests).subscribe();
-
-    const sync = (list: OutputQuestion[]) => {
-      const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
-      if (idx >= 0) list[idx] = { ...list[idx], ...payload };
-    };
-    sync(this.questions);
-    sync(this.selectedForImage);
-    sync(this.selectedForPdf);
+    forkJoin(requests)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          const sync = (list: OutputQuestion[]) => {
+            const idx = list.findIndex((x) => (x?.id ?? '').toString() === idKey);
+            if (idx >= 0) list[idx] = { ...list[idx], ...payload };
+          };
+          sync(this.questions);
+          sync(this.selectedForImage);
+          sync(this.selectedForPdf);
+        },
+        error: (err) => {
+          console.error('Failed to update generation flags', { idKey, payload, err });
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'error',
+            message: 'Could not save generated status. Please retry.',
+          };
+        },
+      });
   }
 
   private parseAnswerKeyToIndex(raw: any): number | null {
