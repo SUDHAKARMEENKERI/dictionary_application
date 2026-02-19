@@ -355,10 +355,24 @@ export class TutorialComponent implements OnInit, OnDestroy {
         const mobile = this.firstNonEmpty(item?.mobile, item?.createdByMobile, item?.userMobile).trim();
         const admin = (item?.admin ?? item?.isAdmin ?? item?.is_admin);
         const imageGenerated = this.toBoolFlag(
-          item?.imageGenerated ?? item?.image_generated ?? item?.imageStatus ?? item?.image_flag ?? item?.image_done
+          item?.imageGenerated ??
+          item?.image_generated ??
+          item?.imagegenerated ??
+          item?.imagegeneratedd ??
+          item?.imageStatus ??
+          item?.image_status ??
+          item?.image_flag ??
+          item?.image_done
         );
         const pdfGenerated = this.toBoolFlag(
-          item?.pdfGenerated ?? item?.pdf_generated ?? item?.pdfStatus ?? item?.pdf_flag ?? item?.pdf_done
+          item?.pdfGenerated ??
+          item?.pdf_generated ??
+          item?.pdfgenerated ??
+          item?.pdfgeneratedd ??
+          item?.pdfStatus ??
+          item?.pdf_status ??
+          item?.pdf_flag ??
+          item?.pdf_done
         );
 
         // For output-practice we need at least a prompt + expected output.
