@@ -174,7 +174,9 @@
             <!-- Question -->
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
-              <h3>{{ q.question }}</h3>
+              <div class="question-text">
+                <span class="question-line" *ngFor="let line of getQuestionLines(q.question)">{{ line }}</span>
+              </div>
               <div class="manage-actions" *ngIf="canManageMcq(q)">
                 <button type="button" class="manage-btn icon" (click)="editQuestion(q)" aria-label="Edit" title="Edit">
                   <i class="bi bi-pencil"></i>
@@ -268,7 +270,9 @@
             <!-- Question -->
             <div class="question-row">
               <span class="badge q">Q{{ i + 1 }}</span>
-              <h3>{{ q.question }}</h3>
+              <div class="question-text">
+                <span class="question-line" *ngFor="let line of getQuestionLines(q.question)">{{ line }}</span>
+              </div>
               <div class="manage-actions" *ngIf="canManageMcq(q)">
                 <button type="button" class="manage-btn icon" (click)="editQuestion(q)" aria-label="Edit" title="Edit">
                   <i class="bi bi-pencil"></i>

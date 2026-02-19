@@ -396,6 +396,25 @@ export class TutorialComponent implements OnInit, OnDestroy {
     return this.optionLabels[index] ?? '';
   }
 
+  getQuestionLines(question: string): string[] {
+    const text = this.normalizeDisplayText(question ?? '').trim();
+    if (!text) return [];
+
+    if (text.includes('\n')) {
+      return text
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    }
+
+    const parts = text
+      .split(/(?<=;)\s*/)
+      .map(part => part.trim())
+      .filter(Boolean);
+
+    return parts.length ? parts : [text];
+  }
+
   private toBoolFlag(value: any): boolean {
     if (typeof value === 'boolean') return value;
     if (value === null || value === undefined) return false;
