@@ -252,6 +252,25 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
       .trim();
   }
 
+  private splitQuestionLines(text: string): string[] {
+    const normalized = this.normalizeDisplayText(text ?? '').trim();
+    if (!normalized) return [];
+
+    if (normalized.includes('\n')) {
+      return normalized
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    }
+
+    const parts = normalized
+      .split(/(?<=;)\s*/)
+      .map(part => part.trim())
+      .filter(Boolean);
+
+    return parts.length ? parts : [normalized];
+  }
+
   private pickRandom<T>(items: T[], count: number): T[] {
     const copy = [...items];
     for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -412,7 +431,12 @@ export class AdminPromoPdfComponent implements OnInit, OnDestroy {
     };
 
     questions.forEach((q, index) => {
-      const questionLines = wrapLines(`Q${index + 1}. ${q.question}`, questionFontSize, 'helvetica', 'bold');
+      const questionParts = this.splitQuestionLines(q.question);
+      const questionLines = questionParts.length
+        ? questionParts.flatMap((part, partIndex) =>
+            wrapLines(`${partIndex === 0 ? `Q${index + 1}. ` : ''}${part}`, questionFontSize, 'helvetica', 'bold')
+          )
+        : wrapLines(`Q${index + 1}. ${q.question}`, questionFontSize, 'helvetica', 'bold');
       const codeLines = q.code ? wrapLines('Code:', optionFontSize, 'helvetica', 'bold')
         .concat(wrapLines(q.code, codeFontSize, 'courier', 'normal')) : [];
       const optionLines = q.options?.length

@@ -184,6 +184,38 @@ export class TutorialComponent implements OnInit, OnDestroy {
       });
   }
 
+  generatePdfForQuestion(q: OutputQuestion): void {
+    if (!this.isAdminUser || !q?.id) return;
+
+    const nextFlag = !this.isSelectedForPdf(q);
+
+    const syncSelection = () => {
+      const key = (v: any) => (v ?? '').toString();
+      const idKey = key(q?.id);
+      const idx = this.selectedForPdf.findIndex((x) => {
+        const xId = key(x?.id);
+        if (idKey && xId) return xId === idKey;
+        return (x?.question ?? '') === (q?.question ?? '');
+      });
+
+      if (nextFlag && idx < 0) this.selectedForPdf.push(q);
+      if (!nextFlag && idx >= 0) this.selectedForPdf.splice(idx, 1);
+    };
+
+    this.mcqQuestionService
+      .updatePdfGenerated(q.id, nextFlag)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.markGenerationStatus(q, { pdfGenerated: nextFlag });
+          syncSelection();
+        },
+        error: (err) => {
+          console.error('Failed to update pdf flag', q.id, err);
+        }
+      });
+  }
+
   generateImage(): void {
     const selected = this.selectedForImage.length ? [...this.selectedForImage] : [];
     if (!selected.length) {
@@ -1069,7 +1101,12 @@ export class TutorialComponent implements OnInit, OnDestroy {
       const codeText = this.normalizeDisplayText(q?.code ?? '');
       const answerText = (q?.options?.length ?? 0) > 0 ? this.getMcqCorrectDisplay(q) : this.normalizeDisplayText(q?.answer ?? '');
 
-      const questionLines = wrapLines(`Q${index + 1}. ${questionText}`, 11, 'helvetica', 'bold');
+      const questionParts = this.getQuestionLines(questionText);
+      const questionLines = questionParts.length
+        ? questionParts.flatMap((part, partIndex) =>
+            wrapLines(`${partIndex === 0 ? `Q${index + 1}. ` : ''}${part}`, 11, 'helvetica', 'bold')
+          )
+        : wrapLines(`Q${index + 1}. ${questionText}`, 11, 'helvetica', 'bold');
       const codeLines = codeText
         ? wrapLines('Code:', 9, 'helvetica', 'bold').concat(wrapLines(codeText, 9, 'courier', 'normal'))
         : [];

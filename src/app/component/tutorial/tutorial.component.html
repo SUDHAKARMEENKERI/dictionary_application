@@ -172,6 +172,9 @@
               <button type="button" class="admin-inline-btn" (click)="generateImageForQuestion(q)">
                 {{ isSelectedForImage(q) ? 'Unmark Image' : 'Mark Image' }}
               </button>
+              <button type="button" class="admin-inline-btn pdf" (click)="generatePdfForQuestion(q)">
+                {{ isSelectedForPdf(q) ? 'Unmark PDF' : 'Mark PDF' }}
+              </button>
             </ng-container>
 
             <!-- Question -->
@@ -270,6 +273,9 @@
               />
               <button type="button" class="admin-inline-btn" (click)="generateImageForQuestion(q)">
                 {{ isSelectedForImage(q) ? 'Unmark Image' : 'Mark Image' }}
+              </button>
+              <button type="button" class="admin-inline-btn pdf" (click)="generatePdfForQuestion(q)">
+                {{ isSelectedForPdf(q) ? 'Unmark PDF' : 'Mark PDF' }}
               </button>
             </ng-container>
 
