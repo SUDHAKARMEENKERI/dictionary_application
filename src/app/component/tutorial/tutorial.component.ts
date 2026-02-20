@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
 import {
   distinctUntilChanged,
   finalize,
   map,
+  catchError,
   switchMap,
   takeUntil,
   tap
@@ -151,62 +152,132 @@ export class TutorialComponent implements OnInit, OnDestroy {
     this.selectedForImage = [];
   }
 
-  generateImage(): void {
-    const selected = [...this.activeQuestions];
-    if (!selected.length) return;
+  generateImageForQuestion(q: OutputQuestion): void {
+    if (!this.isAdminUser || !q?.id) return;
 
-    this.isGeneratingImage = true;
-    setTimeout(async () => {
-      try {
-        await this.buildSelectedImages(selected);
-        selected.forEach((q) => {
-          const idKey = (q?.id ?? '').toString();
-          if (idKey) q.imageGenerated = true;
-        });
-      } finally {
-        this.isGeneratingImage = false;
-        this.pendingImageSelection = [];
-        this.confirmImageModalDetails.isOpen = false;
-      }
-    }, 0);
+    const nextFlag = !this.isSelectedForImage(q);
+
+    const syncSelection = () => {
+      const key = (v: any) => (v ?? '').toString();
+      const idKey = key(q?.id);
+      const idx = this.selectedForImage.findIndex((x) => {
+        const xId = key(x?.id);
+        if (idKey && xId) return xId === idKey;
+        return (x?.question ?? '') === (q?.question ?? '');
+      });
+
+      if (nextFlag && idx < 0) this.selectedForImage.push(q);
+      if (!nextFlag && idx >= 0) this.selectedForImage.splice(idx, 1);
+    };
+
+    this.mcqQuestionService
+      .updateImageGenerated(q.id, nextFlag)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.markGenerationStatus(q, { imageGenerated: nextFlag });
+          syncSelection();
+        },
+        error: (err) => {
+          console.error('Failed to update image flag', q.id, err);
+        }
+      });
   }
 
-  // Use shared ImageGeneratorService for image generation
-  private async buildSelectedImages(questions: OutputQuestion[]): Promise<void> {
-    const preset = this.selectedImagePreset ?? this.imagePresets[0];
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      try {
-        const url = await this.imageGeneratorService.generateQuestionImage(
-          q,
-          q.options && q.options.length ? 'mcq' : 'qa',
-          q.topic || this.selectedTopic || 'Output Practice',
-          i + 1,
-          { width: preset.width, height: preset.height }
-        );
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `output-q${i + 1}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error('Failed to generate image for question', q, err);
-        this.modalDetails = {
-          ...this.modalDetails,
-          isOpen: true,
-          status: 'error',
-          message: `Failed to generate image for Q${i + 1}.`
-        };
-      }
+  generateImage(): void {
+    const selected = this.selectedForImage.length ? [...this.selectedForImage] : [];
+    if (!selected.length) {
+      this.modalDetails = {
+        ...this.modalDetails,
+        isOpen: true,
+        status: 'warning',
+        message: 'Select at least one question to generate images.'
+      };
+      return;
     }
-    this.modalDetails = {
-      ...this.modalDetails,
-      isOpen: true,
-      status: 'success',
-      message: `Generated ${questions.length} image(s). Downloads should start automatically.`
-    };
+
+    let imageUpdateFailed = false;
+    const failedImageIds: (string | number)[] = [];
+
+    this.isGeneratingImage = true;
+
+    const updates$ = selected
+      .filter((q) => q.id !== undefined && q.id !== null)
+      .map((q) =>
+        this.mcqQuestionService.updateImageGenerated(q.id as any, true).pipe(
+          catchError((error) => {
+            imageUpdateFailed = true;
+            failedImageIds.push(q.id as any);
+            console.error('Failed to update image generated status for question ID', q.id, error);
+            return of(null);
+          })
+        )
+      );
+
+    forkJoin(updates$.length ? updates$ : [of(null)])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          try {
+            await this.buildSelectedImages(selected);
+            selected.forEach((q) => {
+              const idKey = (q?.id ?? '').toString();
+              if (idKey) this.markGenerationStatus(q, { imageGenerated: true });
+            });
+
+            if (imageUpdateFailed) {
+              this.modalDetails = {
+                ...this.modalDetails,
+                isOpen: true,
+                status: 'warning',
+                message: `Images generated, but failed to update status for ${failedImageIds.length} question(s).`
+              };
+            }
+          } finally {
+            this.isGeneratingImage = false;
+            this.pendingImageSelection = [];
+            this.confirmImageModalDetails.isOpen = false;
+          }
+        }
+      });
+    
+  }
+
+    private async buildSelectedImages(questions: OutputQuestion[]): Promise<void> {
+      const preset = this.selectedImagePreset ?? this.imagePresets[0];
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        try {
+          const url = await this.imageGeneratorService.generateQuestionImage(
+            q,
+            q.options && q.options.length ? 'mcq' : 'qa',
+            q.topic || this.selectedTopic || 'Output Practice',
+            i + 1,
+            { width: preset.width, height: preset.height }
+          );
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `output-q${i + 1}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error('Failed to generate image for question', q, err);
+          this.modalDetails = {
+            ...this.modalDetails,
+            isOpen: true,
+            status: 'error',
+            message: `Failed to generate image for Q${i + 1}.`
+          };
+        }
+      }
+      this.modalDetails = {
+        ...this.modalDetails,
+        isOpen: true,
+        status: 'success',
+        message: `Generated ${questions.length} image(s). Downloads should start automatically.`
+      };
   }
 
   // escapeHtml no longer needed; using service for rendering
@@ -877,8 +948,33 @@ export class TutorialComponent implements OnInit, OnDestroy {
   }
 
   generatePdf(): void {
-    const selected = [...this.activeQuestions];
-    if (!selected.length) return;
+    const selected = this.selectedForPdf.length ? [...this.selectedForPdf] : [];
+    console.log('Selected for PDF generation:', selected);
+    selected.forEach((q) => {
+      if (q.id !== undefined && q.id !== null) {
+        this.mcqQuestionService.updatePdfGenerated(q.id, true).subscribe(
+          next => {},
+          error => {
+            console.error('Failed to update PDF generated status for question', q, error);
+            this.modalDetails = {
+              ...this.modalDetails,
+              isOpen: true,
+              status: 'error',
+              message: `Failed to update PDF status for question ID ${q.id}.`
+            };
+          }
+        );
+      }
+    });
+    if (!selected.length) {
+      this.modalDetails = {
+        ...this.modalDetails,
+        isOpen: true,
+        status: 'warning',
+        message: 'Select at least one question to generate a PDF.'
+      };
+      return;
+    }
 
     this.isGeneratingPdf = true;
     setTimeout(() => {

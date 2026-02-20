@@ -110,26 +110,20 @@ export class MCQQuestionService {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/imageGenerated`;
 
-        // Send multiple key variants to satisfy differing backend expectations.
-        const body = {
-            imageGenerated: !!imageGenerated,
-            imagegenerated: !!imageGenerated,
-            imagegeneratedd: !!imageGenerated,
-            image_status: !!imageGenerated,
-        } as any;
 
-        return this.http.patch<any>(url, body, { withCredentials: true });
+        return this.http.patch<any>(url, {imageGenerated: imageGenerated});
     }
 
     updatePdfGenerated(id: string | number, pdfGenerated: boolean): Observable<any> {
         const safeId = (id ?? '').toString().trim();
         const url = `${this.apiUrl}/mcqQuestions/${encodeURIComponent(safeId)}/pdfGenerated`;
 
+        const flag = !!pdfGenerated;
         const body = {
-            pdfGenerated: !!pdfGenerated,
-            pdfgenerated: !!pdfGenerated,
-            pdfgeneratedd: !!pdfGenerated,
-            pdf_status: !!pdfGenerated,
+            pdfGenerated: flag,
+            pdfgenerated: flag,
+            pdfgeneratedd: flag,
+            pdf_status: flag,
         } as any;
 
         return this.http.patch<any>(url, body, { withCredentials: true });
