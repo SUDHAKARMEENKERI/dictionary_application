@@ -156,6 +156,7 @@ export class ImageGeneratorService {
     const innerWidth = maxWidth - 80; // keep generous side gutters for breathing room
 
     const questionText = question.question || question.questionText || 'Question not available';
+    const codeText = (question.code || '').toString().trim();
     const options = (question.options || []).slice(0, 4);
 
     // Measure layout before drawing so we can size the card correctly.
@@ -163,6 +164,13 @@ export class ImageGeneratorService {
     const questionLineHeight = 30;
     const questionMaxLines = 12;
     const questionHeight = this.measureWrappedHeight(questionText, innerWidth, questionLineHeight, questionMaxLines);
+
+    this.ctx.font = '600 20px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
+    const codeLineHeight = 26;
+    const codeMaxLines = 18;
+    const codeHeight = codeText
+      ? this.measureCodeHeight(codeText, innerWidth - 12, codeLineHeight, codeMaxLines)
+      : 0;
 
     this.ctx.font = '500 20px "Segoe UI", Arial, sans-serif';
     const optionLineHeight = 28;
@@ -175,9 +183,14 @@ export class ImageGeneratorService {
       + (optionHeights.length > 0 ? (optionHeights.length - 1) * 10 : 0);
 
     const questionBoxHeight = questionHeight + 32; // padding inside box
+    const codeBoxHeight = codeText ? codeHeight + 28 : 0;
     const preQuestionSpace = 110; // space for title + breathing room
-    const optionsStartOffset = preQuestionSpace + questionBoxHeight + (optionHeights.length ? 28 : 0);
-    const contentHeight = Math.max(optionsStartOffset + optionsTotalHeight + 40, preQuestionSpace + questionBoxHeight + 80);
+    const optionsStartOffset =
+      preQuestionSpace + questionBoxHeight + (codeText ? codeBoxHeight + 24 : 0) + (optionHeights.length ? 28 : 0);
+    const contentHeight = Math.max(
+      optionsStartOffset + optionsTotalHeight + 40,
+      preQuestionSpace + questionBoxHeight + (codeText ? codeBoxHeight + 40 : 0) + 80
+    );
 
     // Question text background
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -215,9 +228,27 @@ export class ImageGeneratorService {
       questionMaxLines
     );
 
+    // Code block (if present)
+    let contentEndY = questionEndY;
+    if (codeText) {
+      const codeBoxX = padding + 22;
+      const codeBoxY = questionBoxY + questionBoxHeight + 16;
+      const codeBoxWidth = innerWidth + 36;
+
+      this.ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      this.roundRect(codeBoxX, codeBoxY, codeBoxWidth, codeBoxHeight, 12);
+
+      this.ctx.fillStyle = 'rgba(74, 222, 128, 0.35)';
+      this.ctx.fillRect(codeBoxX + 10, codeBoxY + 10, 4, codeBoxHeight - 20);
+
+      this.ctx.fillStyle = '#e2e8f0';
+      this.ctx.font = '600 20px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
+      contentEndY = this.wrapCode(codeText, codeBoxX + 18, codeBoxY + 26, innerWidth - 12, codeLineHeight, codeMaxLines);
+    }
+
     // Options (if available)
     if (options.length > 0) {
-      let optionY = questionEndY + 26;
+      let optionY = contentEndY + 26;
       const optionLabels = ['A', 'B', 'C', 'D'];
 
       options.forEach((option: string, index: number) => {
@@ -254,6 +285,7 @@ export class ImageGeneratorService {
 
     const questionText = question.question || 'Question not available';
     const answerText = question.answer || 'Answer not available';
+    const codeText = (question.code || '').toString().trim();
 
     // Measure layout
     this.ctx.font = '600 22px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
@@ -261,12 +293,19 @@ export class ImageGeneratorService {
     const questionMaxLines = 12;
     const questionHeight = this.measureWrappedHeight(questionText, innerWidth, questionLineHeight, questionMaxLines);
 
+    this.ctx.font = '600 20px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
+    const codeLineHeight = 26;
+    const codeMaxLines = 18;
+    const codeHeight = codeText
+      ? this.measureCodeHeight(codeText, innerWidth - 12, codeLineHeight, codeMaxLines)
+      : 0;
+
     this.ctx.font = '600 22px "Segoe UI", Arial, sans-serif';
     const answerLineHeight = 30;
     const answerMaxLines = 10;
     const answerHeight = this.measureWrappedHeight(answerText, innerWidth, answerLineHeight, answerMaxLines);
 
-    const questionSectionHeight = Math.max(questionHeight + 130, 220);
+    const questionSectionHeight = Math.max(questionHeight + 130 + (codeText ? codeHeight + 28 : 0), 220);
     const answerSectionHeight = Math.max(answerHeight + 140, 240);
     const answerStartY = startY + questionSectionHeight + 32;
 
@@ -298,7 +337,32 @@ export class ImageGeneratorService {
 
     this.ctx.fillStyle = '#0f172a';
     this.ctx.font = '600 22px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
-    this.wrapText(questionText, questionBoxX + 18, questionBoxY + 28, innerWidth - 12, questionLineHeight, questionMaxLines);
+    const questionEndY = this.wrapText(
+      questionText,
+      questionBoxX + 18,
+      questionBoxY + 28,
+      innerWidth - 12,
+      questionLineHeight,
+      questionMaxLines
+    );
+
+    // Code block (if present)
+    if (codeText) {
+      const codeBoxX = padding + 22;
+      const codeBoxY = questionBoxY + questionBoxHeight + 16;
+      const codeBoxWidth = innerWidth + 36;
+      const codeBoxHeight = codeHeight + 28;
+
+      this.ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      this.roundRect(codeBoxX, codeBoxY, codeBoxWidth, codeBoxHeight, 12);
+
+      this.ctx.fillStyle = 'rgba(74, 222, 128, 0.35)';
+      this.ctx.fillRect(codeBoxX + 10, codeBoxY + 10, 4, codeBoxHeight - 20);
+
+      this.ctx.fillStyle = '#e2e8f0';
+      this.ctx.font = '600 20px "SFMono-Regular", "Cascadia Code", "Segoe UI", Arial, monospace';
+      this.wrapCode(codeText, codeBoxX + 18, codeBoxY + 26, innerWidth - 12, codeLineHeight, codeMaxLines);
+    }
 
     // Answer section
     this.ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
@@ -437,6 +501,71 @@ export class ImageGeneratorService {
   private measureWrappedHeight(text: string, maxWidth: number, lineHeight: number, maxLines: number): number {
     const lines = this.getWrappedLines(text, maxWidth, maxLines);
     return lines.length * lineHeight;
+  }
+
+  private measureCodeHeight(text: string, maxWidth: number, lineHeight: number, maxLines: number): number {
+    const normalized = (text || '').toString().replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\t/g, '  ');
+    const lines = normalized.split('\n');
+    let consumed = 0;
+
+    for (const line of lines) {
+      if (consumed >= maxLines) break;
+      const pieces = this.breakLineToWidth(line, maxWidth);
+      for (const _ of pieces) {
+        if (consumed >= maxLines) break;
+        consumed += 1;
+      }
+    }
+
+    return Math.min(consumed, maxLines) * lineHeight;
+  }
+
+  private wrapCode(
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number,
+    maxLines: number
+  ): number {
+    const normalized = (text || '').toString().replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\t/g, '  ');
+    const lines = normalized.split('\n');
+    let currentY = y;
+    let remaining = maxLines;
+
+    for (const rawLine of lines) {
+      if (remaining <= 0) break;
+      const pieces = this.breakLineToWidth(rawLine, maxWidth);
+      for (const piece of pieces) {
+        if (remaining <= 0) break;
+        this.ctx.fillText(piece, x, currentY);
+        currentY += lineHeight;
+        remaining -= 1;
+      }
+    }
+
+    return currentY;
+  }
+
+  private breakLineToWidth(line: string, maxWidth: number): string[] {
+    const result: string[] = [];
+    let current = '';
+
+    for (const ch of line) {
+      const next = current + ch;
+      if (this.ctx.measureText(next).width > maxWidth && current.length) {
+        result.push(current);
+        current = ch;
+      } else {
+        current = next;
+      }
+    }
+
+    if (current.length || !result.length) {
+      result.push(current);
+    }
+
+    return result;
   }
 
   private wrapText(
